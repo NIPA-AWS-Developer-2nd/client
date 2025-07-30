@@ -12,6 +12,7 @@ import {
   MissionsPage,
   MyPage,
 } from "./pages";
+import MissionDetailPage from "./pages/MissionDetailPage";
 
 function App() {
   const [showSplash, setShowSplash] = useState(false); // 스플래시 완전 비활성화
@@ -39,6 +40,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/missions" element={<MissionsPage />} />
+              <Route path="/mission/:id" element={<MissionDetailPage />} />
               <Route path="/meetings" element={<MeetingsPage />} />
               <Route path="/market" element={<MarketPage />} />
               <Route path="/my" element={<MyPage />} />
