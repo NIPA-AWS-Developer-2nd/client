@@ -4,7 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { GlobalStyle, theme } from "./styles";
 import { ResponsiveLayout } from "./components/layout/ResponsiveLayout";
 import { SplashScreen } from "./components/common/SplashScreen";
-import { deviceDetection } from "./utils";
+
 import {
   HomePage,
   MarketPage,

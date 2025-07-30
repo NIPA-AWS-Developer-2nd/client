@@ -51,11 +51,6 @@ jobs:
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
 
-      - name: Update Route53 (if needed)
-        run: |
-          echo "Route53 records should be configured manually or via Infrastructure as Code"
-          echo "This step is a placeholder for any Route53 updates if needed"
-
   notify:
     needs: build-and-deploy
     runs-on: ubuntu-latest
