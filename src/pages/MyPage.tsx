@@ -1,0 +1,292 @@
+import React from "react";
+import styled from "styled-components";
+import {
+  User,
+  Bell,
+  Shield,
+  CreditCard,
+  HelpCircle,
+  Settings,
+  Star,
+  Smile,
+  Download,
+  Info,
+  BarChart3,
+} from "lucide-react";
+import { deviceDetection } from "../utils/deviceDetection";
+import { usePWA } from "../hooks/usePWA";
+
+const PageContainer = styled.div<{ $isMobile?: boolean }>`
+  width: 100%;
+  margin: 0 auto;
+`;
+
+const ProfileCard = styled.div<{ $isMobile?: boolean }>`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: ${({ $isMobile }) => ($isMobile ? "20px 16px" : "24px 20px")};
+  margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
+  text-align: center;
+`;
+
+const ProfileAvatar = styled.div<{ $isMobile?: boolean }>`
+  width: ${({ $isMobile }) => ($isMobile ? "60px" : "80px")};
+  height: ${({ $isMobile }) => ($isMobile ? "60px" : "80px")};
+  background: ${({ theme }) => theme.colors.gray100};
+  border-radius: 50%;
+  margin: 0 auto 16px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: ${({ $isMobile }) => ($isMobile ? "24px" : "32px")};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const ProfileName = styled.h3<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "16px" : "18px")};
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text.primary};
+  margin: 0 0 8px 0;
+`;
+
+const ProfileSubtitle = styled.p<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
+  color: ${({ theme }) => theme.colors.text.secondary};
+  margin: 0 0 20px 0;
+`;
+
+const StatsGrid = styled.div<{ $isMobile?: boolean }>`
+  display: grid;
+  grid-template-columns: ${({ $isMobile }) =>
+    $isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)"};
+  gap: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+`;
+
+const StatValue = styled.div<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "16px" : "18px")};
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text.primary};
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+`;
+
+const StatLabel = styled.div<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "10px" : "11px")};
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-weight: 500;
+`;
+
+const MenuCard = styled.div<{ $isMobile?: boolean }>`
+  background: ${({ theme }) => theme.colors.white};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  padding: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
+  margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
+`;
+
+const MenuTitle = styled.h3<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text.primary};
+  margin: 0 0 16px 0;
+`;
+
+const MenuList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`;
+
+const MenuItem = styled.button<{ $isMobile?: boolean }>`
+  background: none;
+  border: none;
+  padding: ${({ $isMobile }) => ($isMobile ? "12px 0" : "14px 0")};
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.divider};
+  outline: none;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray50};
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+  }
+
+  &:focus {
+    background: ${({ theme }) => theme.colors.gray50};
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    border-radius: ${({ theme }) => theme.borderRadius.sm};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const MenuIcon = styled.div<{ $isMobile?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${({ $isMobile }) => ($isMobile ? "32px" : "36px")};
+  height: ${({ $isMobile }) => ($isMobile ? "32px" : "36px")};
+  background: ${({ theme }) => theme.colors.gray100};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
+const MenuLabel = styled.span<{ $isMobile?: boolean }>`
+  flex: 1;
+  text-align: left;
+  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "15px")};
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+export const MyPage: React.FC = () => {
+  const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
+  const { isInstalled, isInstallable, installApp } = usePWA();
+
+  const handleAppInstall = () => {
+    if (isInstallable) {
+      installApp();
+    } else {
+      if (deviceDetection.isIOS()) {
+        alert(
+          'Safari에서 "공유" 버튼을 누른 후 "홈 화면에 추가"를 선택하여 앱을 설치할 수 있습니다.'
+        );
+      } else if (deviceDetection.isAndroid()) {
+        alert(
+          'Chrome에서 메뉴(⋮) 버튼을 누른 후 "홈 화면에 추가" 또는 "앱 설치"를 선택하여 앱을 설치할 수 있습니다.'
+        );
+      } else {
+        alert(
+          "현재 브라우저에서는 PWA 설치가 지원되지 않습니다. Chrome, Edge, Safari를 사용해보세요."
+        );
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(deviceDetection.isMobile());
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const menuItems = [
+    { icon: User, label: "프로필 수정" },
+    { icon: Bell, label: "알림 설정" },
+    { icon: Shield, label: "개인정보" },
+    { icon: CreditCard, label: "결제 수단" },
+    { icon: HelpCircle, label: "고객 센터" },
+    { icon: Settings, label: "앱 설정" },
+  ];
+
+  const daysWithApp = Math.floor(Math.random() * 100) + 10;
+  const userPoints = 2850;
+  const meetingsCount = 12;
+  const reviewsCount = 5;
+  const trustScore = 4.8;
+
+  return (
+    <PageContainer $isMobile={isMobile}>
+      <ProfileCard $isMobile={isMobile}>
+        <ProfileAvatar $isMobile={isMobile}>
+          <Smile size={isMobile ? 24 : 32} />
+        </ProfileAvatar>
+        <ProfileName $isMobile={isMobile}>김한국님</ProfileName>
+        <ProfileSubtitle $isMobile={isMobile}>
+          Halsaram과 함께한 지 {daysWithApp}일째
+        </ProfileSubtitle>
+
+        <StatsGrid $isMobile={isMobile}>
+          <StatItem>
+            <StatValue $isMobile={isMobile}>
+              {userPoints.toLocaleString()}P
+            </StatValue>
+            <StatLabel $isMobile={isMobile}>보유 포인트</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatValue $isMobile={isMobile}>{meetingsCount}</StatValue>
+            <StatLabel $isMobile={isMobile}>참여 모임</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatValue $isMobile={isMobile}>{reviewsCount}</StatValue>
+            <StatLabel $isMobile={isMobile}>리뷰 수</StatLabel>
+          </StatItem>
+          <StatItem>
+            <StatValue $isMobile={isMobile}>
+              <Star size={isMobile ? 14 : 16} fill="currentColor" />{" "}
+              {trustScore}
+            </StatValue>
+            <StatLabel $isMobile={isMobile}>스코어</StatLabel>
+          </StatItem>
+        </StatsGrid>
+      </ProfileCard>
+
+      <MenuCard $isMobile={isMobile}>
+        <MenuTitle $isMobile={isMobile}>설정 및 관리</MenuTitle>
+        <MenuList>
+          {menuItems.map((item, index) => {
+            const IconComponent = item.icon;
+            return (
+              <MenuItem key={index} $isMobile={isMobile}>
+                <MenuIcon $isMobile={isMobile}>
+                  <IconComponent size={isMobile ? 16 : 18} />
+                </MenuIcon>
+                <MenuLabel $isMobile={isMobile}>{item.label}</MenuLabel>
+              </MenuItem>
+            );
+          })}
+        </MenuList>
+      </MenuCard>
+
+      <MenuCard $isMobile={isMobile}>
+        <MenuTitle $isMobile={isMobile}>앱 정보</MenuTitle>
+        <MenuList>
+          <MenuItem $isMobile={isMobile} onClick={handleAppInstall}>
+            <MenuIcon $isMobile={isMobile}>
+              <Download size={isMobile ? 16 : 18} />
+            </MenuIcon>
+            <MenuLabel $isMobile={isMobile}>
+              {isInstalled ? "앱 설치됨" : "앱 설치"}
+            </MenuLabel>
+          </MenuItem>
+          <MenuItem $isMobile={isMobile}>
+            <MenuIcon $isMobile={isMobile}>
+              <Info size={isMobile ? 16 : 18} />
+            </MenuIcon>
+            <MenuLabel $isMobile={isMobile}>앱 버전 정보</MenuLabel>
+          </MenuItem>
+          <MenuItem $isMobile={isMobile}>
+            <MenuIcon $isMobile={isMobile}>
+              <BarChart3 size={isMobile ? 16 : 18} />
+            </MenuIcon>
+            <MenuLabel $isMobile={isMobile}>정보수집 및 오류 보고</MenuLabel>
+          </MenuItem>
+        </MenuList>
+      </MenuCard>
+    </PageContainer>
+  );
+};
