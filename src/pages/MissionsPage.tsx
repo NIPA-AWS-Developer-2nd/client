@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { Clock, Users, BarChart3, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { deviceDetection } from "../utils/deviceDetection";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
@@ -27,7 +28,7 @@ const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "8px 16px" : "10px 20px")};
   border: 1px solid
     ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.border};
+    $isActive ? theme.colors.primary : theme.colors.border};
   background: ${({ $isActive, theme }) =>
     $isActive ? theme.colors.primary : theme.colors.white};
   color: ${({ $isActive, theme }) =>
@@ -42,7 +43,7 @@ const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
     background: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray50};
+    $isActive ? theme.colors.primary : theme.colors.gray50};
   }
 `;
 
@@ -56,8 +57,13 @@ const MissionCard = styled.div<{ $isMobile?: boolean }>`
   transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.gray300};
-    box-shadow: ${({ theme }) => theme.shadows.sm};
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: ${({ theme }) => theme.shadows.md};
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -160,6 +166,7 @@ const EmptyText = styled.p<{ $isMobile?: boolean }>`
 `;
 
 export const MissionsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [activeFilter, setActiveFilter] = React.useState("all");
 
@@ -220,6 +227,10 @@ export const MissionsPage: React.FC = () => {
       ? missions
       : missions.filter((mission) => mission.category === activeFilter);
 
+  const handleMissionClick = (missionId: number) => {
+    navigate(`/mission/${missionId}`);
+  };
+
   return (
     <PageContainer $isMobile={isMobile}>
       <FilterSection $isMobile={isMobile}>
@@ -239,7 +250,11 @@ export const MissionsPage: React.FC = () => {
 
       {filteredMissions.length > 0 ? (
         filteredMissions.map((mission) => (
-          <MissionCard key={mission.id} $isMobile={isMobile}>
+          <MissionCard
+            key={mission.id}
+            $isMobile={isMobile}
+            onClick={() => handleMissionClick(mission.id)}
+          >
             <MissionHeader>
               <MissionInfo>
                 <MissionTitle $isMobile={isMobile}>
