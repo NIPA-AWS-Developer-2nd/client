@@ -14,13 +14,13 @@ import {
 } from "./pages";
 
 function App() {
-  const [showSplash, setShowSplash] = useState(false); // 스플래시 완전 비활성화
+  const [showSplash, setShowSplash] = useState(() => {
+    return !sessionStorage.getItem("hasShownSplash");
+  });
 
   const handleSplashComplete = () => {
-    // 약간의 지연을 주어 부드러운 전환 효과 제공
     setTimeout(() => {
       setShowSplash(false);
-      // 세션 중에는 다시 보여주지 않도록 마킹
       sessionStorage.setItem("hasShownSplash", "true");
     }, 100);
   };
