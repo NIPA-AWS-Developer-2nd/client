@@ -17,7 +17,7 @@ import { InstallPrompt, BrandingContent } from "../common";
 import { HelpModal } from "../common/HelpModal";
 import { deviceDetection, viewportManager } from "../../utils";
 
-// 최상위 고정 컨테이너 (iOS Safari 대응)
+// 최상위 고정 컨테이너
 const AppContainer = styled.div`
   position: fixed;
   top: 0;
@@ -26,7 +26,7 @@ const AppContainer = styled.div`
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  height: calc(var(--vh, 1vh) * 100); /* iOS Safari 대응 */
+  height: calc(var(--vh, 1vh) * 100);
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -42,7 +42,7 @@ const AppContainer = styled.div`
   }
 `;
 
-// 메인 컨텐츠 컨테이너 (iOS Safari 대응)
+// 메인 컨텐츠 컨테이너
 const MainContainer = styled.div<{ $isMobile: boolean }>`
   position: relative;
   display: flex;
@@ -79,7 +79,7 @@ const DesktopSidebar = styled.div<{ $show: boolean }>`
   }
 `;
 
-// 앱 영역 (완전 고정) - flexbox로 레이아웃 관리
+// 앱 영역
 const AppArea = styled.div<{ $isMobile: boolean }>`
   flex: 1;
   height: 100%;
@@ -92,7 +92,7 @@ const AppArea = styled.div<{ $isMobile: boolean }>`
   max-width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
 `;
 
-// 헤더 개선 - 새로운 레이아웃
+// 헤더
 const AppHeader = styled.header<{ $isMobile: boolean }>`
   background-color: ${({ theme }) => theme.colors.white};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
@@ -106,7 +106,6 @@ const AppHeader = styled.header<{ $isMobile: boolean }>`
   justify-content: space-between;
   flex-shrink: 0;
 
-  /* iOS Safari에서 헤더 상단 여백 */
   padding-top: ${({ $isMobile }) =>
     $isMobile ? "max(12px, env(safe-area-inset-top))" : "16px"};
 `;
@@ -177,7 +176,7 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
   }
 `;
 
-// 메인 컨텐츠 - 오직 여기서만 스크롤 허용
+// 메인 컨텐츠
 const AppMain = styled.main<{ $isMobile: boolean }>`
   flex: 1;
   padding: ${({ $isMobile }) => ($isMobile ? "16px 20px" : "24px 32px")};
@@ -222,16 +221,16 @@ const TabBar = styled.nav<{ $isMobile: boolean }>`
   z-index: 1000;
   height: 72px;
   min-height: 72px;
-  flex-shrink: 0; /* 높이 고정 */
+  flex-shrink: 0;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 
   /* 모바일에서 탭바 최적화 */
   @media (max-width: 1024px) {
     will-change: auto;
-    transform: translateZ(0); /* 하드웨어 가속 */
+    transform: translateZ(0);
   }
 
-  /* iOS Safari safe area 완전 대응 */
+  /* iOS Safari safe area */
   padding-bottom: ${({ $isMobile }) =>
     $isMobile ? "max(8px, env(safe-area-inset-bottom))" : "8px"};
 
@@ -244,7 +243,7 @@ const TabBar = styled.nav<{ $isMobile: boolean }>`
   `}
 `;
 
-// 탭 아이템 - 클릭 완전 허용
+// 탭 아이템
 const TabItem = styled(Link)<{ $isActive: boolean }>`
   display: flex;
   flex-direction: column;
@@ -263,9 +262,8 @@ const TabItem = styled(Link)<{ $isActive: boolean }>`
   text-decoration: none;
   font-weight: ${({ $isActive }) => ($isActive ? "600" : "400")};
 
-  /* 모바일에서 탭 아이템 터치 최적화 */
   @media (max-width: 1024px) {
-    min-height: 44px; /* iOS 권장 최소 터치 영역 */
+    min-height: 44px;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
   }
 
@@ -352,6 +350,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   const navigate = useNavigate();
 
   useEffect(() => {
+    const scrollContainer = document.querySelector("[data-scroll-container]");
+    if (scrollContainer) {
+      scrollContainer.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(deviceDetection.isMobile());
     };
@@ -370,13 +375,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     };
   }, []);
 
-
   // iOS Safari 뷰포트 높이 관리 초기화
   useEffect(() => {
     if (isMobile) {
-      viewportManager; // 뷰포트 매니저 초기화
+      // 뷰포트 매니저 초기화
+      viewportManager.getCurrentHeight();
     }
-  }, []);
+  }, [isMobile]);
 
   // 모바일에서 스크롤 제한 (탭바만 제한, 헤더는 허용)
   useEffect(() => {
@@ -385,7 +390,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       const preventTabBarScroll = (e: TouchEvent) => {
         const target = e.target as Element;
         const isInTabBar = target.closest("nav");
-        const isTabItem = target.closest("a"); // 탭 아이템은 클릭 허용
+        const isTabItem = target.closest("a");
 
         // 탭바 영역이지만 탭 아이템이 아닌 경우에만 스크롤 방지
         if (isInTabBar && !isTabItem) {
@@ -464,85 +469,82 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     { path: "/my", icon: User, label: "마이" },
   ];
 
-
   return (
     <AppContainer>
-          <OfflineIndicator $show={!isOnline}>
-            📡 오프라인 모드 - 일부 기능이 제한될 수 있습니다
-          </OfflineIndicator>
+      <OfflineIndicator $show={!isOnline}>
+        오프라인 모드는 일부 기능이 제한될 수 있습니다.
+      </OfflineIndicator>
 
-          <MainContainer $isMobile={isMobile}>
-            {/* 데스크톱 사이드바 */}
-            <DesktopSidebar $show={showDesktopSidebar}>
-              <BrandingContent variant="sidebar" />
-            </DesktopSidebar>
+      <MainContainer $isMobile={isMobile}>
+        {/* 데스크톱 사이드바 */}
+        <DesktopSidebar $show={showDesktopSidebar}>
+          <BrandingContent variant="sidebar" />
+        </DesktopSidebar>
 
-            {/* 앱 영역 */}
-            <AppArea $isMobile={isMobile}>
-              <AppHeader $isMobile={isMobile}>
-                <HeaderLeft>
-                  <BackButton $show={!isMainTab} onClick={handleBack}>
-                    <ArrowLeft size={18} />
-                  </BackButton>
-                  <PageTitle $isMobile={isMobile}>
-                    {currentPage.title}
-                  </PageTitle>
-                  {isHomePage && (
-                    <HelpButton $isMobile={isMobile} onClick={handleHelpClick}>
-                      <HelpCircle size={isMobile ? 16 : 18} />
-                    </HelpButton>
-                  )}
-                </HeaderLeft>
+        {/* 앱 영역 */}
+        <AppArea $isMobile={isMobile}>
+          <AppHeader $isMobile={isMobile}>
+            <HeaderLeft>
+              <BackButton $show={!isMainTab} onClick={handleBack}>
+                <ArrowLeft size={18} />
+              </BackButton>
+              <PageTitle $isMobile={isMobile}>{currentPage.title}</PageTitle>
+              {isHomePage && (
+                <HelpButton $isMobile={isMobile} onClick={handleHelpClick}>
+                  <HelpCircle size={isMobile ? 16 : 18} />
+                </HelpButton>
+              )}
+            </HeaderLeft>
 
-                <HeaderRight>
-                  <HeaderIconButton $isMobile={isMobile} onClick={handleSearch}>
-                    <Search size={isMobile ? 18 : 20} />
-                  </HeaderIconButton>
-                  <HeaderIconButton
-                    $isMobile={isMobile}
-                    onClick={handleNotifications}
-                  >
-                    <Bell size={isMobile ? 18 : 20} />
-                  </HeaderIconButton>
-                  <HeaderIconButton $isMobile={isMobile} onClick={handleMore}>
-                    <MoreHorizontal size={isMobile ? 18 : 20} />
-                  </HeaderIconButton>
-                </HeaderRight>
-              </AppHeader>
+            <HeaderRight>
+              <HeaderIconButton $isMobile={isMobile} onClick={handleSearch}>
+                <Search size={isMobile ? 18 : 20} />
+              </HeaderIconButton>
+              <HeaderIconButton
+                $isMobile={isMobile}
+                onClick={handleNotifications}
+              >
+                <Bell size={isMobile ? 18 : 20} />
+              </HeaderIconButton>
+              <HeaderIconButton $isMobile={isMobile} onClick={handleMore}>
+                <MoreHorizontal size={isMobile ? 18 : 20} />
+              </HeaderIconButton>
+            </HeaderRight>
+          </AppHeader>
 
-              <AppMain $isMobile={isMobile} data-scroll-container>
-                {children}
-              </AppMain>
+          <AppMain $isMobile={isMobile} data-scroll-container>
+            {children}
+          </AppMain>
 
-              {/* 하단 탭 바 - 클릭 정상 작동 */}
-              <TabBar $isMobile={isMobile}>
-                {tabs.map((tab) => {
-                  const IconComponent = tab.icon;
-                  return (
-                    <TabItem
-                      key={tab.path}
-                      to={tab.path}
-                      $isActive={location.pathname === tab.path}
-                    >
-                      <TabIcon>
-                        <IconComponent size={20} />
-                      </TabIcon>
-                      <TabLabel>{tab.label}</TabLabel>
-                    </TabItem>
-                  );
-                })}
-              </TabBar>
-            </AppArea>
-          </MainContainer>
+          {/* 하단 탭 바 */}
+          <TabBar $isMobile={isMobile}>
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <TabItem
+                  key={tab.path}
+                  to={tab.path}
+                  $isActive={location.pathname === tab.path}
+                >
+                  <TabIcon>
+                    <IconComponent size={20} />
+                  </TabIcon>
+                  <TabLabel>{tab.label}</TabLabel>
+                </TabItem>
+              );
+            })}
+          </TabBar>
+        </AppArea>
+      </MainContainer>
 
-          {showInstallPrompt && <InstallPrompt />}
+      {showInstallPrompt && <InstallPrompt />}
 
-          {/* 도움말 모달 */}
-          <HelpModal
-            isOpen={showHelpModal}
-            onClose={handleHelpClose}
-            isMobile={isMobile}
-          />
+      {/* 도움말 모달 */}
+      <HelpModal
+        isOpen={showHelpModal}
+        onClose={handleHelpClose}
+        isMobile={isMobile}
+      />
     </AppContainer>
   );
 };
