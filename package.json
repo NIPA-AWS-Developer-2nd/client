@@ -1,7 +1,7 @@
 {
   "name": "client",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,10 @@
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "prepare": "husky",
-    "build-and-push": "npm run build && git push"
+    "build-and-push": "npm run build && git push",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
