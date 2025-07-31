@@ -1,1 +1,11 @@
+#\!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 자동 버전 업데이트 (patch 버전 증가)
+npm run version:patch
+
+# staged된 변경사항에 package.json 추가 (버전 업데이트 포함)
+git add package.json
+
+# lint-staged 실행 (코드 품질 체크)
 npx lint-staged

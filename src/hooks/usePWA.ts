@@ -29,7 +29,13 @@ export const usePWA = () => {
 
     // Check if app is already installed
     const checkIfInstalled = () => {
+      // Standalone mode check (iOS Safari PWA)
       if (window.matchMedia('(display-mode: standalone)').matches) {
+        setIsInstalled(true);
+      }
+      
+      // iOS Safari specific check
+      if ((window.navigator as Navigator & { standalone?: boolean }).standalone) {
         setIsInstalled(true);
       }
     };
@@ -58,7 +64,17 @@ export const usePWA = () => {
   };
 
   const isPWASupported = () => {
-    return 'serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window;
+    // Service Worker 지원 여부 확인
+    if (!('serviceWorker' in navigator)) {
+      return false;
+    }
+    
+    // Chrome/Edge 계열 브라우저 확인
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isChrome = userAgent.includes('chrome');
+    const isEdge = userAgent.includes('edg');
+    
+    return isChrome || isEdge;
   };
 
   return {

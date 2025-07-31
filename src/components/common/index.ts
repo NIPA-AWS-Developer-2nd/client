@@ -2,3 +2,7 @@ export * from "./BrandingContent";
 export * from "./InstallPrompt";
 export * from "./SplashScreen";
 export * from "./HelpModal";
+export * from "./InfoModal";
+export * from "./FeedbackModal";
+export * from "./AppInfoModal";
+export * from "./SimpleFeedbackModal";
