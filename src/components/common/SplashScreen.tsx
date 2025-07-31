@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 import { BrandingContent } from "./BrandingContent";
 import { SPLASH_CONFIG } from "../../constants";
 
@@ -54,17 +54,16 @@ const SplashContainer = styled.div<{ $isFadingOut: boolean }>`
   /* 페이드아웃 애니메이션 */
   animation: ${({ $isFadingOut }) =>
     $isFadingOut
-      ? `${fadeOut} ${SPLASH_CONFIG.fadeOutDuration}ms ease-in-out forwards`
+      ? css`${fadeOut} ${SPLASH_CONFIG.fadeOutDuration}ms ease-in-out forwards`
       : "none"};
 `;
 
 const SplashContent = styled.div`
-  /* 개별 요소들에 페이드인 효과 적용 */
+  /* 페이드인 애니메이션 */
   > * {
-    animation: ${fadeIn} 0.8s ease-in-out;
+    animation: ${css`${fadeIn} 0.8s ease-in-out`};
   }
 
-  /* 순차적 애니메이션 지연 */
   > *:nth-child(1) {
     animation-delay: 0.2s;
     animation-fill-mode: both;
@@ -89,7 +88,7 @@ const SplashContent = styled.div`
 
 const LoadingSpinner = styled.div`
   margin-top: 48px;
-  animation: ${fadeIn} 0.8s ease-in-out 1.2s both;
+  animation: ${css`${fadeIn} 0.8s ease-in-out 1.2s both`};
 `;
 
 const SpinnerRing = styled.div`
@@ -98,7 +97,7 @@ const SpinnerRing = styled.div`
   border: 3px solid ${({ theme }) => theme.colors.gray700};
   border-top: 3px solid ${({ theme }) => theme.colors.white};
   border-radius: 50%;
-  animation: ${rotate} 1s linear infinite;
+  animation: ${css`${rotate} 1s linear infinite`};
   margin: 0 auto;
 `;
 
