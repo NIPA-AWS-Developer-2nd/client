@@ -58,22 +58,6 @@ const Footer = styled.footer`
   font-size: 14px;
 `;
 
-const StatusBar = styled.div<{ $show: boolean }>`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: ${({ theme }) => theme.colors.warning};
-  color: ${({ theme }) => theme.colors.dark};
-  padding: 8px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 500;
-  z-index: 1001;
-  transform: translateY(${({ $show }) => ($show ? "0" : "-100%")});
-  transition: transform 0.3s ease;
-`;
-
 interface PWALayoutProps {
   children: React.ReactNode;
   title?: string;
@@ -85,21 +69,7 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
   title = "Halsaram — 번개모임 커뮤니티",
   showInstallPrompt = true,
 }) => {
-  const [isOnline, setIsOnline] = React.useState(deviceCapabilities.isOnline());
   const [isStandalone] = React.useState(deviceCapabilities.isStandalone());
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
 
   // Update document title
   useEffect(() => {
@@ -110,10 +80,6 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <LayoutContainer>
-        <StatusBar $show={!isOnline}>
-          📡 오프라인 모드 - 일부 기능이 제한될 수 있습니다
-        </StatusBar>
-
         <Header $isStandalone={isStandalone}>
           <Title>{title}</Title>
         </Header>
