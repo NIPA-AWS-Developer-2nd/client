@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, MapPin, Clock, Users, BarChart3, CheckCircle, User } from 'lucide-react';
+import { MapPin, Clock, Users, BarChart3, CheckCircle } from 'lucide-react';
 import { deviceDetection } from '../utils/deviceDetection';
 
 interface Participant {
