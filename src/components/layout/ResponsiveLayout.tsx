@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   User,
   HelpCircle,
+  Settings,
 } from "lucide-react";
 import { InstallPrompt, BrandingContent } from "../common";
 import { HelpModal } from "../common/HelpModal";
@@ -91,7 +92,7 @@ const DesktopSidebar = styled.div<{ $show: boolean }>`
   width: 400px;
   min-width: 400px;
   height: 100%;
-  background: ${({ theme }) => theme.colors.gray900};
+  background: #111827;
   padding: 48px 32px;
   position: relative;
 
@@ -301,14 +302,14 @@ const TabBar = styled.nav<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
 
   /* iOS Safari safe area */
   padding-bottom: ${({ $isMobile }) =>
-    $isMobile ? "max(8px, env(safe-area-inset-bottom))" : "8px"};
+    $isMobile ? "max(16px, calc(env(safe-area-inset-bottom) + 8px))" : "8px"};
 
   /* iOS Safari에서 탭바 높이 조정 */
   ${({ $isMobile }) =>
     $isMobile &&
     `
-    height: calc(72px + env(safe-area-inset-bottom));
-    min-height: calc(72px + env(safe-area-inset-bottom));
+    height: calc(72px + env(safe-area-inset-bottom) + 8px);
+    min-height: calc(72px + env(safe-area-inset-bottom) + 8px);
   `}
 `;
 
@@ -333,7 +334,7 @@ const TabItem = styled(Link)<{ $isActive: boolean }>`
 
   @media (max-width: 1024px) {
     min-height: 44px;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-tap-highlight-color: transparent;
   }
 
   &:hover {
@@ -579,6 +580,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       { path: "/meetings", icon: Users, label: "모임", title: "모임" },
       { path: "/market", icon: ShoppingBag, label: "마켓", title: "마켓" },
       { path: "/my", icon: User, label: "마이", title: "마이페이지" },
+      { path: "/my/settings", icon: Settings, label: "앱 설정", title: "앱 설정" },
     ];
 
     const currentTab = tabs.find((tab) => tab.path === location.pathname);

@@ -10,12 +10,55 @@ import {
   Crown,
   Rocket,
   Search,
+  RotateCcw,
 } from "lucide-react";
 import { deviceDetection } from "../utils/deviceDetection";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* 커스텀 스크롤바 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.gray300};
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.colors.gray400};
+  }
+
+  /* 모바일에서 터치 스크롤 최적화 및 스크롤바 숨김 */
+  @media (max-width: 1024px) {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+
+    /* 모바일에서 스크롤바 숨김 */
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Firefox에서도 스크롤바 숨김 */
+    scrollbar-width: none;
+  }
+`;
+
+const ContentWrapper = styled.div`
+  position: relative;
+  min-height: 100%;
 `;
 
 const StatusCard = styled.div<{ $isMobile?: boolean }>`
@@ -81,18 +124,19 @@ const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
   white-space: nowrap;
   outline: none;
 
-  &:hover {
-    background: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray100};
-    border-color: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray300};
+  /* 데스크톱에서만 hover 효과 */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: ${({ $isActive, theme }) =>
+        $isActive ? theme.colors.primary : theme.colors.gray100};
+      border-color: ${({ $isActive, theme }) =>
+        $isActive ? theme.colors.primary : theme.colors.gray300};
+    }
   }
 
-  &:focus {
-    background: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray100};
-    border-color: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray300};
+  /* 클릭/터치 피드백 */
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
@@ -105,9 +149,18 @@ const MeetingCard = styled.div<{ $isMobile?: boolean }>`
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
 
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.gray300};
-    box-shadow: ${({ theme }) => theme.shadows.sm};
+  /* 데스크톱에서만 hover 효과 */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: ${({ theme }) => theme.colors.primary};
+      box-shadow: ${({ theme }) => theme.shadows.sm};
+    }
+  }
+
+  /* 클릭/터치 피드백 */
+  &:active {
+    transform: scale(0.98);
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -249,37 +302,104 @@ const JoinButton = styled.button<{ $isMobile?: boolean }>`
   }
 `;
 
+// 플로팅 새로고침 버튼
+const FloatingRefreshButton = styled.button<{
+  $isMobile?: boolean;
+  $isRefreshing: boolean;
+}>`
+  position: fixed;
+  bottom: ${({ $isMobile }) => ($isMobile ? "100px" : "200px")};
+  right: ${({ $isMobile }) => ($isMobile ? "20px" : "110px")};
+  width: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};
+  height: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.white};
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.gray400};
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray400};
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  svg {
+    animation: ${({ $isRefreshing }) =>
+      $isRefreshing ? "spin 1s linear infinite" : "none"};
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    background: ${({ theme }) => theme.colors.primary};
+    border: 1px solid ${({ theme }) => theme.colors.white};
+  }
+`;
+
 const getTimeRemaining = (dateStr: string, timeStr: string) => {
   const meetingDateTime = new Date(`${dateStr} ${timeStr}`);
   const now = new Date();
   const diffInMs = meetingDateTime.getTime() - now.getTime();
-  
+
   if (diffInMs <= 0) return "시작됨";
-  
+
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-  const diffInHours = Math.floor((diffInMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const diffInHours = Math.floor(
+    (diffInMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
   const diffInMinutes = Math.floor((diffInMs % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   if (diffInDays > 0) {
     if (diffInHours > 0) {
       return `${diffInDays}일 ${diffInHours}시간`;
     }
     return `${diffInDays}일`;
   }
-  
+
   if (diffInHours > 0) {
     if (diffInMinutes > 0) {
       return `${diffInHours}시간 ${diffInMinutes}분`;
     }
     return `${diffInHours}시간`;
   }
-  
+
   return `${diffInMinutes}분 후`;
 };
 
 export const MeetingsPage: React.FC = () => {
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [activeFilter, setActiveFilter] = React.useState("recruiting");
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  // 새로고침 기능
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // API 호출이나 데이터 새로고침 로직
+    await new Promise((resolve) => setTimeout(resolve, 1500)); // 시뮬레이션
+    setIsRefreshing(false);
+  };
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -368,105 +488,121 @@ export const MeetingsPage: React.FC = () => {
     return true;
   });
 
-
   const activeMeetingsCount = meetings.filter(
     (m) => m.status === "recruiting"
   ).length;
 
   return (
     <PageContainer $isMobile={isMobile}>
-      <StatusCard $isMobile={isMobile}>
-        <StatusIcon $isMobile={isMobile}>
-          <Rocket size={isMobile ? 32 : 40} />
-        </StatusIcon>
-        <StatusTitle $isMobile={isMobile}>
-          현재 {activeMeetingsCount}개의 모임이 모집 중입니다
-        </StatusTitle>
-        <StatusDescription $isMobile={isMobile}>
-          지금 바로 참여하여 새로운 사람들과 함께 미션을 수행해보세요!
-        </StatusDescription>
-      </StatusCard>
+      <ContentWrapper>
+        <StatusCard $isMobile={isMobile}>
+          <StatusIcon $isMobile={isMobile}>
+            <Rocket size={isMobile ? 32 : 40} />
+          </StatusIcon>
+          <StatusTitle $isMobile={isMobile}>
+            현재 {activeMeetingsCount}개의 모임이 모집 중입니다
+          </StatusTitle>
+          <StatusDescription $isMobile={isMobile}>
+            지금 바로 참여하여 새로운 사람들과 함께 미션을 수행해보세요!
+          </StatusDescription>
+        </StatusCard>
 
-      <FilterSection $isMobile={isMobile}>
-        <FilterTabs $isMobile={isMobile}>
-          {filters.map((filter) => (
-            <FilterTab
-              key={filter.id}
-              $isActive={activeFilter === filter.id}
-              $isMobile={isMobile}
-              onClick={() => setActiveFilter(filter.id)}
-            >
-              {filter.label}
-            </FilterTab>
-          ))}
-        </FilterTabs>
-      </FilterSection>
+        <FilterSection $isMobile={isMobile}>
+          <FilterTabs $isMobile={isMobile}>
+            {filters.map((filter) => (
+              <FilterTab
+                key={filter.id}
+                $isActive={activeFilter === filter.id}
+                $isMobile={isMobile}
+                onClick={() => setActiveFilter(filter.id)}
+              >
+                {filter.label}
+              </FilterTab>
+            ))}
+          </FilterTabs>
+        </FilterSection>
 
-      {filteredMeetings.length > 0 ? (
-        filteredMeetings.map((meeting) => (
-          <MeetingCard key={meeting.id} $isMobile={isMobile}>
-            <MeetingHeader>
-              <MeetingInfo>
-                <MeetingTitle $isMobile={isMobile}>{meeting.title}</MeetingTitle>
-                <MeetingSubtitle $isMobile={isMobile}>
-                  {meeting.description}
-                </MeetingSubtitle>
-              </MeetingInfo>
-              {meeting.status === "recruiting" && (
-                <TimeRemaining $isMobile={isMobile}>
-                  {getTimeRemaining(meeting.date, meeting.time)}
-                </TimeRemaining>
-              )}
-            </MeetingHeader>
+        {filteredMeetings.length > 0 ? (
+          filteredMeetings.map((meeting) => (
+            <MeetingCard key={meeting.id} $isMobile={isMobile}>
+              <MeetingHeader>
+                <MeetingInfo>
+                  <MeetingTitle $isMobile={isMobile}>
+                    {meeting.title}
+                  </MeetingTitle>
+                  <MeetingSubtitle $isMobile={isMobile}>
+                    {meeting.description}
+                  </MeetingSubtitle>
+                </MeetingInfo>
+                {meeting.status === "recruiting" && (
+                  <TimeRemaining $isMobile={isMobile}>
+                    {getTimeRemaining(meeting.date, meeting.time)}
+                  </TimeRemaining>
+                )}
+              </MeetingHeader>
 
-            <MeetingMeta $isMobile={isMobile}>
-              <MetaItem $isMobile={isMobile}>
-                <Calendar size={14} />
-                {meeting.displayDate}
-              </MetaItem>
-              <MetaItem $isMobile={isMobile}>
-                <Clock size={14} />
-                {meeting.displayTime}
-              </MetaItem>
-              <MetaItem $isMobile={isMobile}>
-                <MapPin size={14} />
-                {meeting.location}
-              </MetaItem>
-              <MetaItem $isMobile={isMobile}>
-                <Users size={14} />
-                {meeting.participants}
-              </MetaItem>
-              <MetaItem $isMobile={isMobile}>
-                <DollarSign size={14} />{meeting.points}P 보상
-              </MetaItem>
-            </MeetingMeta>
+              <MeetingMeta $isMobile={isMobile}>
+                <MetaItem $isMobile={isMobile}>
+                  <Calendar size={14} />
+                  {meeting.displayDate}
+                </MetaItem>
+                <MetaItem $isMobile={isMobile}>
+                  <Clock size={14} />
+                  {meeting.displayTime}
+                </MetaItem>
+                <MetaItem $isMobile={isMobile}>
+                  <MapPin size={14} />
+                  {meeting.location}
+                </MetaItem>
+                <MetaItem $isMobile={isMobile}>
+                  <Users size={14} />
+                  {meeting.participants}
+                </MetaItem>
+                <MetaItem $isMobile={isMobile}>
+                  <DollarSign size={14} />
+                  {meeting.points}P 보상
+                </MetaItem>
+              </MeetingMeta>
 
-            <HostInfo $isMobile={isMobile}>
-              <HostSection>
-                <HostAvatar $isMobile={isMobile}>
-                  <UserIcon size={isMobile ? 12 : 14} />
-                  <CrownIcon $isMobile={isMobile}>
-                    <Crown size={isMobile ? 6 : 7} />
-                  </CrownIcon>
-                </HostAvatar>
-                <HostName $isMobile={isMobile}>{meeting.host}</HostName>
-              </HostSection>
-              {meeting.status === "recruiting" && (
-                <JoinButton $isMobile={isMobile}>참여하기</JoinButton>
-              )}
-            </HostInfo>
-          </MeetingCard>
-        ))
-      ) : (
-        <EmptyState $isMobile={isMobile}>
-          <EmptyIcon $isMobile={isMobile}>
-            <Search size={isMobile ? 48 : 64} />
-          </EmptyIcon>
-          <EmptyText $isMobile={isMobile}>
-            {filters.find(f => f.id === activeFilter)?.label} 카테고리에 모임이 없습니다.
-          </EmptyText>
-        </EmptyState>
-      )}
+              <HostInfo $isMobile={isMobile}>
+                <HostSection>
+                  <HostAvatar $isMobile={isMobile}>
+                    <UserIcon size={isMobile ? 12 : 14} />
+                    <CrownIcon $isMobile={isMobile}>
+                      <Crown size={isMobile ? 6 : 7} />
+                    </CrownIcon>
+                  </HostAvatar>
+                  <HostName $isMobile={isMobile}>{meeting.host}</HostName>
+                </HostSection>
+                {meeting.status === "recruiting" && (
+                  <JoinButton $isMobile={isMobile}>참여하기</JoinButton>
+                )}
+              </HostInfo>
+            </MeetingCard>
+          ))
+        ) : (
+          <EmptyState $isMobile={isMobile}>
+            <EmptyIcon $isMobile={isMobile}>
+              <Search size={isMobile ? 48 : 64} />
+            </EmptyIcon>
+            <EmptyText $isMobile={isMobile}>
+              {filters.find((f) => f.id === activeFilter)?.label} 카테고리에
+              모임이 없습니다.
+            </EmptyText>
+          </EmptyState>
+        )}
+      </ContentWrapper>
+
+      {/* 플로팅 새로고침 버튼 */}
+      <FloatingRefreshButton
+        $isMobile={isMobile}
+        $isRefreshing={isRefreshing}
+        onClick={handleRefresh}
+        disabled={isRefreshing}
+        title="새로고침"
+      >
+        <RotateCcw size={isMobile ? 18 : 20} />
+      </FloatingRefreshButton>
     </PageContainer>
   );
 };

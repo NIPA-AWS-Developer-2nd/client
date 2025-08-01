@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   User,
@@ -15,10 +16,7 @@ import {
 } from "lucide-react";
 import { deviceDetection } from "../utils/deviceDetection";
 import { usePWA } from "../hooks/usePWA";
-import {
-  AppInfoModal,
-  SimpleFeedbackModal,
-} from "../components/common";
+import { AppInfoModal, SimpleFeedbackModal } from "../components/common";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
@@ -204,6 +202,7 @@ const MenuSubLabel = styled.div<{ $isMobile?: boolean }>`
 `;
 
 export const MyPage: React.FC = () => {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const { isInstalled, isInstallable, installApp, isPWASupported } = usePWA();
   const [showAppInfoModal, setShowAppInfoModal] = React.useState(false);
@@ -211,7 +210,8 @@ export const MyPage: React.FC = () => {
     React.useState(false);
 
   // package.json에서 가져온 앱 버전
-  const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0';
+  const appVersion =
+    typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0";
 
   // 디버깅을 위한 PWA 상태 로그
   React.useEffect(() => {
@@ -276,13 +276,37 @@ export const MyPage: React.FC = () => {
     setShowSimpleFeedbackModal(true);
   };
 
+  const handleAppSettings = () => {
+    navigate("/my/settings");
+  };
+
   const menuItems = [
-    { icon: User, label: "프로필 수정" },
-    { icon: Bell, label: "알림 설정" },
-    { icon: Shield, label: "개인정보" },
-    { icon: CreditCard, label: "결제 수단" },
-    { icon: HelpCircle, label: "고객 센터" },
-    { icon: Settings, label: "앱 설정" },
+    {
+      icon: User,
+      label: "프로필 수정",
+      onClick: () => alert("프로필 수정 기능을 준비 중입니다."),
+    },
+    {
+      icon: Bell,
+      label: "알림 설정",
+      onClick: () => alert("알림 설정 기능을 준비 중입니다."),
+    },
+    {
+      icon: Shield,
+      label: "개인정보",
+      onClick: () => alert("개인정보 기능을 준비 중입니다."),
+    },
+    {
+      icon: CreditCard,
+      label: "결제 수단",
+      onClick: () => alert("결제 수단 기능을 준비 중입니다."),
+    },
+    {
+      icon: HelpCircle,
+      label: "고객 센터",
+      onClick: () => alert("고객 센터 기능을 준비 중입니다."),
+    },
+    { icon: Settings, label: "앱 설정", onClick: handleAppSettings },
   ];
 
   const daysWithApp = Math.floor(Math.random() * 100) + 10;
@@ -333,7 +357,7 @@ export const MyPage: React.FC = () => {
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
             return (
-              <MenuItem key={index} $isMobile={isMobile}>
+              <MenuItem key={index} $isMobile={isMobile} onClick={item.onClick}>
                 <MenuIcon $isMobile={isMobile}>
                   <IconComponent size={isMobile ? 16 : 18} />
                 </MenuIcon>
