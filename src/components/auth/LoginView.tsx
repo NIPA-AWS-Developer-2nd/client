@@ -16,9 +16,9 @@ const LoginContainer = styled.div`
   background: ${({ theme }) => theme.colors.background};
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  padding: 48px 32px;
+  padding: 48px 32px 32px 32px;
   z-index: 9999;
 `;
 
@@ -28,6 +28,8 @@ const LoginContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex: 1;
+  justify-content: center;
 `;
 
 const BrandingWrapper = styled.div`
@@ -39,7 +41,13 @@ const LoginButtonsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 32px;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
 `;
 
 const TermsText = styled.p`
@@ -47,7 +55,8 @@ const TermsText = styled.p`
   color: ${({ theme }) => theme.colors.text.secondary};
   text-align: center;
   line-height: 1.5;
-  max-width: 300px;
+  max-width: 320px;
+  margin: 0;
 `;
 
 const TermsLink = styled.span`
@@ -63,7 +72,7 @@ interface LoginViewProps {
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   const { login, isLoading } = useAuth();
 
-  const handleSocialLogin = async (provider: "apple" | "kakao" | "google") => {
+  const handleSocialLogin = async (provider: "apple" | "kakao" | "google" | "naver") => {
     try {
       await login(provider);
       onLoginSuccess?.();
@@ -92,16 +101,22 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             disabled={isLoading}
           />
           <SocialLoginButton
+            provider="naver"
+            onClick={() => handleSocialLogin("naver")}
+            disabled={isLoading}
+          />
+          <SocialLoginButton
             provider="google"
             onClick={() => handleSocialLogin("google")}
             disabled={isLoading}
           />
         </LoginButtonsContainer>
-        <TermsText>
-          로그인 시 <TermsLink>이용약관</TermsLink> 및{" "}
-          <TermsLink>개인정보처리방침</TermsLink>에 동의하게 됩니다.
-        </TermsText>
       </LoginContent>
+      
+      <TermsText>
+        로그인 시 <TermsLink>이용약관</TermsLink> 및{" "}
+        <TermsLink>개인정보처리방침</TermsLink>에 동의하게 됩니다.
+      </TermsText>
     </LoginContainer>
   );
 };

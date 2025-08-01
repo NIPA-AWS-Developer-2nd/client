@@ -3,14 +3,15 @@ import styled from "styled-components";
 import appleLogoImg from "../../assets/images/apple-logo.png";
 import kakaoLogoImg from "../../assets/images/kakao-logo.svg";
 import googleLogoImg from "../../assets/images/google-logo.png";
+import naverLogoImg from "../../assets/images/naver-logo.png";
 
 interface SocialLoginButtonProps {
-  provider: "apple" | "kakao" | "google";
+  provider: "apple" | "kakao" | "google" | "naver";
   onClick: () => void;
   disabled?: boolean;
 }
 
-const Button = styled.button<{ $provider: "apple" | "kakao" | "google"; $disabled?: boolean }>`
+const Button = styled.button<{ $provider: "apple" | "kakao" | "google" | "naver"; $disabled?: boolean }>`
   width: 100%;
   height: 56px;
   border-radius: 12px;
@@ -25,41 +26,39 @@ const Button = styled.button<{ $provider: "apple" | "kakao" | "google"; $disable
   transition: all 0.2s ease;
   opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
 
+  @media (max-width: 768px) {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 10px 6px;
+  }
+
   ${({ $provider, theme }) => {
     switch ($provider) {
       case "apple":
         return `
           background-color: #000000;
           color: #FFFFFF;
-          &:hover:not(:disabled) {
-            background-color: #1a1a1a;
-          }
-          &:active {
-            background-color: #333333;
-          }
         `;
       case "kakao":
         return `
           background-color: #FEE500;
           color: #000000;
-          &:hover:not(:disabled) {
-            background-color: #FDD700;
-          }
-          &:active {
-            background-color: #F9C800;
-          }
         `;
       case "google":
         return `
           background-color: #FFFFFF;
           color: #000000;
           border: 1px solid ${theme.colors.border};
-          &:hover:not(:disabled) {
-            background-color: #F8F9FA;
-          }
-          &:active {
-            background-color: #F1F3F4;
-          }
+        `;
+      case "naver":
+        return `
+          background-color: #45b649;
+          color: #FFFFFF;
         `;
       default:
         return "";
@@ -73,19 +72,25 @@ const Button = styled.button<{ $provider: "apple" | "kakao" | "google"; $disable
   }
 `;
 
-const Icon = styled.img<{ $provider: "apple" | "kakao" | "google" }>`
+const Icon = styled.img<{ $provider: "apple" | "kakao" | "google" | "naver" }>`
   width: 20px;
   height: 20px;
   object-fit: contain;
+  transition: filter 0.2s ease;
   
   ${({ $provider }) => 
     $provider === "apple" 
       ? "filter: invert(1) brightness(100%);" 
       : ""
   }
+
+  @media (max-width: 768px) {
+    width: ${({ $provider }) => $provider === "naver" ? "28px" : "20px"};
+    height: ${({ $provider }) => $provider === "naver" ? "28px" : "20px"};
+  }
 `;
 
-const getProviderText = (provider: "apple" | "kakao" | "google") => {
+const getProviderText = (provider: "apple" | "kakao" | "google" | "naver") => {
   switch (provider) {
     case "apple":
       return "Apple로 계속하기";
@@ -93,12 +98,14 @@ const getProviderText = (provider: "apple" | "kakao" | "google") => {
       return "카카오로 계속하기";
     case "google":
       return "Google로 계속하기";
+    case "naver":
+      return "네이버로 계속하기";
     default:
       return "";
   }
 };
 
-const getProviderIcon = (provider: "apple" | "kakao" | "google") => {
+const getProviderIcon = (provider: "apple" | "kakao" | "google" | "naver") => {
   switch (provider) {
     case "apple":
       return appleLogoImg;
@@ -106,10 +113,18 @@ const getProviderIcon = (provider: "apple" | "kakao" | "google") => {
       return kakaoLogoImg;
     case "google":
       return googleLogoImg;
+    case "naver":
+      return naverLogoImg;
     default:
       return "";
   }
 };
+
+const ButtonText = styled.span`
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
 
 export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
   provider,
@@ -128,7 +143,7 @@ export const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
         alt={`${provider} logo`} 
         $provider={provider}
       />
-      {getProviderText(provider)}
+      <ButtonText>{getProviderText(provider)}</ButtonText>
     </Button>
   );
 };

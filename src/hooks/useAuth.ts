@@ -4,7 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  provider: "apple" | "kakao" | "google";
+  provider: "apple" | "kakao" | "google" | "naver";
   avatar?: string;
 }
 
@@ -12,7 +12,7 @@ export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (provider: "apple" | "kakao" | "google") => Promise<void>;
+  login: (provider: "apple" | "kakao" | "google" | "naver") => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -51,7 +51,7 @@ export const useAuthState = () => {
     loadStoredAuth();
   }, []);
 
-  const login = async (provider: "apple" | "kakao" | "google") => {
+  const login = async (provider: "apple" | "kakao" | "google" | "naver") => {
     setIsLoading(true);
     try {
       // TODO: 실제 소셜 로그인 API 구현
