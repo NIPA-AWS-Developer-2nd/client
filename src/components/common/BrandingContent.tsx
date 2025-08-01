@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { BRANDING } from "../../constants";
-import logoImage from "../../assets/images/logo.png";
+import logoImage from "../../assets/images/halsaram-logo.png";
 
 interface BrandingContentProps {
   variant?: "splash" | "sidebar";
