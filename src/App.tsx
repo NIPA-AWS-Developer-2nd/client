@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "styled-components";
-import { GlobalStyle, theme } from "./styles";
+import { GlobalStyle } from "./styles";
 import { ResponsiveLayout } from "./components/layout/ResponsiveLayout";
-import { SplashScreen } from "./components/common/SplashScreen";
+import { SplashScreen, ThemeProvider } from "./components/common";
 
 import {
   HomePage,
@@ -11,6 +10,7 @@ import {
   MeetingsPage,
   MissionsPage,
   MyPage,
+  AppSettingsPage,
 } from "./pages";
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <GlobalStyle />
       {showSplash ? (
         <SplashScreen onComplete={handleSplashComplete} />
@@ -42,6 +42,7 @@ function App() {
               <Route path="/meetings" element={<MeetingsPage />} />
               <Route path="/market" element={<MarketPage />} />
               <Route path="/my" element={<MyPage />} />
+              <Route path="/my/settings" element={<AppSettingsPage />} />
             </Routes>
           </ResponsiveLayout>
         </Router>

@@ -25,7 +25,7 @@ const PointsCard = styled.div<{ $isMobile?: boolean }>`
   background: linear-gradient(
     135deg,
     ${({ theme }) => theme.colors.primary},
-    ${({ theme }) => theme.colors.gray700}
+    ${({ theme }) => theme.colors.gray400}
   );
   color: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
@@ -118,7 +118,7 @@ const CategoryItem = styled.button<{ $isMobile?: boolean }>`
   }
 
   &:active {
-    background: ${({ theme }) => theme.colors.gray800};
+    background: ${({ theme }) => theme.colors.gray500};
     color: ${({ theme }) => theme.colors.white};
     transform: scale(0.98);
   }

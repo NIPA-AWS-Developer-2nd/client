@@ -26,10 +26,10 @@ export const GlobalStyle = createGlobalStyle`
     height: calc(var(--vh, 1vh) * 100);
     overflow-x: hidden;
     
-    /* 모바일에서 완벽한 전체 화면 사용 */
+    /* 모바일에서 전체 화면 사용 */
     -webkit-overflow-scrolling: touch;
     
-    /* 검정 화면 방지를 위한 최소 높이 보장 */
+    /* 최소 높이 보장 */
     min-height: 100vh;
     min-height: calc(var(--vh, 1vh) * 100);
   }
@@ -46,7 +46,7 @@ export const GlobalStyle = createGlobalStyle`
     min-height: calc(var(--vh, 1vh) * 100);
   }
 
-  /* 모바일 safe area 완벽 지원 */
+  /* 모바일 safe area */
   @supports (padding: max(0px)) {
     body {
       padding-left: max(0px, env(safe-area-inset-left));
@@ -111,14 +111,19 @@ export const GlobalStyle = createGlobalStyle`
     height: auto;
   }
 
-  /* 포커스 아웃라인 (접근성) */
+  /* 포커스 아웃라인 제거 */
+  button:focus,
   button:focus-visible,
+  a:focus,
   a:focus-visible,
+  input:focus,
   input:focus-visible,
+  textarea:focus,
   textarea:focus-visible,
+  select:focus,
   select:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.colors.accent};
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: none;
   }
 
   /* 모바일 탭 하이라이트 제거 */
@@ -132,7 +137,30 @@ export const GlobalStyle = createGlobalStyle`
     user-select: none;
   }
 
-  /* 텍스트는 선택 가능하게 */
+  /* 모바일 hover 효과 비활성화 */
+  @media (hover: none) and (pointer: coarse) {
+    *:hover:not(:active) {
+      background: inherit !important;
+      background-color: inherit !important;
+      border-color: inherit !important;
+      box-shadow: inherit !important;
+      color: inherit !important;
+      transform: none !important;
+      opacity: inherit !important;
+      filter: inherit !important;
+    }
+  }
+
+  /* 모바일 터치 피드백 */
+  @media (hover: none) and (pointer: coarse) {
+    *:active {
+      background-color: ${({ theme }) => theme.colors.gray200} !important;
+      transform: scale(0.98) !important;
+      transition: all 0.1s ease !important;
+    }
+  }
+
+  /* 텍스트 선택 가능 */
   p, span, div, h1, h2, h3, h4, h5, h6 {
     -webkit-user-select: text;
     -khtml-user-select: text;
