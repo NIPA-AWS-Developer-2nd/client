@@ -116,7 +116,7 @@ const MissionDetailPage: React.FC = () => {
 
     const handleJoinMission = () => {
         // 미션 참여 로직
-        console.log('미션 참여하기');
+        console.log('미션 시작하기');
     };
 
     const handleShare = () => {
@@ -193,26 +193,6 @@ const MissionDetailPage: React.FC = () => {
                         </InfoContent>
                     </InfoItem>
                 </InfoGrid>
-
-                <ParticipantsSection $isMobile={isMobile}>
-                    <SectionTitle $isMobile={isMobile}>참여 현황</SectionTitle>
-                    <ParticipantCount $isMobile={isMobile}>
-                        현재 참여 중인 인원: {missionData.currentParticipants}명
-                    </ParticipantCount>
-                    <ParticipantsList>
-                        {missionData.participants.map((participant) => (
-                            <ParticipantItem key={participant.id} $isMobile={isMobile}>
-                                <ParticipantAvatar $isMobile={isMobile}>
-                                    <User size={isMobile ? 16 : 18} />
-                                </ParticipantAvatar>
-                                <ParticipantInfo>
-                                    <ParticipantName $isMobile={isMobile}>{participant.name}</ParticipantName>
-                                    <JoinDate $isMobile={isMobile}>참여일: {participant.joinDate}</JoinDate>
-                                </ParticipantInfo>
-                            </ParticipantItem>
-                        ))}
-                    </ParticipantsList>
-                </ParticipantsSection>
 
                 <MapSection $isMobile={isMobile}>
                     <SectionTitle $isMobile={isMobile}>수행 장소</SectionTitle>
