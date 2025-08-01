@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# PWA generated files
+public/sw.js
+public/manifest.webmanifest
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
