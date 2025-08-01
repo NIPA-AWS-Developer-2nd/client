@@ -1,0 +1,37 @@
+{
+  "name": "Halsaram",
+  "short_name": "Halsaram",
+  "description": "지역 기반 번개모임 커뮤니티",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ko",
+  "categories": ["social", "lifestyle"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "홈",
+      "short_name": "홈",
+      "description": "메인 페이지로 이동",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/vite.svg",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": []
+}
