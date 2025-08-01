@@ -308,8 +308,8 @@ const FloatingRefreshButton = styled.button<{
   $isRefreshing: boolean;
 }>`
   position: fixed;
-  bottom: ${({ $isMobile }) => ($isMobile ? "100px" : "200px")};
-  right: ${({ $isMobile }) => ($isMobile ? "20px" : "110px")};
+  bottom: ${({ $isMobile }) => ($isMobile ? "100px" : "24px")};
+  right: 24px;
   width: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};
   height: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};
   background: ${({ theme }) => theme.colors.primary};
@@ -322,6 +322,11 @@ const FloatingRefreshButton = styled.button<{
   cursor: pointer;
   z-index: 999;
   transition: all 0.2s ease;
+
+  /* 데스크톱에서는 숨김 */
+  @media (min-width: 1024px) {
+    display: none;
+  }
 
   &:hover {
     background: ${({ theme }) => theme.colors.gray400};

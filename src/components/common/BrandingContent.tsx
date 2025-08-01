@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { BRANDING } from "../../constants";
-import logoImage from "../../assets/images/logo.png";
+import logoImage from "../../assets/images/halsaram-logo.png";
 
 interface BrandingContentProps {
   variant?: "splash" | "sidebar";
@@ -13,6 +13,11 @@ const LogoImage = styled.img<{ $variant: "splash" | "sidebar" }>`
   height: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "32px" : "24px")};
   border-radius: 24px;
+
+  @media (max-width: 768px) {
+    width: ${({ $variant }) => ($variant === "splash" ? "100px" : "80px")};
+    height: ${({ $variant }) => ($variant === "splash" ? "100px" : "80px")};
+  }
 `;
 
 const BrandingContainer = styled.div<{ $variant: "splash" | "sidebar" }>`
@@ -30,6 +35,10 @@ const BrandingTitle = styled.h1<{ $variant: "splash" | "sidebar" }>`
   line-height: 1.2;
   color: ${({ theme, $variant }) => 
     $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
+
+  @media (max-width: 768px) {
+    font-size: ${({ $variant }) => ($variant === "splash" ? "40px" : "36px")};
+  }
 `;
 
 const BrandingSubtitle = styled.p<{ $variant: "splash" | "sidebar" }>`
@@ -40,6 +49,10 @@ const BrandingSubtitle = styled.p<{ $variant: "splash" | "sidebar" }>`
   color: ${({ theme, $variant }) => 
     $variant === "splash" ? theme.colors.text.secondary : "#D1D5DB"};
   white-space: pre-line;
+
+  @media (max-width: 768px) {
+    font-size: ${({ $variant }) => ($variant === "splash" ? "15px" : "16px")};
+  }
 `;
 
 const BrandingDescription = styled.p<{ $variant: "splash" | "sidebar" }>`

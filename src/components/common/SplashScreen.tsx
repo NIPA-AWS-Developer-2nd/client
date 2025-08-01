@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styled, { keyframes, css } from "styled-components";
 import { BrandingContent } from "./BrandingContent";
+import { LoginView } from "../auth/LoginView";
+import { useAuth } from "../../hooks/useAuth";
 import { SPLASH_CONFIG } from "../../constants";
 
 const fadeIn = keyframes`
@@ -111,21 +113,46 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   duration = SPLASH_CONFIG.duration,
 }) => {
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    const fadeOutTimer = setTimeout(() => {
-      setIsFadingOut(true);
-    }, duration - SPLASH_CONFIG.fadeOutDuration);
+    if (isLoading) return;
 
-    const completeTimer = setTimeout(() => {
-      onComplete();
-    }, duration);
+    if (isAuthenticated) {
+      // 로그인된 경우 스플래시 후 홈으로
+      const fadeOutTimer = setTimeout(() => {
+        setIsFadingOut(true);
+      }, duration - SPLASH_CONFIG.fadeOutDuration);
 
-    return () => {
-      clearTimeout(fadeOutTimer);
-      clearTimeout(completeTimer);
-    };
-  }, [duration, onComplete]);
+      const completeTimer = setTimeout(() => {
+        onComplete();
+      }, duration);
+
+      return () => {
+        clearTimeout(fadeOutTimer);
+        clearTimeout(completeTimer);
+      };
+    } else {
+      // 로그인되지 않은 경우 스플래시 후 로그인 화면 표시
+      const showLoginTimer = setTimeout(() => {
+        setShowLogin(true);
+      }, duration);
+
+      return () => {
+        clearTimeout(showLoginTimer);
+      };
+    }
+  }, [duration, onComplete, isAuthenticated, isLoading]);
+
+  const handleLoginSuccess = () => {
+    setShowLogin(false);
+    onComplete();
+  };
+
+  if (showLogin) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+  }
 
   return (
     <SplashContainer $isFadingOut={isFadingOut}>
