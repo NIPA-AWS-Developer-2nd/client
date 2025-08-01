@@ -39,7 +39,7 @@ const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
     background-color: ${({ theme }) => theme.colors.white};
     justify-content: stretch;
     align-items: stretch;
-    
+
     /* 키보드가 열렸을 때 뷰포트 높이 동적 조정 */
     ${({ $keyboardVisible }) =>
       $keyboardVisible &&
@@ -52,7 +52,10 @@ const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
 `;
 
 // 메인 컨텐츠 컨테이너
-const MainContainer = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
+const MainContainer = styled.div<{
+  $isMobile: boolean;
+  $keyboardVisible?: boolean;
+}>`
   position: relative;
   display: flex;
   width: ${({ $isMobile }) => ($isMobile ? "100vw" : "1200px")};
@@ -68,17 +71,18 @@ const MainContainer = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolea
   background-color: ${({ theme }) => theme.colors.white};
   margin: 0;
   padding: 0;
-  
+
   /* 키보드가 열렸을 때 높이 조정 */
   ${({ $keyboardVisible, $isMobile }) =>
-    $keyboardVisible && $isMobile &&
+    $keyboardVisible &&
+    $isMobile &&
     `
     height: 100vh;
     max-height: 100vh;
     `}
 `;
 
-// 데스크톱 사이드바 (완전 고정)
+// 데스크톱 사이드바
 const DesktopSidebar = styled.div<{ $show: boolean }>`
   display: ${({ $show }) => ($show ? "flex" : "none")};
   flex-direction: column;
@@ -107,10 +111,11 @@ const AppArea = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
   overflow: hidden;
   width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
   max-width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
-  
+
   /* 키보드가 열렸을 때 전체 높이 확장 */
   ${({ $keyboardVisible, $isMobile }) =>
-    $keyboardVisible && $isMobile &&
+    $keyboardVisible &&
+    $isMobile &&
     `
     height: 100vh;
     max-height: 100vh;
@@ -208,10 +213,11 @@ const AppMain = styled.main<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
   overflow-y: auto;
   overflow-x: hidden;
   background-color: ${({ theme }) => theme.colors.white};
-  
+
   /* 키보드가 열렸을 때 하단 여백 제거하여 공간 활용 */
   ${({ $keyboardVisible, $isMobile }) =>
-    $keyboardVisible && $isMobile &&
+    $keyboardVisible &&
+    $isMobile &&
     `
     padding-bottom: 20px;
     margin-bottom: 0;
@@ -261,7 +267,8 @@ const TabBar = styled.nav<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
 
   /* 키보드가 열렸을 때 탭바 숨기기 */
   ${({ $keyboardVisible, $isMobile }) =>
-    $keyboardVisible && $isMobile &&
+    $keyboardVisible &&
+    $isMobile &&
     `
     display: none !important;
     height: 0 !important;
@@ -275,7 +282,7 @@ const TabBar = styled.nav<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
   /* 모바일에서 탭바 최적화 */
   @media (max-width: 1024px) {
     will-change: transform, opacity;
-    
+
     /* iOS에서 키보드와 탭바 겹침 방지 */
     @supports (-webkit-touch-callout: none) {
       /* iOS Safari에서 키보드가 올라올 때 탭바를 아예 화면 밖으로 */
@@ -409,7 +416,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -448,7 +455,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
     const handleFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.contentEditable === "true"
+      ) {
         isInputFocused = true;
         setKeyboardVisible(true);
       }
@@ -456,7 +467,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
     const handleFocusOut = (e: FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.contentEditable === 'true') {
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.contentEditable === "true"
+      ) {
         isInputFocused = false;
         // 키보드가 내려가는데 시간이 걸림
         setTimeout(() => {
@@ -470,7 +485,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     const handleResize = () => {
       const currentHeight = window.innerHeight;
       const heightDifference = initialWindowHeight - currentHeight;
-      
+
       // 키보드가 200px 이상 화면을 차지하고 input이 포커스된 상태일 때
       if (heightDifference > 200 && isInputFocused) {
         setKeyboardVisible(true);
@@ -482,7 +497,8 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     // iOS의 visualViewport API 사용
     const handleVisualViewportChange = () => {
       if (window.visualViewport) {
-        const heightDifference = initialWindowHeight - window.visualViewport.height;
+        const heightDifference =
+          initialWindowHeight - window.visualViewport.height;
         if (heightDifference > 200 && isInputFocused) {
           setKeyboardVisible(true);
         } else if (heightDifference < 100) {
@@ -491,21 +507,27 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       }
     };
 
-    document.addEventListener('focusin', handleFocusIn);
-    document.addEventListener('focusout', handleFocusOut);
-    window.addEventListener('resize', handleResize);
-    
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+    window.addEventListener("resize", handleResize);
+
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleVisualViewportChange);
+      window.visualViewport.addEventListener(
+        "resize",
+        handleVisualViewportChange
+      );
     }
 
     return () => {
-      document.removeEventListener('focusin', handleFocusIn);
-      document.removeEventListener('focusout', handleFocusOut);
-      window.removeEventListener('resize', handleResize);
-      
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+      window.removeEventListener("resize", handleResize);
+
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleVisualViewportChange);
+        window.visualViewport.removeEventListener(
+          "resize",
+          handleVisualViewportChange
+        );
       }
     };
   }, [isMobile]);
@@ -611,7 +633,6 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       </OfflineIndicator>
 
       <MainContainer $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
-        
         {/* 데스크톱 사이드바 */}
         <DesktopSidebar $show={showDesktopSidebar}>
           <BrandingContent variant="sidebar" />
@@ -648,7 +669,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             </HeaderRight>
           </AppHeader>
 
-          <AppMain $isMobile={isMobile} $keyboardVisible={keyboardVisible} data-scroll-container>
+          <AppMain
+            $isMobile={isMobile}
+            $keyboardVisible={keyboardVisible}
+            data-scroll-container
+          >
             {children}
           </AppMain>
 
