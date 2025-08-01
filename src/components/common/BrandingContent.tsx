@@ -1,45 +1,26 @@
 import React from "react";
 import styled from "styled-components";
 import { BRANDING } from "../../constants";
-import thunderImage from "../../assets/images/thunder.png";
+import logoImage from "../../assets/images/logo.png";
 
 interface BrandingContentProps {
   variant?: "splash" | "sidebar";
   className?: string;
 }
 
+const LogoImage = styled.img<{ $variant: "splash" | "sidebar" }>`
+  width: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
+  height: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
+  margin-bottom: ${({ $variant }) => ($variant === "splash" ? "32px" : "24px")};
+  border-radius: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+`;
+
 const BrandingContainer = styled.div<{ $variant: "splash" | "sidebar" }>`
   text-align: center;
   color: ${({ theme }) => theme.colors.white};
   max-width: 320px;
   position: relative;
-
-  /* 번개 배경 이미지 추가 */
-  &::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: ${({ $variant }) => ($variant === "splash" ? "450px" : "250px")};
-    height: ${({ $variant }) => ($variant === "splash" ? "450px" : "250px")};
-    background-image: url(${thunderImage});
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: ${({ $variant }) => ($variant === "splash" ? "0.1" : "0.08")};
-    filter: blur(
-      ${({ $variant }) => ($variant === "splash" ? "2px" : "1.5px")}
-    );
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  /* 모든 자식 요소를 배경 위에 표시 */
-  > * {
-    position: relative;
-    z-index: 1;
-  }
 `;
 
 const BrandingTitle = styled.h1<{ $variant: "splash" | "sidebar" }>`
@@ -73,6 +54,11 @@ export const BrandingContent: React.FC<BrandingContentProps> = ({
 }) => {
   return (
     <BrandingContainer $variant={variant} className={className}>
+      <LogoImage 
+        $variant={variant} 
+        src={logoImage} 
+        alt="Halsaram Logo"
+      />
       <BrandingTitle $variant={variant}>{BRANDING.title}</BrandingTitle>
       <BrandingSubtitle $variant={variant}>
         {BRANDING.subtitle}
