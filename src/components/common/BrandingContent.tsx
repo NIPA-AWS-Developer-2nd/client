@@ -13,12 +13,12 @@ const LogoImage = styled.img<{ $variant: "splash" | "sidebar" }>`
   height: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "32px" : "24px")};
   border-radius: 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 `;
 
 const BrandingContainer = styled.div<{ $variant: "splash" | "sidebar" }>`
   text-align: center;
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
   max-width: 320px;
   position: relative;
 `;
@@ -28,7 +28,8 @@ const BrandingTitle = styled.h1<{ $variant: "splash" | "sidebar" }>`
   font-weight: 700;
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "24px" : "16px")};
   line-height: 1.2;
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
 `;
 
 const BrandingSubtitle = styled.p<{ $variant: "splash" | "sidebar" }>`
@@ -36,7 +37,8 @@ const BrandingSubtitle = styled.p<{ $variant: "splash" | "sidebar" }>`
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "48px" : "40px")};
   opacity: ${({ $variant }) => ($variant === "splash" ? "0.9" : "0.8")};
   line-height: 1.6;
-  color: ${({ theme }) => theme.colors.gray300};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.secondary : "#D1D5DB"};
   white-space: pre-line;
 `;
 
@@ -44,7 +46,8 @@ const BrandingDescription = styled.p<{ $variant: "splash" | "sidebar" }>`
   font-size: 16px;
   opacity: 0.8;
   line-height: 1.6;
-  color: ${({ theme }) => theme.colors.gray400};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.secondary : "#9CA3AF"};
   white-space: pre-line;
 `;
 
