@@ -14,6 +14,7 @@ import {
   AuthCallbackPage,
   LoginPage,
 } from "./pages";
+import AuthSuccessPage from "./pages/AuthSuccessPage";
 
 const AppContent = () => {
   const [showSplash, setShowSplash] = useState(() => {
@@ -44,7 +45,7 @@ const AppContent = () => {
     <Routes>
       {/* Auth routes */}
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
-      <Route path="/auth/success" element={<AuthCallbackPage />} />
+      <Route path="/auth/success" element={<AuthSuccessPage />} />
       <Route path="/login" element={<LoginPage />} />
       
       {/* Main app routes */}

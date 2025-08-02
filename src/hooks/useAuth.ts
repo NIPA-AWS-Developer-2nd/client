@@ -1,83 +1,61 @@
 import { useState, useEffect } from "react";
-import { useAuth as useOidcAuth } from "react-oidc-context";
+import { authFetch, apiUrl } from "../utils/api";
 
 export interface User {
   id: string | number;
   email: string;
   nickname: string;
   profileImage: string;
-  provider: "kakao" | "naver" | "apple" | "google";
+  provider: "kakao" | "naver" | "google";
 }
 
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (provider: "apple" | "kakao" | "google" | "naver") => Promise<void>;
+  login: (provider: "kakao" | "google" | "naver") => Promise<void>;
   logout: () => Promise<void>;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
 export const useAuth = (): AuthContextType => {
-  const oidcAuth = useOidcAuth();
-  const [backendUser, setBackendUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // 페이지 로드 시 백엔드 토큰 확인
   useEffect(() => {
-    const checkBackendAuthStatus = async () => {
+    // 로그인 페이지에서는 인증 체크 제외
+    if (window.location.pathname === "/login") {
+      return;
+    }
+
+    const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        const response = await fetch(apiUrl("/auth/me"), {
           credentials: "include",
         });
 
         if (response.ok) {
           const userData = await response.json();
-          setBackendUser(userData);
+          setUser(userData);
+        } else if (response.status === 401) {
+          // 401 인증 실패 시 로그인 페이지로 리다이렉트
+          window.location.href = "/login";
         }
       } catch (error) {
-        console.log("No backend auth", error);
+        console.log("No auth", error);
       }
     };
 
-    checkBackendAuthStatus();
+    checkAuthStatus();
   }, []);
 
-  // Cognito 사용자 정보 → User 인터페이스 변환
-  const cognitoUser: User | null = oidcAuth.user
-    ? {
-        id: oidcAuth.user.profile.sub || "",
-        email: oidcAuth.user.profile.email || "",
-        nickname:
-          oidcAuth.user.profile.name ||
-          oidcAuth.user.profile.preferred_username ||
-          "사용자",
-        profileImage: oidcAuth.user.profile.picture || "",
-        provider: "google" as const,
-      }
-    : null;
+  const isAuthenticated = !!user;
 
-  // 통합된 사용자 정보
-  const user = backendUser || cognitoUser;
-  const isAuthenticated = !!(backendUser || oidcAuth.isAuthenticated);
-  const combinedIsLoading = isLoading || oidcAuth.isLoading;
-
-  const login = async (provider: "apple" | "kakao" | "google" | "naver") => {
+  const login = async (provider: "kakao" | "google" | "naver") => {
     setIsLoading(true);
     try {
-      if (provider === "google" || provider === "apple") {
-        // Google, Apple Cognito OIDC
-        await oidcAuth.signinRedirect({
-          extraQueryParams: {
-            identity_provider:
-              provider === "google" ? "Google" : "SignInWithApple",
-          },
-        });
-      } else {
-        // 카카오,네이버 사용자 정보 백엔드 API
-        window.location.href = `${API_BASE_URL}/auth/${provider}`;
-      }
+      // 모든 로그인을 백엔드 API로 처리
+      window.location.href = apiUrl(`/auth/${provider}`);
     } catch (error) {
       console.error("Login failed:", error);
       setIsLoading(false);
@@ -87,37 +65,25 @@ export const useAuth = (): AuthContextType => {
 
   const logout = async () => {
     try {
-      // 백엔드 로그아웃 (리다이렉트 무시)
-      if (backendUser) {
-        try {
-          await fetch(`${API_BASE_URL}/auth/logout`, {
-            credentials: "include",
-            redirect: "manual", // 리다이렉트 자동 처리 방지
-          });
-        } catch {
-          // 리다이렉트나 CORS 에러 무시
-          console.log("Backend logout redirect ignored");
-        }
-        setBackendUser(null);
-      }
-
-      // Cognito 로그아웃 (Google/Apple)
-      if (oidcAuth.isAuthenticated) {
-        await oidcAuth.removeUser();
-      }
-
+      // 백엔드 로그아웃
+      await authFetch(apiUrl("/auth/logout"), {
+        redirect: "manual", // 리다이렉트 자동 처리 방지
+      });
+      setUser(null);
+      
       // 로그인 페이지로 리다이렉트
       window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
       // 에러가 있어도 로그인 페이지로 이동
+      setUser(null);
       window.location.href = "/login";
     }
   };
 
   return {
     user,
-    isLoading: combinedIsLoading,
+    isLoading,
     isAuthenticated,
     login,
     logout,
