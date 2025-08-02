@@ -70,11 +70,14 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
+  
 
   const handleSocialLogin = async (provider: "apple" | "kakao" | "google" | "naver") => {
     try {
+      console.log(`Starting ${provider} login...`);
       await login(provider);
+      console.log(`${provider} login completed`);
       onLoginSuccess?.();
     } catch (error) {
       console.error(`${provider} login failed:`, error);
@@ -82,12 +85,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     }
   };
 
+  // 이미 로그인된 경우 홈으로 리다이렉트
+  if (isAuthenticated && user) {
+    window.location.href = "/";
+    return null;
+  }
+
   return (
     <LoginContainer>
       <LoginContent>
         <BrandingWrapper>
           <BrandingContent variant="splash" />
         </BrandingWrapper>
+
 
         <LoginButtonsContainer>
           <SocialLoginButton
