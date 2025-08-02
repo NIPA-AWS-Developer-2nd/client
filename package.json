@@ -1,11 +1,13 @@
 {
   "name": "client",
   "private": true,
-  "version": "0.0.18",
+  "version": "0.0.19",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:staging": "tsc -b && vite build --mode staging",
+    "build:production": "tsc -b && vite build --mode production",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
@@ -24,8 +26,10 @@
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
     "lucide-react": "^0.533.0",
+    "oidc-client-ts": "^3.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-oidc-context": "^3.3.0",
     "react-router-dom": "^7.7.1",
     "styled-components": "^6.1.19",
     "vite-plugin-pwa": "^1.0.2",
