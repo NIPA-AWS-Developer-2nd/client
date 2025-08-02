@@ -17,7 +17,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export const useAuth = (): AuthContextType => {
   const oidcAuth = useOidcAuth();
@@ -87,11 +87,17 @@ export const useAuth = (): AuthContextType => {
 
   const logout = async () => {
     try {
-      // 백엔드 로그아웃
+      // 백엔드 로그아웃 (리다이렉트 무시)
       if (backendUser) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
-          credentials: "include",
-        });
+        try {
+          await fetch(`${API_BASE_URL}/auth/logout`, {
+            credentials: "include",
+            redirect: "manual", // 리다이렉트 자동 처리 방지
+          });
+        } catch {
+          // 리다이렉트나 CORS 에러 무시
+          console.log("Backend logout redirect ignored");
+        }
         setBackendUser(null);
       }
 
@@ -104,7 +110,8 @@ export const useAuth = (): AuthContextType => {
       window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
-      throw error;
+      // 에러가 있어도 로그인 페이지로 이동
+      window.location.href = "/login";
     }
   };
 
