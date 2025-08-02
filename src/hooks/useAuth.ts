@@ -1,97 +1,90 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect } from "react";
+import { authFetch, apiUrl } from "../utils/api";
 
 export interface User {
-  id: string;
+  id: string | number;
   email: string;
-  name: string;
-  provider: "apple" | "kakao" | "google" | "naver";
-  avatar?: string;
+  nickname: string;
+  profileImage: string;
+  provider: "kakao" | "naver" | "google";
 }
 
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (provider: "apple" | "kakao" | "google" | "naver") => Promise<void>;
+  login: (provider: "kakao" | "google" | "naver") => Promise<void>;
   logout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const AUTH_STORAGE_KEY = "halsaram-auth";
-
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
-export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
+  // 페이지 로드 시 백엔드 토큰 확인
   useEffect(() => {
-    const loadStoredAuth = () => {
+    // 로그인 페이지에서는 인증 체크 제외
+    if (window.location.pathname === "/login") {
+      return;
+    }
+
+    const checkAuthStatus = async () => {
       try {
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (stored) {
-          const parsedUser = JSON.parse(stored);
-          setUser(parsedUser);
+        const response = await fetch(apiUrl("/auth/me"), {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else if (response.status === 401) {
+          // 401 인증 실패 시 로그인 페이지로 리다이렉트
+          window.location.href = "/login";
         }
       } catch (error) {
-        console.error("Failed to load stored auth:", error);
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-      } finally {
-        setIsLoading(false);
+        console.log("No auth", error);
       }
     };
 
-    loadStoredAuth();
+    checkAuthStatus();
   }, []);
 
-  const login = async (provider: "apple" | "kakao" | "google" | "naver") => {
+  const isAuthenticated = !!user;
+
+  const login = async (provider: "kakao" | "google" | "naver") => {
     setIsLoading(true);
     try {
-      // TODO: 실제 소셜 로그인 API 구현
-      // 임시 mock 데이터
-      const mockUser: User = {
-        id: `${provider}_user_${Date.now()}`,
-        email: `user@${provider}.com`,
-        name: `${provider} User`,
-        provider,
-        avatar: undefined,
-      };
-
-      setUser(mockUser);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
+      // 모든 로그인을 백엔드 API로 처리
+      window.location.href = apiUrl(`/auth/${provider}`);
     } catch (error) {
-      console.error(`${provider} login failed:`, error);
-      throw error;
-    } finally {
+      console.error("Login failed:", error);
       setIsLoading(false);
+      throw error;
     }
   };
 
   const logout = async () => {
-    setIsLoading(true);
     try {
-      // TODO: 실제 로그아웃 API 구현
+      // 백엔드 로그아웃
+      await authFetch(apiUrl("/auth/logout"), {
+        redirect: "manual", // 리다이렉트 자동 처리 방지
+      });
       setUser(null);
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      
+      // 로그인 페이지로 리다이렉트
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      // 에러가 있어도 로그인 페이지로 이동
+      setUser(null);
+      window.location.href = "/login";
     }
   };
 
   return {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated,
     login,
     logout,
   };
