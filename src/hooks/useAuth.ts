@@ -1,11 +1,12 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect } from "react";
+import { useAuth as useOidcAuth } from "react-oidc-context";
 
 export interface User {
-  id: string;
+  id: string | number;
   email: string;
-  name: string;
-  provider: "apple" | "kakao" | "google" | "naver";
-  avatar?: string;
+  nickname: string;
+  profileImage: string;
+  provider: "kakao" | "naver" | "apple" | "google";
 }
 
 export interface AuthContextType {
@@ -16,82 +17,101 @@ export interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const AUTH_STORAGE_KEY = "halsaram-auth";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+  const oidcAuth = useOidcAuth();
+  const [backendUser, setBackendUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-export const useAuthState = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
+  // 페이지 로드 시 백엔드 토큰 확인
   useEffect(() => {
-    const loadStoredAuth = () => {
+    const checkBackendAuthStatus = async () => {
       try {
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (stored) {
-          const parsedUser = JSON.parse(stored);
-          setUser(parsedUser);
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setBackendUser(userData);
         }
       } catch (error) {
-        console.error("Failed to load stored auth:", error);
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-      } finally {
-        setIsLoading(false);
+        console.log("No backend auth", error);
       }
     };
 
-    loadStoredAuth();
+    checkBackendAuthStatus();
   }, []);
+
+  // Cognito 사용자 정보 → User 인터페이스 변환
+  const cognitoUser: User | null = oidcAuth.user
+    ? {
+        id: oidcAuth.user.profile.sub || "",
+        email: oidcAuth.user.profile.email || "",
+        nickname:
+          oidcAuth.user.profile.name ||
+          oidcAuth.user.profile.preferred_username ||
+          "사용자",
+        profileImage: oidcAuth.user.profile.picture || "",
+        provider: "google" as const,
+      }
+    : null;
+
+  // 통합된 사용자 정보
+  const user = backendUser || cognitoUser;
+  const isAuthenticated = !!(backendUser || oidcAuth.isAuthenticated);
+  const combinedIsLoading = isLoading || oidcAuth.isLoading;
 
   const login = async (provider: "apple" | "kakao" | "google" | "naver") => {
     setIsLoading(true);
     try {
-      // TODO: 실제 소셜 로그인 API 구현
-      // 임시 mock 데이터
-      const mockUser: User = {
-        id: `${provider}_user_${Date.now()}`,
-        email: `user@${provider}.com`,
-        name: `${provider} User`,
-        provider,
-        avatar: undefined,
-      };
-
-      setUser(mockUser);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
+      if (provider === "google" || provider === "apple") {
+        // Google, Apple Cognito OIDC
+        await oidcAuth.signinRedirect({
+          extraQueryParams: {
+            identity_provider:
+              provider === "google" ? "Google" : "SignInWithApple",
+          },
+        });
+      } else {
+        // 카카오,네이버 사용자 정보 백엔드 API
+        window.location.href = `${API_BASE_URL}/auth/${provider}`;
+      }
     } catch (error) {
-      console.error(`${provider} login failed:`, error);
-      throw error;
-    } finally {
+      console.error("Login failed:", error);
       setIsLoading(false);
+      throw error;
     }
   };
 
   const logout = async () => {
-    setIsLoading(true);
     try {
-      // TODO: 실제 로그아웃 API 구현
-      setUser(null);
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      // 백엔드 로그아웃
+      if (backendUser) {
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          credentials: "include",
+        });
+        setBackendUser(null);
+      }
+
+      // Cognito 로그아웃 (Google/Apple)
+      if (oidcAuth.isAuthenticated) {
+        await oidcAuth.removeUser();
+      }
+
+      // 로그인 페이지로 리다이렉트
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return {
     user,
-    isLoading,
-    isAuthenticated: !!user,
+    isLoading: combinedIsLoading,
+    isAuthenticated,
     login,
     logout,
   };
