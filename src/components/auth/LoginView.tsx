@@ -71,9 +71,8 @@ interface LoginViewProps {
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   const { login, isLoading, isAuthenticated, user } = useAuth();
-  
 
-  const handleSocialLogin = async (provider: "apple" | "kakao" | "google" | "naver") => {
+  const handleSocialLogin = async (provider: "kakao" | "google" | "naver") => {
     try {
       console.log(`Starting ${provider} login...`);
       await login(provider);
@@ -98,13 +97,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           <BrandingContent variant="splash" />
         </BrandingWrapper>
 
-
         <LoginButtonsContainer>
-          <SocialLoginButton
-            provider="apple"
-            onClick={() => handleSocialLogin("apple")}
-            disabled={isLoading}
-          />
           <SocialLoginButton
             provider="kakao"
             onClick={() => handleSocialLogin("kakao")}
@@ -122,7 +115,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           />
         </LoginButtonsContainer>
       </LoginContent>
-      
+
       <TermsText>
         로그인 시 <TermsLink>이용약관</TermsLink> 및{" "}
         <TermsLink>개인정보처리방침</TermsLink>에 동의하게 됩니다.
