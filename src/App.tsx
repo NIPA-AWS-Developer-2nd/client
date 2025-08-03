@@ -14,6 +14,8 @@ import {
   AuthCallbackPage,
   LoginPage,
 } from "./pages";
+
+import MissionDetailPage from "./pages/MissionDetailPage";
 import AuthSuccessPage from "./pages/AuthSuccessPage";
 
 const AppContent = () => {

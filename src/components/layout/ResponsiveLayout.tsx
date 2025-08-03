@@ -584,7 +584,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     ];
 
     const currentTab = tabs.find((tab) => tab.path === location.pathname);
-    return currentTab || { title: "Halsaram — 번개모임 커뮤니티", label: "" };
+    return currentTab || { title: "할사람", label: "" };
   };
 
   const currentPage = getCurrentPageInfo();
