@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   User,
@@ -12,13 +13,13 @@ import {
   Download,
   Info,
   MessageSquare,
+  LogOut,
+  UserX,
 } from "lucide-react";
 import { deviceDetection } from "../utils/deviceDetection";
 import { usePWA } from "../hooks/usePWA";
-import {
-  AppInfoModal,
-  SimpleFeedbackModal,
-} from "../components/common";
+import { useAuth } from "../hooks/useAuth";
+import { AppInfoModal, SimpleFeedbackModal } from "../components/common";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
@@ -204,24 +205,27 @@ const MenuSubLabel = styled.div<{ $isMobile?: boolean }>`
 `;
 
 export const MyPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
-  const { isInstalled, isInstallable, installApp, isPWASupported } = usePWA();
+  const { isInstalled, isInstallable, installApp } = usePWA();
   const [showAppInfoModal, setShowAppInfoModal] = React.useState(false);
   const [showSimpleFeedbackModal, setShowSimpleFeedbackModal] =
     React.useState(false);
 
   // package.json에서 가져온 앱 버전
-  const appVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0';
+  const appVersion =
+    typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0";
 
   // 디버깅을 위한 PWA 상태 로그
-  React.useEffect(() => {
-    console.log("PWA Status:", {
-      isInstallable,
-      isInstalled,
-      isPWASupported,
-      userAgent: navigator.userAgent,
-    });
-  }, [isInstallable, isInstalled, isPWASupported]);
+  // React.useEffect(() => {
+  //   console.log("PWA Status:", {
+  //     isInstallable,
+  //     isInstalled,
+  //     isPWASupported,
+  //     userAgent: navigator.userAgent,
+  //   });
+  // }, [isInstallable, isInstalled, isPWASupported]);
 
   const handleAppInstall = () => {
     if (isInstallable) {
@@ -276,16 +280,62 @@ export const MyPage: React.FC = () => {
     setShowSimpleFeedbackModal(true);
   };
 
+  const handleAppSettings = () => {
+    navigate("/my/settings");
+  };
+
+  const handleLogout = async () => {
+    try {
+      // 로컬 세션만 정리하고 로그인 페이지로 이동
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // 로그아웃 실패 시에도 로그인 페이지로 이동
+      navigate("/login", { replace: true });
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    if (
+      window.confirm(
+        "정말로 회원탈퇴를 진행하시겠습니까?\n\n탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다."
+      )
+    ) {
+      // TODO: 실제 회원탈퇴 API 구현
+      alert("회원탈퇴 기능을 준비 중입니다.");
+    }
+  };
+
   const menuItems = [
-    { icon: User, label: "프로필 수정" },
-    { icon: Bell, label: "알림 설정" },
-    { icon: Shield, label: "개인정보" },
-    { icon: CreditCard, label: "결제 수단" },
-    { icon: HelpCircle, label: "고객 센터" },
-    { icon: Settings, label: "앱 설정" },
+    {
+      icon: User,
+      label: "프로필 수정",
+      onClick: () => alert("프로필 수정 기능을 준비 중입니다."),
+    },
+    {
+      icon: Bell,
+      label: "알림 설정",
+      onClick: () => alert("알림 설정 기능을 준비 중입니다."),
+    },
+    {
+      icon: Shield,
+      label: "개인정보",
+      onClick: () => alert("개인정보 기능을 준비 중입니다."),
+    },
+    {
+      icon: CreditCard,
+      label: "결제 수단",
+      onClick: () => alert("결제 수단 기능을 준비 중입니다."),
+    },
+    {
+      icon: HelpCircle,
+      label: "고객 센터",
+      onClick: () => alert("고객 센터 기능을 준비 중입니다."),
+    },
+    { icon: Settings, label: "앱 설정", onClick: handleAppSettings },
   ];
 
-  const daysWithApp = Math.floor(Math.random() * 100) + 10;
   const userPoints = 2850;
   const meetingsCount = 12;
   const reviewsCount = 5;
@@ -295,11 +345,26 @@ export const MyPage: React.FC = () => {
     <PageContainer $isMobile={isMobile}>
       <ProfileCard $isMobile={isMobile}>
         <ProfileAvatar $isMobile={isMobile}>
-          <Smile size={isMobile ? 24 : 32} />
+          {user?.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt="Profile"
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <Smile size={isMobile ? 24 : 32} />
+          )}
         </ProfileAvatar>
-        <ProfileName $isMobile={isMobile}>김한국님</ProfileName>
+        <ProfileName $isMobile={isMobile}>
+          {user?.nickname || "사용자님"}
+        </ProfileName>
         <ProfileSubtitle $isMobile={isMobile}>
-          Halsaram과 함께한 지 {daysWithApp}일째
+          {user?.email || "이메일 정보 없음"}
         </ProfileSubtitle>
 
         <StatsGrid $isMobile={isMobile}>
@@ -333,7 +398,7 @@ export const MyPage: React.FC = () => {
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
             return (
-              <MenuItem key={index} $isMobile={isMobile}>
+              <MenuItem key={index} $isMobile={isMobile} onClick={item.onClick}>
                 <MenuIcon $isMobile={isMobile}>
                   <IconComponent size={isMobile ? 16 : 18} />
                 </MenuIcon>
@@ -375,6 +440,25 @@ export const MyPage: React.FC = () => {
               <MenuSubLabel $isMobile={isMobile}>v{appVersion}</MenuSubLabel>
             </MenuLabelWithSubtext>
           </MenuItemStatic>
+        </MenuList>
+      </MenuCard>
+
+      {/* 계정 관리 섹션 */}
+      <MenuCard $isMobile={isMobile}>
+        <MenuTitle $isMobile={isMobile}>계정 관리</MenuTitle>
+        <MenuList>
+          <MenuItem $isMobile={isMobile} onClick={handleLogout}>
+            <MenuIcon $isMobile={isMobile}>
+              <LogOut size={isMobile ? 16 : 18} />
+            </MenuIcon>
+            <MenuLabel $isMobile={isMobile}>로그아웃</MenuLabel>
+          </MenuItem>
+          <MenuItem $isMobile={isMobile} onClick={handleDeleteAccount}>
+            <MenuIcon $isMobile={isMobile}>
+              <UserX size={isMobile ? 16 : 18} />
+            </MenuIcon>
+            <MenuLabel $isMobile={isMobile}>회원탈퇴</MenuLabel>
+          </MenuItem>
         </MenuList>
       </MenuCard>
 

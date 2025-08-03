@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled, { keyframes, css } from "styled-components";
 import { BrandingContent } from "./BrandingContent";
+import { useAuth } from "../../hooks/useAuth";
 import { SPLASH_CONFIG } from "../../constants";
 
 const fadeIn = keyframes`
@@ -43,7 +45,7 @@ const SplashContainer = styled.div<{ $isFadingOut: boolean }>`
   width: 100vw;
   height: 100vh;
   height: calc(var(--vh, 1vh) * 100);
-  background: ${({ theme }) => theme.colors.gray900};
+  background: ${({ theme }) => theme.colors.background};
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -54,14 +56,18 @@ const SplashContainer = styled.div<{ $isFadingOut: boolean }>`
   /* 페이드아웃 애니메이션 */
   animation: ${({ $isFadingOut }) =>
     $isFadingOut
-      ? css`${fadeOut} ${SPLASH_CONFIG.fadeOutDuration}ms ease-in-out forwards`
+      ? css`
+          ${fadeOut} ${SPLASH_CONFIG.fadeOutDuration}ms ease-in-out forwards
+        `
       : "none"};
 `;
 
 const SplashContent = styled.div`
   /* 페이드인 애니메이션 */
   > * {
-    animation: ${css`${fadeIn} 0.8s ease-in-out`};
+    animation: ${css`
+      ${fadeIn} 0.8s ease-in-out
+    `};
   }
 
   > *:nth-child(1) {
@@ -88,7 +94,9 @@ const SplashContent = styled.div`
 
 const LoadingSpinner = styled.div`
   margin-top: 48px;
-  animation: ${css`${fadeIn} 0.8s ease-in-out 1.2s both`};
+  animation: ${css`
+    ${fadeIn} 0.8s ease-in-out 1.2s both
+  `};
 `;
 
 const SpinnerRing = styled.div`
@@ -97,7 +105,9 @@ const SpinnerRing = styled.div`
   border: 3px solid ${({ theme }) => theme.colors.gray700};
   border-top: 3px solid ${({ theme }) => theme.colors.white};
   border-radius: 50%;
-  animation: ${css`${rotate} 1s linear infinite`};
+  animation: ${css`
+    ${rotate} 1s linear infinite
+  `};
   margin: 0 auto;
 `;
 
@@ -111,21 +121,63 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   duration = SPLASH_CONFIG.duration,
 }) => {
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const [forceTimeout, setForceTimeout] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const pathname = useMemo(() => location.pathname, [location.pathname]);
+
+  // 5초 후에 강제로 로딩을 끝내는 타이머
+  useEffect(() => {
+    const forceTimeoutTimer = setTimeout(() => {
+      setForceTimeout(true);
+    }, 5000);
+
+    return () => clearTimeout(forceTimeoutTimer);
+  }, []);
 
   useEffect(() => {
-    const fadeOutTimer = setTimeout(() => {
-      setIsFadingOut(true);
-    }, duration - SPLASH_CONFIG.fadeOutDuration);
+    if (isLoading && !forceTimeout) return;
 
-    const completeTimer = setTimeout(() => {
-      onComplete();
-    }, duration);
+    if (isAuthenticated) {
+      // 로그인된 경우 스플래시 후 홈으로
+      const fadeOutTimer = setTimeout(() => {
+        setIsFadingOut(true);
+      }, duration - SPLASH_CONFIG.fadeOutDuration);
 
-    return () => {
-      clearTimeout(fadeOutTimer);
-      clearTimeout(completeTimer);
-    };
-  }, [duration, onComplete]);
+      const completeTimer = setTimeout(() => {
+        onComplete();
+      }, duration);
+
+      return () => {
+        clearTimeout(fadeOutTimer);
+        clearTimeout(completeTimer);
+      };
+    } else {
+      // 로그인되지 않은 경우 스플래시 후 /login으로 리다이렉트
+      if (!hasRedirected && pathname !== "/login") {
+        const redirectTimer = setTimeout(() => {
+          setHasRedirected(true);
+          navigate("/login", { replace: true });
+        }, duration);
+
+        return () => {
+          clearTimeout(redirectTimer);
+        };
+      }
+    }
+  }, [
+    duration,
+    onComplete,
+    isAuthenticated,
+    isLoading,
+    navigate,
+    forceTimeout,
+    hasRedirected,
+    pathname,
+  ]);
 
   return (
     <SplashContainer $isFadingOut={isFadingOut}>

@@ -1,45 +1,31 @@
 import React from "react";
 import styled from "styled-components";
 import { BRANDING } from "../../constants";
-import thunderImage from "../../assets/images/thunder.png";
+import logoImage from "../../assets/images/halsaram-logo.png";
 
 interface BrandingContentProps {
   variant?: "splash" | "sidebar";
   className?: string;
 }
 
+const LogoImage = styled.img<{ $variant: "splash" | "sidebar" }>`
+  width: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
+  height: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
+  margin-bottom: ${({ $variant }) => ($variant === "splash" ? "32px" : "24px")};
+  border-radius: 24px;
+
+  @media (max-width: 768px) {
+    width: ${({ $variant }) => ($variant === "splash" ? "100px" : "80px")};
+    height: ${({ $variant }) => ($variant === "splash" ? "100px" : "80px")};
+  }
+`;
+
 const BrandingContainer = styled.div<{ $variant: "splash" | "sidebar" }>`
   text-align: center;
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
   max-width: 320px;
   position: relative;
-
-  /* 번개 배경 이미지 추가 */
-  &::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: ${({ $variant }) => ($variant === "splash" ? "450px" : "250px")};
-    height: ${({ $variant }) => ($variant === "splash" ? "450px" : "250px")};
-    background-image: url(${thunderImage});
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: ${({ $variant }) => ($variant === "splash" ? "0.1" : "0.08")};
-    filter: blur(
-      ${({ $variant }) => ($variant === "splash" ? "2px" : "1.5px")}
-    );
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  /* 모든 자식 요소를 배경 위에 표시 */
-  > * {
-    position: relative;
-    z-index: 1;
-  }
 `;
 
 const BrandingTitle = styled.h1<{ $variant: "splash" | "sidebar" }>`
@@ -47,7 +33,12 @@ const BrandingTitle = styled.h1<{ $variant: "splash" | "sidebar" }>`
   font-weight: 700;
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "24px" : "16px")};
   line-height: 1.2;
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
+
+  @media (max-width: 768px) {
+    font-size: ${({ $variant }) => ($variant === "splash" ? "40px" : "36px")};
+  }
 `;
 
 const BrandingSubtitle = styled.p<{ $variant: "splash" | "sidebar" }>`
@@ -55,15 +46,21 @@ const BrandingSubtitle = styled.p<{ $variant: "splash" | "sidebar" }>`
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "48px" : "40px")};
   opacity: ${({ $variant }) => ($variant === "splash" ? "0.9" : "0.8")};
   line-height: 1.6;
-  color: ${({ theme }) => theme.colors.gray300};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.secondary : "#D1D5DB"};
   white-space: pre-line;
+
+  @media (max-width: 768px) {
+    font-size: ${({ $variant }) => ($variant === "splash" ? "15px" : "16px")};
+  }
 `;
 
 const BrandingDescription = styled.p<{ $variant: "splash" | "sidebar" }>`
   font-size: 16px;
   opacity: 0.8;
   line-height: 1.6;
-  color: ${({ theme }) => theme.colors.gray400};
+  color: ${({ theme, $variant }) => 
+    $variant === "splash" ? theme.colors.text.secondary : "#9CA3AF"};
   white-space: pre-line;
 `;
 
@@ -73,6 +70,11 @@ export const BrandingContent: React.FC<BrandingContentProps> = ({
 }) => {
   return (
     <BrandingContainer $variant={variant} className={className}>
+      <LogoImage 
+        $variant={variant} 
+        src={logoImage} 
+        alt="Halsaram Logo"
+      />
       <BrandingTitle $variant={variant}>{BRANDING.title}</BrandingTitle>
       <BrandingSubtitle $variant={variant}>
         {BRANDING.subtitle}
