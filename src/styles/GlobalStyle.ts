@@ -12,6 +12,7 @@ export const GlobalStyle = createGlobalStyle`
     -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow: hidden; /* 모든 방향 스크롤 차단 */
   }
 
   body {
@@ -24,10 +25,7 @@ export const GlobalStyle = createGlobalStyle`
     width: 100%;
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100);
-    overflow-x: hidden;
-    
-    /* 모바일에서 전체 화면 사용 */
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden; /* 모든 방향 스크롤 차단 */
     
     /* 최소 높이 보장 */
     min-height: 100vh;
@@ -44,6 +42,7 @@ export const GlobalStyle = createGlobalStyle`
     flex-direction: column;
     min-height: 100vh;
     min-height: calc(var(--vh, 1vh) * 100);
+    overflow: hidden; /* 모든 방향 스크롤 차단 */
   }
 
   /* 모바일 safe area */
@@ -111,18 +110,23 @@ export const GlobalStyle = createGlobalStyle`
     height: auto;
   }
 
-  /* 포커스 아웃라인 제거 */
+  /* 포커스 아웃라인 설정 */
   button:focus,
-  button:focus-visible,
   a:focus,
-  a:focus-visible,
   input:focus,
-  input:focus-visible,
   textarea:focus,
-  textarea:focus-visible,
-  select:focus,
-  select:focus-visible {
+  select:focus {
     outline: none;
+    box-shadow: none;
+  }
+
+  /* 키보드 접근용 포커스 테두리 유지 */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
     box-shadow: none;
   }
 
@@ -154,7 +158,10 @@ export const GlobalStyle = createGlobalStyle`
   /* 모바일 터치 피드백 */
   @media (hover: none) and (pointer: coarse) {
     *:active {
-      background-color: ${({ theme }) => theme.colors.gray200} !important;
+      background-color: ${({ theme }) =>
+        theme.colors.background === "#2D3748"
+          ? "rgba(255, 255, 255, 0.1)"
+          : "rgba(0, 0, 0, 0.05)"} !important;
       transform: scale(0.98) !important;
       transition: all 0.1s ease !important;
     }
