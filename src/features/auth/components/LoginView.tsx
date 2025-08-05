@@ -1,9 +1,8 @@
 import React from "react";
 import styled from "styled-components";
-import { BrandingContent } from "../common/BrandingContent";
+import { BrandingContent } from "../../../components/common";
 import { SocialLoginButton } from "./SocialLoginButton";
-import { TestLoginButton } from "./TestLoginButton";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 const LoginContainer = styled.div`
   position: fixed;
@@ -111,7 +110,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         </BrandingWrapper>
 
         <LoginButtonsContainer>
-          <TestLoginButton
+          <SocialLoginButton
+            provider="test"
             onClick={handleTestLogin}
             disabled={isLoading}
           />
