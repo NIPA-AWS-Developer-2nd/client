@@ -1,7 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
-import { Loading } from "../../../../shared/components/ui/Loading";
 import { ShareModal } from "../../../../shared/components/common/ShareModal";
 import { useMissionStore } from "../../../../shared/store";
 import {
@@ -10,6 +9,7 @@ import {
   MissionInfo,
   MissionActions,
 } from "./components";
+import { MissionDetailSkeleton } from "./components/MissionDetailSkeleton";
 import { PageContainer, ContentSection } from "./styles";
 
 
@@ -18,6 +18,7 @@ export const MissionDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
+  const [isInitialLoad, setIsInitialLoad] = React.useState(true);
   
   const { 
     currentMission, 
@@ -38,8 +39,13 @@ export const MissionDetailPage: React.FC = () => {
 
   React.useEffect(() => {
     if (id) {
-      fetchMissionDetails(id);
-      fetchMeetings(id);
+      setIsInitialLoad(true);
+      Promise.all([
+        fetchMissionDetails(id),
+        fetchMeetings(id)
+      ]).finally(() => {
+        setTimeout(() => setIsInitialLoad(false), 100);
+      });
     }
   }, [id, fetchMissionDetails, fetchMeetings]);
 
@@ -67,10 +73,11 @@ export const MissionDetailPage: React.FC = () => {
     };
   }, []);
 
-  if (isLoading && !currentMission) {
+  // Show skeleton during initial load or when mission ID changes
+  if (isInitialLoad || (isLoading && (!currentMission || currentMission.id !== id))) {
     return (
       <PageContainer $isMobile={isMobile}>
-        <Loading isMobile={isMobile} />
+        <MissionDetailSkeleton isMobile={isMobile} />
       </PageContainer>
     );
   }
