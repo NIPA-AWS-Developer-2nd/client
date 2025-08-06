@@ -68,4 +68,100 @@ export const deviceDetection = {
     const width = window.innerWidth;
     return width >= 375 && width <= 430;
   },
+
+  // Check if device is Windows
+  isWindows: (): boolean => {
+    return /Windows/.test(navigator.userAgent);
+  },
+
+  // Check if device is macOS
+  isMacOS: (): boolean => {
+    return /Mac OS X/.test(navigator.userAgent) || /Macintosh/.test(navigator.userAgent);
+  },
+
+  // Check if device is desktop (not mobile)
+  isDesktop: (): boolean => {
+    return !deviceDetection.isMobileDevice() && window.innerWidth > 1024;
+  },
+
+  // Get platform type
+  getPlatform: (): 'windows-desktop' | 'macos-desktop' | 'android' | 'ios' | 'unknown' => {
+    if (deviceDetection.isIOS()) return 'ios';
+    if (deviceDetection.isAndroid()) return 'android';
+    if (deviceDetection.isWindows() && deviceDetection.isDesktop()) return 'windows-desktop';
+    if (deviceDetection.isMacOS() && deviceDetection.isDesktop()) return 'macos-desktop';
+    return 'unknown';
+  },
+
+  // Browser detection
+  getBrowser: (): 'safari' | 'chrome' | 'edge' | 'firefox' | 'unknown' => {
+    const userAgent = navigator.userAgent;
+    
+    if (/Safari\//.test(userAgent) && !/Chrome|CriOS|EdgA|Edge/.test(userAgent)) {
+      return 'safari';
+    }
+    
+    if (/Chrome|CriOS/.test(userAgent) && !/EdgA|Edge/.test(userAgent)) {
+      return 'chrome';
+    }
+    
+    if (/EdgA|Edge/.test(userAgent)) {
+      return 'edge';
+    }
+    
+    if (/Firefox/.test(userAgent)) {
+      return 'firefox';
+    }
+    
+    return 'unknown';
+  },
+
+  // Check if current browser supports PWA installation
+  supportsPWAInstall: (): boolean => {
+    const platform = deviceDetection.getPlatform();
+    const browser = deviceDetection.getBrowser();
+    
+    if (platform === 'ios') {
+      return browser === 'safari';
+    }
+    
+    if (platform === 'macos-desktop') {
+      return ['safari', 'chrome', 'edge'].includes(browser);
+    }
+    
+    if (platform === 'android') {
+      return ['chrome', 'edge', 'firefox'].includes(browser);
+    }
+    
+    if (platform === 'windows-desktop') {
+      return ['chrome', 'edge'].includes(browser);
+    }
+    
+    return false;
+  },
+
+  // Check if app is running in PWA mode
+  isPWAMode: (): boolean => {
+    // Check for display-mode: standalone
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      return true;
+    }
+    
+    // Check for navigator.standalone (iOS Safari)
+    if ('standalone' in navigator && (navigator as unknown as { standalone: boolean }).standalone === true) {
+      return true;
+    }
+    
+    // Check if launched from home screen on Android
+    if (document.referrer.includes('android-app://')) {
+      return true;
+    }
+    
+    // Additional check for PWA mode
+    if (window.location.search.includes('pwa=true')) {
+      return true;
+    }
+    
+    return false;
+  },
 };
