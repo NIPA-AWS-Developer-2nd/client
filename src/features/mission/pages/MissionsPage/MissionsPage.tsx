@@ -17,6 +17,9 @@ import { CATEGORIES, getCategoryLabel } from "../../../../data/categories";
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
+  ${({ $isMobile }) => $isMobile && `
+    padding: 16px;
+  `}
 `;
 
 const FilterSection = styled.div<{ $isMobile?: boolean }>`

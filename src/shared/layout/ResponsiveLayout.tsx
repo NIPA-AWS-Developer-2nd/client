@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   Bell,
-  MoreHorizontal,
   ArrowLeft,
   Home,
   Zap,
@@ -36,7 +35,7 @@ const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   /* 터치 스크롤 차단 */
   overscroll-behavior: none;
   touch-action: none;
@@ -77,7 +76,7 @@ const MainContainer = styled.div<{
   background-color: ${({ theme }) => theme.colors.white};
   margin: 0;
   padding: 0;
-  
+
   /* 터치 스크롤 차단 */
   overscroll-behavior: none;
 
@@ -216,12 +215,16 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
 `;
 
 // 메인 컨텐츠
-const AppMain = styled.main<{ $isMobile: boolean; $keyboardVisible?: boolean; $noPadding?: boolean; $noScroll?: boolean }>`
+const AppMain = styled.main<{
+  $isMobile: boolean;
+  $keyboardVisible?: boolean;
+  $noPadding?: boolean;
+  $noScroll?: boolean;
+}>`
   flex: 1;
-  padding: ${({ $isMobile, $noPadding }) => 
-    $noPadding ? "0" : ($isMobile ? "0" : "24px 32px")
-  };
-  overflow-y: ${({ $noScroll }) => $noScroll ? "hidden" : "auto"};
+  padding: ${({ $isMobile, $noPadding }) =>
+    $noPadding ? "0" : $isMobile ? "0" : "24px 32px"};
+  overflow-y: ${({ $noScroll }) => ($noScroll ? "hidden" : "auto")};
   overflow-x: hidden;
   background-color: ${({ theme }) => theme.colors.white};
 
@@ -236,7 +239,8 @@ const AppMain = styled.main<{ $isMobile: boolean; $keyboardVisible?: boolean; $n
 
   /* 모바일에서 오직 이 영역에서만 스크롤 허용 */
   @media (max-width: 1024px) {
-    touch-action: ${({ $noScroll }) => $noScroll ? "none" : "pan-y"}; /* 세로 스크롤만 허용 */
+    touch-action: ${({ $noScroll }) =>
+      $noScroll ? "none" : "pan-y"}; /* 세로 스크롤만 허용 */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain; /* 바운스 스크롤 방지 */
     scroll-behavior: auto; /* 부드러운 스크롤 비활성화로 성능 향상 */
@@ -647,12 +651,10 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     alert("알림 기능을 준비 중입니다.");
   };
 
-  const handleMore = () => {
-    // TODO: Implement more menu
-  };
-
   const handleShare = () => {
-    // TODO: Implement share modal
+    // ShareModal을 열기 위한 이벤트 디스패치
+    const shareEvent = new CustomEvent("openShareModal");
+    window.dispatchEvent(shareEvent);
   };
 
   const handleHelpClick = () => {
@@ -730,15 +732,6 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                           <Share2 size={isMobile ? 18 : 20} />
                         </HeaderIconButton>
                       )}
-                      {location.pathname !== "/my" &&
-                        location.pathname !== "/my/settings" && (
-                          <HeaderIconButton
-                            $isMobile={isMobile}
-                            onClick={handleMore}
-                          >
-                            <MoreHorizontal size={isMobile ? 18 : 20} />
-                          </HeaderIconButton>
-                        )}
                     </>
                   )}
                   {location.pathname === "/my" && !hideHeaderActions && (
