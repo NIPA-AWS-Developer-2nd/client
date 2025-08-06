@@ -56,16 +56,16 @@ const Button = styled.button<{
         return `
           background-color: #FFFFFF;
           color: #000000;
-          border: 1px solid ${theme.colors.border};
+          border: 1.5px solid ${theme.colors.border};
         `;
       case "naver":
         return `
-          background-color: #45b649;
+          background-color: #04c75b;
           color: #FFFFFF;
         `;
       case "test":
         return `
-          background-color: ${theme.colors.primary};
+          background-color: #000000;
           color: #FFFFFF;
         `;
       default:
@@ -116,14 +116,14 @@ const Icon = styled.div<{
   ${({ $provider }) =>
     $provider === "naver"
       ? `
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
       `
       : ""}
 
   @media (max-width: 768px) {
-    width: ${({ $provider }) => ($provider === "naver" ? "32px" : "20px")};
-    height: ${({ $provider }) => ($provider === "naver" ? "32px" : "20px")};
+    width: ${({ $provider }) => ($provider === "naver" ? "36px" : "20px")};
+    height: ${({ $provider }) => ($provider === "naver" ? "36px" : "20px")};
   }
 `;
 
