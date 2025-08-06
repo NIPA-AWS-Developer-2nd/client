@@ -63,7 +63,7 @@ export const shareViaNative = async (shareData: ShareData): Promise<void> => {
   }
 
   // 보안 컨텍스트 체크는 개발 환경에서만 경고
-  if (!window.isSecureContext && process.env.NODE_ENV === "development") {
+  if (!window.isSecureContext && import.meta.env.DEV) {
     console.warn("Web Share API may not work in insecure context");
   }
 
@@ -120,7 +120,7 @@ export const isAndroid = (): boolean => {
 };
 
 export const debugShareAPI = (): void => {
-  if (process.env.NODE_ENV === "development") {
+  if (import.meta.env.DEV) {
     console.log("Share API 지원:", typeof navigator.share === "function");
     console.log("보안 컨텍스트:", window.isSecureContext);
     console.log("User Agent:", navigator.userAgent);
