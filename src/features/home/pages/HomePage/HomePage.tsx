@@ -10,7 +10,7 @@ import {
   Check,
   Gift,
 } from "lucide-react";
-import { deviceDetection } from "../utils";
+import { deviceDetection } from "../../../../shared/utils";
 
 // 컨테이너 스타일들
 const PageContainer = styled.div`
@@ -57,12 +57,8 @@ const ActionButton = styled.button<{ $isMobile?: boolean }>`
 
   &:hover {
     background: ${({ theme }) => theme.colors.gray100};
-    border-color: ${({ theme }) => theme.colors.primary};
   }
 
-  &:active {
-    transform: scale(0.98);
-  }
 `;
 
 const ActionIcon = styled.div<{ $isMobile?: boolean }>`

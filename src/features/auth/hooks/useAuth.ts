@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { authFetch, apiUrl } from "../../../utils/api";
+import { authFetch, apiUrl } from "../../../shared/utils/api";
 
 export interface User {
   id: string | number;

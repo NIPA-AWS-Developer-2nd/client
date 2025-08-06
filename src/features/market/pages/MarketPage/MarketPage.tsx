@@ -13,8 +13,8 @@ import {
   Coins,
   ShoppingBag,
 } from "lucide-react";
-import { ServiceCard } from "../components/ui/ServiceCard";
-import { deviceDetection } from "../utils/deviceDetection";
+import { ServiceCard } from "../../../../shared/components/ui";
+import { deviceDetection } from "../../../../shared/utils/deviceDetection";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
@@ -109,12 +109,10 @@ const CategoryItem = styled.button<{ $isMobile?: boolean }>`
 
   &:hover {
     background: ${({ theme }) => theme.colors.gray100};
-    border-color: ${({ theme }) => theme.colors.gray300};
   }
 
   &:focus {
     background: ${({ theme }) => theme.colors.gray100};
-    border-color: ${({ theme }) => theme.colors.gray300};
   }
 
   &:active {

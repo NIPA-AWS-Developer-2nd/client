@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { BrandingContent } from "../../../components/common";
+import { BrandingContent } from "../../../shared/components/common";
 import { SocialLoginButton } from "./SocialLoginButton";
 import { useAuth } from "../hooks/useAuth";
 
