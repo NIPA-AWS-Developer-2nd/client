@@ -15,12 +15,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // 저장된 테마 모드 불러오기
   const getStoredThemeMode = (): ThemeMode => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      const stored = sessionStorage.getItem(THEME_STORAGE_KEY);
       if (stored && ["system", "light", "dark"].includes(stored)) {
         return stored as ThemeMode;
       }
     }
-    return "system";
+    return "light";
   };
 
   const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
@@ -38,7 +38,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // 테마 모드 변경 함수
   const setThemeMode = (mode: ThemeMode) => {
     setThemeModeState(mode);
-    localStorage.setItem(THEME_STORAGE_KEY, mode);
+    sessionStorage.setItem(THEME_STORAGE_KEY, mode);
     setCurrentTheme(getActiveTheme(mode));
 
     // 메타 태그 업데이트
