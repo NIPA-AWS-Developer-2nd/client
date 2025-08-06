@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
 import { Loading } from "../../../../shared/components/ui/Loading";
+import { ShareModal } from "../../../../shared/components/common/ShareModal";
 import { useMissionStore } from "../../../../shared/store";
 import {
   MissionHeader,
@@ -16,6 +17,7 @@ export const MissionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   
   const { 
     currentMission, 
@@ -49,6 +51,22 @@ export const MissionDetailPage: React.FC = () => {
     navigate(`/meetings/${meetingId}`);
   };
 
+  const handleShareModalClose = () => {
+    setIsShareModalOpen(false);
+  };
+
+  // 헤더에서 공유 버튼 클릭 이벤트 듣기
+  React.useEffect(() => {
+    const handleOpenShareModal = () => {
+      setIsShareModalOpen(true);
+    };
+
+    window.addEventListener('openShareModal', handleOpenShareModal);
+    return () => {
+      window.removeEventListener('openShareModal', handleOpenShareModal);
+    };
+  }, []);
+
   if (isLoading && !currentMission) {
     return (
       <PageContainer $isMobile={isMobile}>
@@ -80,6 +98,13 @@ export const MissionDetailPage: React.FC = () => {
           onMeetingClick={handleMeetingClick}
         />
       </ContentSection>
+      
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={handleShareModalClose}
+        mission={currentMission}
+        isMobile={isMobile}
+      />
     </PageContainer>
   );
 };
