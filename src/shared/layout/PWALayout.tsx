@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import styled, { ThemeProvider } from "styled-components";
-import { GlobalStyle, theme } from "../../styles";
-import { InstallPrompt } from "../common/InstallPrompt";
-import { deviceCapabilities } from "../../utils/nativeFeatures";
+import { GlobalStyle, theme } from "../styles";
+import { InstallPrompt } from "../components/common/InstallPrompt";
+import { deviceCapabilities } from "../utils/nativeFeatures";
 
 const LayoutContainer = styled.div`
   min-height: 100vh;

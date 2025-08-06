@@ -63,7 +63,7 @@ export class ViewportHeightManager {
 
   private isIOS(): boolean {
     return (
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window)
     );
   }
 

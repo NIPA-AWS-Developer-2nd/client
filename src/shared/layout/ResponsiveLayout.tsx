@@ -13,10 +13,11 @@ import {
   User,
   HelpCircle,
   Settings,
+  Share2,
 } from "lucide-react";
-import { InstallPrompt, BrandingContent } from "../common";
-import { HelpModal } from "../common/HelpModal";
-import { deviceDetection, viewportManager } from "../../utils";
+import { InstallPrompt, BrandingContent } from "../components/common";
+import { HelpModal } from "../components/common/HelpModal";
+import { deviceDetection, viewportManager } from "../utils";
 
 // 최상위 고정 컨테이너
 const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
@@ -30,11 +31,15 @@ const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
   height: calc(var(--vh, 1vh) * 100);
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: hidden; /* 확실한 스크롤 차단 */
   background-color: ${({ theme }) => theme.colors.gray100};
   display: flex;
   justify-content: center;
   align-items: center;
+  
+  /* 터치 스크롤 차단 */
+  overscroll-behavior: none;
+  touch-action: none;
 
   @media (max-width: 1024px) {
     background-color: ${({ theme }) => theme.colors.white};
@@ -66,12 +71,15 @@ const MainContainer = styled.div<{
   max-height: ${({ $isMobile }) =>
     $isMobile ? "calc(var(--vh, 1vh) * 100)" : "80vh"};
   border-radius: ${({ $isMobile }) => ($isMobile ? "0" : "12px")};
-  overflow: hidden;
+  overflow: hidden; /* 확실한 스크롤 차단 */
   box-shadow: ${({ $isMobile, theme }) =>
     $isMobile ? "none" : theme.shadows.xl};
   background-color: ${({ theme }) => theme.colors.white};
   margin: 0;
   padding: 0;
+  
+  /* 터치 스크롤 차단 */
+  overscroll-behavior: none;
 
   /* 키보드가 열렸을 때 높이 조정 */
   ${({ $keyboardVisible, $isMobile }) =>
@@ -208,10 +216,12 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
 `;
 
 // 메인 컨텐츠
-const AppMain = styled.main<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
+const AppMain = styled.main<{ $isMobile: boolean; $keyboardVisible?: boolean; $noPadding?: boolean; $noScroll?: boolean }>`
   flex: 1;
-  padding: ${({ $isMobile }) => ($isMobile ? "16px 20px" : "24px 32px")};
-  overflow-y: auto;
+  padding: ${({ $isMobile, $noPadding }) => 
+    $noPadding ? "0" : ($isMobile ? "0" : "24px 32px")
+  };
+  overflow-y: ${({ $noScroll }) => $noScroll ? "hidden" : "auto"};
   overflow-x: hidden;
   background-color: ${({ theme }) => theme.colors.white};
 
@@ -226,9 +236,9 @@ const AppMain = styled.main<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
 
   /* 모바일에서 오직 이 영역에서만 스크롤 허용 */
   @media (max-width: 1024px) {
-    touch-action: pan-y; /* 세로 스크롤만 허용 */
+    touch-action: ${({ $noScroll }) => $noScroll ? "none" : "pan-y"}; /* 세로 스크롤만 허용 */
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain; /* 바운스 스크롤 방지 */
+    overscroll-behavior: contain; /* 바운스 스크롤 방지 */
     scroll-behavior: auto; /* 부드러운 스크롤 비활성화로 성능 향상 */
   }
 
@@ -405,6 +415,13 @@ interface ResponsiveLayoutProps {
   title?: string;
   showInstallPrompt?: boolean;
   showBanner?: boolean;
+  customHeaderTitle?: string;
+  customHeaderActions?: React.ReactNode;
+  hideBottomNav?: boolean;
+  fullWidth?: boolean;
+  noPadding?: boolean;
+  noScroll?: boolean;
+  hideHeaderActions?: boolean;
 }
 
 export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
@@ -412,6 +429,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   title = "Halsaram",
   showInstallPrompt = true,
   showBanner = true,
+  customHeaderTitle,
+  customHeaderActions,
+  hideBottomNav = false,
+  fullWidth: _fullWidth = false,
+  noPadding: _noPadding = false,
+  noScroll: _noScroll = false,
+  hideHeaderActions = false,
 }) => {
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -580,11 +604,26 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       { path: "/meetings", icon: Users, label: "모임", title: "모임" },
       { path: "/market", icon: ShoppingBag, label: "마켓", title: "마켓" },
       { path: "/my", icon: User, label: "마이", title: "마이페이지" },
-      { path: "/my/settings", icon: Settings, label: "앱 설정", title: "앱 설정" },
+      {
+        path: "/my/settings",
+        icon: Settings,
+        label: "앱 설정",
+        title: "앱 설정",
+      },
     ];
 
+    // 미션 상세페이지
+    if (location.pathname.startsWith("/missions/")) {
+      return { title: "미션 상세", label: "" };
+    }
+
+    // 모임 상세페이지
+    if (location.pathname.startsWith("/meetings/")) {
+      return { title: "모임 정보", label: "" };
+    }
+
     const currentTab = tabs.find((tab) => tab.path === location.pathname);
-    return currentTab || { title: "할사람", label: "" };
+    return currentTab || { title: customHeaderTitle || "Not Found", label: "" };
   };
 
   const currentPage = getCurrentPageInfo();
@@ -609,7 +648,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   };
 
   const handleMore = () => {
-    alert("더보기 메뉴를 준비 중입니다.");
+    // TODO: Implement more menu
+  };
+
+  const handleShare = () => {
+    // TODO: Implement share modal
   };
 
   const handleHelpClick = () => {
@@ -656,47 +699,91 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             </HeaderLeft>
 
             <HeaderRight>
-              <HeaderIconButton $isMobile={isMobile} onClick={handleSearch}>
-                <Search size={isMobile ? 18 : 20} />
-              </HeaderIconButton>
-              <HeaderIconButton
-                $isMobile={isMobile}
-                onClick={handleNotifications}
-              >
-                <Bell size={isMobile ? 18 : 20} />
-              </HeaderIconButton>
-              <HeaderIconButton $isMobile={isMobile} onClick={handleMore}>
-                <MoreHorizontal size={isMobile ? 18 : 20} />
-              </HeaderIconButton>
+              {customHeaderActions || (
+                <>
+                  {!hideHeaderActions && (
+                    <>
+                      {location.pathname !== "/my" &&
+                        location.pathname !== "/my/settings" &&
+                        !location.pathname.startsWith("/missions/") && (
+                          <HeaderIconButton
+                            $isMobile={isMobile}
+                            onClick={handleSearch}
+                          >
+                            <Search size={isMobile ? 18 : 20} />
+                          </HeaderIconButton>
+                        )}
+                      {location.pathname !== "/my" &&
+                        location.pathname !== "/my/settings" && (
+                          <HeaderIconButton
+                            $isMobile={isMobile}
+                            onClick={handleNotifications}
+                          >
+                            <Bell size={isMobile ? 18 : 20} />
+                          </HeaderIconButton>
+                        )}
+                      {location.pathname.startsWith("/missions/") && (
+                        <HeaderIconButton
+                          $isMobile={isMobile}
+                          onClick={handleShare}
+                        >
+                          <Share2 size={isMobile ? 18 : 20} />
+                        </HeaderIconButton>
+                      )}
+                      {location.pathname !== "/my" &&
+                        location.pathname !== "/my/settings" && (
+                          <HeaderIconButton
+                            $isMobile={isMobile}
+                            onClick={handleMore}
+                          >
+                            <MoreHorizontal size={isMobile ? 18 : 20} />
+                          </HeaderIconButton>
+                        )}
+                    </>
+                  )}
+                  {location.pathname === "/my" && !hideHeaderActions && (
+                    <HeaderIconButton
+                      $isMobile={isMobile}
+                      onClick={() => navigate("/my/settings")}
+                    >
+                      <Settings size={isMobile ? 18 : 20} />
+                    </HeaderIconButton>
+                  )}
+                </>
+              )}
             </HeaderRight>
           </AppHeader>
 
           <AppMain
             $isMobile={isMobile}
             $keyboardVisible={keyboardVisible}
+            $noPadding={_noPadding}
+            $noScroll={_noScroll}
             data-scroll-container
           >
             {children}
           </AppMain>
 
           {/* 하단 탭 바 */}
-          <TabBar $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              return (
-                <TabItem
-                  key={tab.path}
-                  to={tab.path}
-                  $isActive={location.pathname === tab.path}
-                >
-                  <TabIcon>
-                    <IconComponent size={20} />
-                  </TabIcon>
-                  <TabLabel>{tab.label}</TabLabel>
-                </TabItem>
-              );
-            })}
-          </TabBar>
+          {!hideBottomNav && (
+            <TabBar $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
+              {tabs.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <TabItem
+                    key={tab.path}
+                    to={tab.path}
+                    $isActive={location.pathname === tab.path}
+                  >
+                    <TabIcon>
+                      <IconComponent size={20} />
+                    </TabIcon>
+                    <TabLabel>{tab.label}</TabLabel>
+                  </TabItem>
+                );
+              })}
+            </TabBar>
+          )}
         </AppArea>
       </MainContainer>
 

@@ -10,7 +10,6 @@ const Card = styled.div<{ $isMobile?: boolean }>`
   position: relative;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.gray300};
     box-shadow: ${({ theme }) => theme.shadows.sm};
   }
 `;
@@ -94,7 +93,6 @@ const ActionButton = styled.button<{
           
           &:hover {
             background: ${theme.colors.gray800};
-            border-color: ${theme.colors.gray800};
           }
         `;
       case "secondary":
@@ -104,7 +102,6 @@ const ActionButton = styled.button<{
           color: ${theme.colors.text.primary};
           
           &:hover {
-            border-color: ${theme.colors.gray300};
             background: ${theme.colors.gray50};
           }
         `;

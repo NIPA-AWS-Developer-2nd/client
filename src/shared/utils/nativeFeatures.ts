@@ -1,3 +1,27 @@
+// Type definitions
+interface OpenFilePickerOptions {
+  multiple?: boolean;
+  excludeAcceptAllOption?: boolean;
+  types?: Array<{
+    description?: string;
+    accept: Record<string, string[]>;
+  }>;
+}
+
+interface NetworkInformation {
+  effectiveType?: string;
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+}
+
+declare global {
+  interface Window {
+    showOpenFilePicker?: (options?: OpenFilePickerOptions) => Promise<FileSystemFileHandle[]>;
+    showSaveFilePicker?: (options?: { suggestedName?: string }) => Promise<FileSystemFileHandle>;
+  }
+}
+
 // Device Capabilities Detection
 export const deviceCapabilities = {
   // Check if device supports vibration
@@ -21,7 +45,7 @@ export const deviceCapabilities = {
   // Check if app is in standalone mode (installed PWA)
   isStandalone: () => 
     window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true,
+    ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true),
 };
 
 // Vibration API
@@ -158,18 +182,18 @@ export const notifications = {
 // File System Access API
 export const fileSystem = {
   // Open file picker
-  openFile: async (options: any = {}): Promise<FileSystemFileHandle[]> => {
+  openFile: async (options: OpenFilePickerOptions = {}): Promise<FileSystemFileHandle[]> => {
     if (!deviceCapabilities.canAccessFiles()) {
       throw new Error('File System Access not supported');
     }
     
-    return await (window as any).showOpenFilePicker(options);
+    return await window.showOpenFilePicker!(options);
   },
   
   // Save file
   saveFile: async (content: string, filename: string = 'file.txt') => {
     if (deviceCapabilities.canAccessFiles()) {
-      const fileHandle = await (window as any).showSaveFilePicker({
+      const fileHandle = await window.showSaveFilePicker!({
         suggestedName: filename,
       });
       
@@ -193,7 +217,9 @@ export const fileSystem = {
 export const network = {
   // Get connection info
   getConnectionInfo: () => {
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    const connection = ('connection' in navigator ? (navigator as { connection?: NetworkInformation }).connection : null) ||
+                      ('mozConnection' in navigator ? (navigator as { mozConnection?: NetworkInformation }).mozConnection : null) ||
+                      ('webkitConnection' in navigator ? (navigator as { webkitConnection?: NetworkInformation }).webkitConnection : null);
     
     if (connection) {
       return {

@@ -99,7 +99,6 @@ const Select = styled.select<{ $isMobile?: boolean }>`
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.gray600};
     box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
   }
 `;
@@ -118,7 +117,6 @@ const TextArea = styled.textarea<{ $isMobile?: boolean }>`
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.gray600};
     box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
   }
 

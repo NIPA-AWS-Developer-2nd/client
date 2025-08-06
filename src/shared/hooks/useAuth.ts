@@ -14,6 +14,7 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (provider: "kakao" | "google" | "naver") => Promise<void>;
+  testLogin: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -63,6 +64,31 @@ export const useAuth = (): AuthContextType => {
     }
   };
 
+  const testLogin = async () => {
+    setIsLoading(true);
+    try {
+      // 테스트 사용자 데이터 생성
+      const testUser: User = {
+        id: "test-user-1",
+        email: "test@halsaram.com",
+        nickname: "테스트유저",
+        profileImage: "https://via.placeholder.com/40x40?text=T",
+        provider: "kakao", // 기본값으로 카카오 설정
+      };
+
+      // 테스트 로그인은 로컬 상태만 업데이트
+      setUser(testUser);
+      setIsLoading(false);
+      
+      // 홈 페이지로 리다이렉트
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Test login failed:", error);
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
   const logout = async () => {
     try {
       // 백엔드 로그아웃
@@ -86,6 +112,7 @@ export const useAuth = (): AuthContextType => {
     isLoading,
     isAuthenticated,
     login,
+    testLogin,
     logout,
   };
 };
