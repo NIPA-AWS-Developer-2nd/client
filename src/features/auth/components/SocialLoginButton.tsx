@@ -78,6 +78,11 @@ const Button = styled.button<{
       background-color: inherit !important;
     }
   }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 const Icon = styled.div<{

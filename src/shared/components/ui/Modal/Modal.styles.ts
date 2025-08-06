@@ -78,6 +78,11 @@ export const CloseButton = styled.button`
   ${hoverSupported(css`
     background: ${({ theme }) => theme.colors.gray100};
   `)}
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 export const ModalBody = styled.div`

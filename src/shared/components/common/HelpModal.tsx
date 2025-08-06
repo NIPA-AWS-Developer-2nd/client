@@ -64,6 +64,11 @@ const CloseButton = styled.button`
     background: ${({ theme }) => theme.colors.gray100};
     color: ${({ theme }) => theme.colors.text.primary};
   }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 const HelpSection = styled.div`

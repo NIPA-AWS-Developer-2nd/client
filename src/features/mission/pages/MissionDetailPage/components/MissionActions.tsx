@@ -83,6 +83,11 @@ const ActionButton = styled.button<{
   &:active {
     transform: scale(0.98);
   }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 export const MissionActions: React.FC<MissionActionsProps> = ({

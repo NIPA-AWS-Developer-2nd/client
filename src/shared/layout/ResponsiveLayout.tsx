@@ -175,6 +175,12 @@ const BackButton = styled.button<{ $show: boolean }>`
   &:active {
     transform: scale(0.95);
   }
+  
+  /* 포커스 아웃라인 제거 */
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 const PageTitle = styled.h1<{ $isMobile: boolean }>`
@@ -211,6 +217,12 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
 
   &:active {
     transform: scale(0.95);
+  }
+  
+  /* 포커스 아웃라인 제거 */
+  &:focus {
+    outline: none;
+    box-shadow: none;
   }
 `;
 
@@ -411,6 +423,12 @@ const HelpButton = styled.button<{ $isMobile?: boolean }>`
 
   &:active {
     transform: scale(0.95);
+  }
+  
+  /* 포커스 아웃라인 제거 */
+  &:focus {
+    outline: none;
+    box-shadow: none;
   }
 `;
 

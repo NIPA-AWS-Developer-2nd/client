@@ -75,6 +75,11 @@ export const CloseButton = styled.button`
   &:hover {
     background: ${({ theme }) => theme.colors.gray100};
   }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;
 
 export const DragHandle = styled.div<{ $isMobile?: boolean }>`
@@ -145,6 +150,11 @@ export const ShareOption = styled.button<{ $isMobile?: boolean }>`
   @media (max-width: 320px) {
     padding: 12px 8px;
     gap: 8px;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
   }
 `;
 
