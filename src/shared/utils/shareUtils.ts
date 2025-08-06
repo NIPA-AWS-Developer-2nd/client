@@ -58,8 +58,13 @@ export const shareViaMessage = (text: string) => {
 };
 
 export const shareViaNative = async (shareData: ShareData): Promise<void> => {
-  if (typeof navigator.share !== "function" || !window.isSecureContext) {
+  if (typeof navigator.share !== "function") {
     throw new Error("Web Share API not supported");
+  }
+
+  // 보안 컨텍스트 체크는 개발 환경에서만 경고
+  if (!window.isSecureContext && process.env.NODE_ENV === "development") {
+    console.warn("Web Share API may not work in insecure context");
   }
 
   if (navigator.canShare && !navigator.canShare(shareData)) {

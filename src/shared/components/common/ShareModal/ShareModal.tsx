@@ -27,6 +27,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const { handleKakaoShare, handleMessageShare, handleMoreShare, handleCopyLink } =
     useShareModal(mission, onClose);
 
+  // Web Share API 지원 여부 확인
+  const supportsWebShare = typeof navigator.share === "function" && window.isSecureContext;
+
   const shareOptions: ShareOptionData[] = [
     {
       id: "copy-link",
@@ -46,12 +49,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       label: "메시지",
       onClick: handleMessageShare,
     },
-    {
+    // Web Share API 지원하는 경우에만 기타 버튼 표시
+    ...(supportsWebShare ? [{
       id: "more",
       icon: <MoreHorizontal size={22} />,
       label: "기타",
       onClick: handleMoreShare,
-    },
+    }] : []),
   ];
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -73,7 +77,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
           <ModalTitle $isMobile={isMobile}>공유하기</ModalTitle>
         </ModalHeader>
 
-        <ShareOptions $isMobile={isMobile}>
+        <ShareOptions $isMobile={isMobile} $itemCount={shareOptions.length}>
           {shareOptions.map((option) => (
             <ShareOption
               key={option.id}

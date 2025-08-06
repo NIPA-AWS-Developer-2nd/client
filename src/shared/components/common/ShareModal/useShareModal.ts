@@ -54,7 +54,8 @@ export const useShareModal = (
   const handleMoreShare = useCallback(async () => {
     debugShareAPI();
 
-    if (typeof navigator.share === "function" && window.isSecureContext) {
+    // Web Share API 지원 여부 확인
+    if (typeof navigator.share === "function") {
       try {
         const shareData = generateShareData(mission);
         await shareViaNative(shareData);
@@ -64,12 +65,13 @@ export const useShareModal = (
         if (error instanceof Error && error.name === "AbortError") {
           return;
         }
-        console.error("Share failed, falling back to copy link:", error);
+        console.error("Share failed, trying fallback:", error);
       }
-    } else {
-      console.log("Web Share API not supported, using fallback");
+    }
 
-      if (isMobileDevice() && isAndroid()) {
+    // Fallback: 모바일 디바이스별 처리
+    if (isMobileDevice()) {
+      if (isAndroid()) {
         try {
           const text = generateShareText(mission);
           shareViaAndroidIntent(text);
@@ -79,10 +81,15 @@ export const useShareModal = (
           console.log("Android intent failed, falling back to copy");
         }
       }
-
-      alert("공유 기능을 사용할 수 없습니다. 링크를 복사합니다.");
+      
+      // iOS나 다른 모바일은 링크 복사로 처리
+      alert("링크를 클립보드에 복사합니다.");
+      await handleCopyLink();
+      return;
     }
 
+    // 데스크톱은 링크 복사
+    alert("링크를 클립보드에 복사합니다.");
     await handleCopyLink();
   }, [mission, onClose, handleCopyLink]);
 

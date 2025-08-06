@@ -92,30 +92,59 @@ export const DragHandle = styled.div<{ $isMobile?: boolean }>`
   }
 `;
 
-export const ShareOptions = styled.div<{ $isMobile?: boolean }>`
+export const ShareOptions = styled.div<{
+  $isMobile?: boolean;
+  $itemCount?: number;
+}>`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: ${({ $itemCount = 4 }) =>
+    `repeat(${Math.min($itemCount, 4)}, 1fr)`};
   gap: 16px;
-`;
+  justify-items: center;
 
+  @media (max-width: 400px) {
+    grid-template-columns: ${({ $itemCount = 4 }) =>
+      $itemCount <= 3 ? `repeat(${$itemCount}, 1fr)` : "repeat(3, 1fr)"};
+    gap: 12px;
+  }
+
+  @media (max-width: 320px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+`;
 export const ShareOption = styled.button<{ $isMobile?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: ${({ $isMobile }) => ($isMobile ? "16px 12px" : "20px 16px")};
+  padding: ${({ $isMobile }) => ($isMobile ? "12px 8px" : "16px 12px")};
   border: none;
   background: none;
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   text-align: center;
+  width: 100%;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
 
   &:hover {
     opacity: 0.8;
+    background: ${({ theme }) => theme.colors.gray50};
   }
 
   &:active {
     transform: scale(0.95);
+  }
+
+  @media (max-width: 400px) {
+    padding: 10px 6px;
+    gap: 6px;
+  }
+
+  @media (max-width: 320px) {
+    padding: 12px 8px;
+    gap: 8px;
   }
 `;
 
