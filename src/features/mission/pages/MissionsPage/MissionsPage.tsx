@@ -17,6 +17,11 @@ import { CATEGORIES, getCategoryLabel } from "../../../../data/categories";
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
+  ${({ $isMobile }) =>
+    $isMobile &&
+    `
+    padding: 16px;
+  `}
 `;
 
 const FilterSection = styled.div<{ $isMobile?: boolean }>`
@@ -130,11 +135,10 @@ const FilterSelect = styled.select`
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   appearance: none;
-  background-image: ${({ theme }) => 
-    theme.colors.background === '#2D3748' 
+  background-image: ${({ theme }) =>
+    theme.colors.background === "#2D3748"
       ? `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`
-      : `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`
-  };
+      : `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`};
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-size: 16px;
@@ -211,38 +215,48 @@ const MissionImage = styled.img`
   object-fit: cover;
 `;
 
-
 const getPointBadgeColor = (
-  point: number
+  point: number,
+  isDark: boolean = false
 ): { background: string; shadow: string } => {
   if (point < 300) {
-    // Gray - 회색 (가장 간단한 미션)
+    // 가장 쉬운 미션
     return {
-      background: "linear-gradient(135deg, #E5E7EB, #D1D5DB)",
+      background: isDark
+        ? "linear-gradient(135deg, #E5E7EB, #D1D5DB)"
+        : "linear-gradient(135deg, #F3F4F6, #E5E7EB)",
       shadow: "rgba(156, 163, 175, 0.3)",
     };
   } else if (point < 600) {
-    // Blue - 파스텔 블루 (쉬운 미션) - 더 강한 그라디언트
     return {
-      background: "linear-gradient(135deg, #3B82F6, #1D4ED8, #1E40AF)",
+      // 쉬운 미션
+      background: isDark
+        ? "linear-gradient(135deg, #3B82F6, #1D4ED8, #1E40AF)"
+        : "linear-gradient(135deg, #60A5FA, #3B82F6, #2563EB)",
       shadow: "rgba(59, 130, 246, 0.4)",
     };
   } else if (point < 1000) {
-    // Green - 파스텔 그린 (보통 미션) - 더 강한 그라디언트
+    // 보통 미션
     return {
-      background: "linear-gradient(135deg, #10B981, #047857, #065F46)",
+      background: isDark
+        ? "linear-gradient(135deg, #10B981, #047857, #065F46)"
+        : "linear-gradient(135deg, #34D399, #10B981, #059669)",
       shadow: "rgba(34, 197, 94, 0.4)",
     };
   } else if (point < 1500) {
-    // Purple - 파스텔 퍼플 (어려운 미션) - 더 강한 그라디언트
+    // 어려운 미션
     return {
-      background: "linear-gradient(135deg, #8B5CF6, #7C3AED, #6D28D9)",
+      background: isDark
+        ? "linear-gradient(135deg, #8B5CF6, #7C3AED, #6D28D9)"
+        : "linear-gradient(135deg, #A78BFA, #8B5CF6, #7C3AED)",
       shadow: "rgba(139, 92, 246, 0.4)",
     };
   } else {
-    // Orange - 파스텔 오렌지 (최고 난이도) - 더 강한 그라디언트
+    // 가장 어려운 미션
     return {
-      background: "linear-gradient(135deg, #F59E0B, #D97706, #B45309)",
+      background: isDark
+        ? "linear-gradient(135deg, #F59E0B, #D97706, #B45309)"
+        : "linear-gradient(135deg, #FBB040, #F59E0B, #EF8A0D)",
       shadow: "rgba(251, 146, 60, 0.4)",
     };
   }
@@ -253,13 +267,21 @@ const PointBadgeOverlay = styled.div<{ $isMobile?: boolean; $point: number }>`
   top: 12px;
   right: 12px;
   padding: ${({ $isMobile }) => ($isMobile ? "6px 10px" : "8px 12px")};
-  background: ${({ $point }) => getPointBadgeColor($point).background};
+  background: ${({ $point, theme }) => {
+    const isDark = theme.colors.background === "#2D3748";
+    return getPointBadgeColor($point, isDark).background;
+  }};
   color: ${({ $point }) => ($point < 300 ? "#4B5563" : "#FFFFFF")};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ $isMobile }) => ($isMobile ? "11px" : "12px")};
   font-weight: 800;
-  box-shadow: 0 2px 6px ${({ $point }) => getPointBadgeColor($point).shadow};
-  text-shadow: ${({ $point }) => ($point < 300 ? "none" : "0 1px 2px rgba(0, 0, 0, 0.3)")};
+  box-shadow: 0 2px 6px
+    ${({ $point, theme }) => {
+      const isDark = theme.colors.background === "#2D3748";
+      return getPointBadgeColor($point, isDark).shadow;
+    }};
+  text-shadow: ${({ $point }) =>
+    $point < 300 ? "none" : "0 1px 2px rgba(0, 0, 0, 0.3)"};
 `;
 
 const MissionContent = styled.div<{ $isMobile?: boolean }>`
@@ -411,10 +433,10 @@ export const MissionsPage: React.FC = () => {
     return searchParams.get(key) || defaultValue;
   };
 
-  const [activeFilter, setActiveFilter] = React.useState(() => 
+  const [activeFilter, setActiveFilter] = React.useState(() =>
     getInitialFilter("category", "all")
   );
-  const [currentPage, setCurrentPage] = React.useState(() => 
+  const [currentPage, setCurrentPage] = React.useState(() =>
     parseInt(getInitialFilter("page", "1"))
   );
 
@@ -422,8 +444,8 @@ export const MissionsPage: React.FC = () => {
   const [difficultyFilter, setDifficultyFilter] = React.useState<string>(() =>
     getInitialFilter("difficulty", "all")
   );
-  const [participantsFilter, setParticipantsFilter] = React.useState<string>(() =>
-    getInitialFilter("participants", "all")
+  const [participantsFilter, setParticipantsFilter] = React.useState<string>(
+    () => getInitialFilter("participants", "all")
   );
   const [durationFilter, setDurationFilter] = React.useState<string>(() =>
     getInitialFilter("duration", "all")
@@ -435,19 +457,22 @@ export const MissionsPage: React.FC = () => {
   const MISSIONS_PER_PAGE = 5;
 
   // URL 파라미터 업데이트 함수
-  const updateURLParams = React.useCallback((updates: Record<string, string>) => {
-    const newParams = new URLSearchParams(searchParams);
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === "all" || (key === "page" && value === "1")) {
-        newParams.delete(key);
-      } else {
-        newParams.set(key, value);
-      }
-    });
+  const updateURLParams = React.useCallback(
+    (updates: Record<string, string>) => {
+      const newParams = new URLSearchParams(searchParams);
 
-    setSearchParams(newParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === "all" || (key === "page" && value === "1")) {
+          newParams.delete(key);
+        } else {
+          newParams.set(key, value);
+        }
+      });
+
+      setSearchParams(newParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -550,9 +575,9 @@ export const MissionsPage: React.FC = () => {
   React.useEffect(() => {
     setCurrentPage(1);
     // 페이지 파라미터만 삭제하고 다른 파라미터는 유지
-    if (searchParams.has('page')) {
+    if (searchParams.has("page")) {
       const newParams = new URLSearchParams(searchParams);
-      newParams.delete('page');
+      newParams.delete("page");
       setSearchParams(newParams, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -587,7 +612,7 @@ export const MissionsPage: React.FC = () => {
     if (page === 1) {
       // 첫 페이지일 경우 page 파라미터 제거
       const newParams = new URLSearchParams(searchParams);
-      newParams.delete('page');
+      newParams.delete("page");
       setSearchParams(newParams, { replace: true });
     } else {
       updateURLParams({ page: page.toString() });
@@ -763,7 +788,7 @@ export const MissionsPage: React.FC = () => {
                   alt={mission.title}
                   loading="lazy"
                   onError={(e) => {
-                    console.log('Image failed to load:', mission.thumbnailUrl);
+                    console.log("Image failed to load:", mission.thumbnailUrl);
                     e.currentTarget.style.display = "none";
                   }}
                 />

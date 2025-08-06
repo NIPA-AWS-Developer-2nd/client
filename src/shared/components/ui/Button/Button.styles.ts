@@ -130,4 +130,10 @@ export const StyledButton = styled.button<StyledButtonProps>`
     cursor: not-allowed;
     transform: none !important;
   }
+  
+  /* 포커스 아웃라인 제거 */
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 `;

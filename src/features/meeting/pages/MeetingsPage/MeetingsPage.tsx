@@ -26,6 +26,7 @@ const PageContainer = styled.div<{ $isMobile?: boolean }>`
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: ${({ $isMobile }) => ($isMobile ? "16px" : "0")};
 
   /* 커스텀 스크롤바 */
   &::-webkit-scrollbar {

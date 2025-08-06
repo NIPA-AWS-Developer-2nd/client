@@ -7,3 +7,4 @@ export type { ModalProps } from './Modal';
 export { Loading } from './Loading';
 export { Section, SectionTitle } from './Section';
 export { ServiceCard } from './ServiceCard';
+export { Skeleton, SkeletonText, SkeletonImage, SkeletonButton } from './Skeleton';

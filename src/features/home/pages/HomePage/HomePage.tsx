@@ -13,10 +13,10 @@ import {
 import { deviceDetection } from "../../../../shared/utils";
 
 // 컨테이너 스타일들
-const PageContainer = styled.div`
+const PageContainer = styled.div<{ $isMobile?: boolean }>`
   max-width: 100%;
   margin: 0 auto;
-  padding: 0;
+  padding: ${({ $isMobile }) => ($isMobile ? "16px" : "0")};
 `;
 
 const QuickActionsCard = styled.div<{ $isMobile?: boolean }>`
@@ -210,7 +210,7 @@ export const HomePage: React.FC = () => {
   ];
 
   return (
-    <PageContainer>
+    <PageContainer $isMobile={isMobile}>
       <QuickActionsCard $isMobile={isMobile}>
         <QuickActionsTitle $isMobile={isMobile}>빠른 실행</QuickActionsTitle>
         <QuickActionsGrid $isMobile={isMobile}>

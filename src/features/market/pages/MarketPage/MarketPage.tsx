@@ -19,6 +19,7 @@ import { deviceDetection } from "../../../../shared/utils/deviceDetection";
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
+  padding: ${({ $isMobile }) => ($isMobile ? "16px" : "0")};
 `;
 
 const PointsCard = styled.div<{ $isMobile?: boolean }>`

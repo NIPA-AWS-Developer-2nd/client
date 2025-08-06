@@ -11,9 +11,11 @@ export const shareToKakao = (mission?: MissionWithDetails) => {
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: mission.title,
-        description: mission.description,
-        imageUrl: mission.thumbnailUrl || `${window.location.origin}/icons/icon-512x512.png`,
+        title: `🎯 ${mission.title}`,
+        description: `${mission.description}\n\n저랑 같이 참여해요!`,
+        imageUrl:
+          mission.thumbnailUrl ||
+          `${window.location.origin}/icons/icon-512x512.png`,
         link: {
           mobileWebUrl: `${window.location.origin}/missions/${mission.id}`,
           webUrl: `${window.location.origin}/missions/${mission.id}`,
@@ -34,8 +36,8 @@ export const shareToKakao = (mission?: MissionWithDetails) => {
     window.Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: "나랑 미션 같이 할 사람?",
-        description: "두근두근, 재미있는 미션이 도착 했어요!",
+        title: "🎯 함께할 미션이 기다리고 있어요!",
+        description: "두근두근, 재미있는 미션에 같이 참여해보실래요?",
         imageUrl: `${window.location.origin}/icons/icon-512x512.png`,
         link: {
           mobileWebUrl: window.location.href,

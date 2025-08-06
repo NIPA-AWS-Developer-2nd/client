@@ -28,6 +28,7 @@ import { CATEGORIES_WITHOUT_ALL } from "../../../../data/categories";
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
+  padding: ${({ $isMobile }) => ($isMobile ? "16px" : "0")};
 `;
 
 const ProfileCard = styled.div<{ $isMobile?: boolean }>`
