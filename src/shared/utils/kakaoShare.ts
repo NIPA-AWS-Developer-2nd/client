@@ -12,7 +12,7 @@ export const shareToKakao = (mission?: MissionWithDetails) => {
       objectType: "feed",
       content: {
         title: `🎯 ${mission.title}`,
-        description: `${mission.description}\n\n나랑 같이 참여해요!`,
+        description: `${mission.description}\n\n저랑 같이 참여해요!`,
         imageUrl:
           mission.thumbnailUrl ||
           `${window.location.origin}/icons/icon-512x512.png`,
