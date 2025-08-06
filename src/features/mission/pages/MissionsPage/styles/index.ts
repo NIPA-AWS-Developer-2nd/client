@@ -277,7 +277,7 @@ export const MetaItem = styled.div<{ $isMobile?: boolean }>`
 `;
 
 export const MetaIcon = styled.div`
-  color: ${({ theme }) => theme.colors.text.tertiary};
+  color: ${({ theme }) => theme.colors.text.secondary};
   display: flex;
   align-items: center;
 `;

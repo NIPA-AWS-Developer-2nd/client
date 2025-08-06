@@ -90,7 +90,7 @@ export const useImageZoom = (): UseImageZoomReturn => {
       lastTouchPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
       // Pinch zoom start
-      const distance = getTouchDistance(e.touches);
+      const distance = getTouchDistance(e.touches as unknown as TouchList);
       lastTouchDistance.current = distance;
       initialTouchDistance.current = distance;
     }
@@ -110,7 +110,7 @@ export const useImageZoom = (): UseImageZoomReturn => {
       lastTouchPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
       // Pinch zoom
-      const distance = getTouchDistance(e.touches);
+      const distance = getTouchDistance(e.touches as unknown as TouchList);
       const scaleChange = distance / lastTouchDistance.current;
       const newScale = Math.min(Math.max(scale * scaleChange, 0.5), 3);
       

@@ -358,7 +358,7 @@ export const MissionContent: React.FC<MissionContentProps> = ({
     "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"
   ];
 
-  const { isOpen, currentIndex, openModal, closeModal, goToPrevious, goToNext } = 
+  const { isOpen, currentIndex, openModal, closeModal } = 
     useImageModal(sampleImages.length);
 
   // 갤러리 네비게이션을 위한 상태
