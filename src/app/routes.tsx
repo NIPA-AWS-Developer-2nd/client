@@ -1,0 +1,110 @@
+import { Routes, Route } from "react-router-dom";
+import { ResponsiveLayout } from "../shared/layout/ResponsiveLayout";
+import {
+  HomePage,
+  MarketPage,
+  MeetingsPage,
+  MissionsPage,
+  MyPage,
+  AppSettingsPage,
+  AuthCallbackPage,
+  LoginPage,
+  MissionDetailPage,
+  AuthSuccessPage,
+  NotFoundPage,
+} from "../features";
+
+export const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Auth routes */}
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/auth/success" element={<AuthSuccessPage />} />
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Main app routes */}
+      <Route
+        path="/"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+          >
+            <HomePage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/missions"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+          >
+            <MissionsPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/missions/:id"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+            noPadding={true}
+            hideBottomNav={true}
+          >
+            <MissionDetailPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/meetings"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+          >
+            <MeetingsPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/market"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+          >
+            <MarketPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/my"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+          >
+            <MyPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/my/settings"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+          >
+            <AppSettingsPage />
+          </ResponsiveLayout>
+        }
+      />
+
+      {/* 404 페이지 */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+};
