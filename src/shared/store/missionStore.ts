@@ -145,11 +145,12 @@ export const useMissionStore = create<MissionStore>()(
       fetchMeetings: async (missionId: string) => {
         set({ isLoading: true, error: null });
         try {
-          // TODO: Replace with actual API call
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // Mock data for now
-          const mockMeetings: MeetingWithDetails[] = [
+          if (import.meta.env.DEV) {
+            // 개발 환경에서만 mock 데이터 사용
+            console.log("🔧 개발 환경: Mock 미팅 데이터 사용");
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const mockMeetings: MeetingWithDetails[] = [
             {
               id: "1",
               missionId,
@@ -203,7 +204,15 @@ export const useMissionStore = create<MissionStore>()(
             return meetingTime > now && meeting.status === "SCHEDULED";
           });
 
-          set({ meetings: upcomingMeetings, isLoading: false });
+            set({ meetings: upcomingMeetings, isLoading: false });
+          } else {
+            // 프로덕션 환경에서는 실제 API 호출
+            console.log("🚀 프로덕션 환경: 실제 API 호출");
+            // TODO: 실제 API 연동 필요
+            // const response = await fetch(`/api/missions/${missionId}/meetings`);
+            // const meetings = await response.json();
+            set({ meetings: [], isLoading: false, error: "API 연동 필요" });
+          }
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
         }

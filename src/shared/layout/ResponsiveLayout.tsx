@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import styled from "styled-components";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -17,6 +17,7 @@ import {
 import { InstallPrompt, BrandingContent } from "../components/common";
 import { HelpModal } from "../components/common/HelpModal";
 import { deviceDetection, viewportManager } from "../utils";
+import { ROUTES } from "../constants/routes";
 
 // 최상위 고정 컨테이너
 const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
@@ -466,11 +467,32 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
   const location = useLocation();
   const navigate = useNavigate();
+  const scrollContainerRef = useRef<Element | null>(null);
 
+  // 경로별 상태를 메모이제이션
+  const routeInfo = useMemo(() => {
+    const pathname = location.pathname;
+    return {
+      isHomePage: pathname === ROUTES.HOME,
+      isMyPage: pathname === ROUTES.MY_PAGE,
+      isMySettingsPage: pathname === '/my/settings',
+      isMissionDetail: pathname.startsWith('/missions/'),
+      isMeetingDetail: pathname.startsWith('/meetings/'),
+      isMainTab: ([ROUTES.HOME, ROUTES.MISSIONS, ROUTES.MEETINGS, ROUTES.MARKET, ROUTES.MY_PAGE] as string[]).includes(pathname)
+    };
+  }, [location.pathname]);
+
+  // DOM 쿼리를 초기화 시에만 실행하고 ref로 캐싱
   useEffect(() => {
-    const scrollContainer = document.querySelector("[data-scroll-container]");
-    if (scrollContainer) {
-      scrollContainer.scrollTo(0, 0);
+    if (!scrollContainerRef.current) {
+      scrollContainerRef.current = document.querySelector("[data-scroll-container]");
+    }
+  }, []);
+
+  // 경로 변경 시 스크롤 초기화 (캐시된 ref 사용)
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo(0, 0);
     }
   }, [location.pathname]);
 
@@ -651,10 +673,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   const currentPage = getCurrentPageInfo();
   const showDesktopSidebar = showBanner && !isMobile;
 
-  // 메인 탭들 (뒤로가기 버튼이 필요 없는 페이지들)
-  const mainTabs = ["/", "/missions", "/meetings", "/market", "/my"];
-  const isMainTab = mainTabs.includes(location.pathname);
-  const isHomePage = location.pathname === "/";
+  // 기존의 중복 로직을 routeInfo로 대체
 
   // 헤더 액션 핸들러들
   const handleBack = () => {
@@ -707,11 +726,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         <AppArea $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
           <AppHeader $isMobile={isMobile}>
             <HeaderLeft>
-              <BackButton $show={!isMainTab} onClick={handleBack}>
+              <BackButton $show={!routeInfo.isMainTab} onClick={handleBack}>
                 <ArrowLeft size={18} />
               </BackButton>
               <PageTitle $isMobile={isMobile}>{currentPage.title}</PageTitle>
-              {isHomePage && (
+              {routeInfo.isHomePage && (
                 <HelpButton $isMobile={isMobile} onClick={handleHelpClick}>
                   <HelpCircle size={isMobile ? 16 : 18} />
                 </HelpButton>
@@ -723,9 +742,9 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                 <>
                   {!hideHeaderActions && (
                     <>
-                      {location.pathname !== "/my" &&
-                        location.pathname !== "/my/settings" &&
-                        !location.pathname.startsWith("/missions/") && (
+                      {!routeInfo.isMyPage &&
+                        !routeInfo.isMySettingsPage &&
+                        !routeInfo.isMissionDetail && (
                           <HeaderIconButton
                             $isMobile={isMobile}
                             onClick={handleSearch}
@@ -733,8 +752,8 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                             <Search size={isMobile ? 18 : 20} />
                           </HeaderIconButton>
                         )}
-                      {location.pathname !== "/my" &&
-                        location.pathname !== "/my/settings" && (
+                      {!routeInfo.isMyPage &&
+                        !routeInfo.isMySettingsPage && (
                           <HeaderIconButton
                             $isMobile={isMobile}
                             onClick={handleNotifications}
@@ -742,7 +761,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                             <Bell size={isMobile ? 18 : 20} />
                           </HeaderIconButton>
                         )}
-                      {location.pathname.startsWith("/missions/") && (
+                      {routeInfo.isMissionDetail && (
                         <HeaderIconButton
                           $isMobile={isMobile}
                           onClick={handleShare}
@@ -752,13 +771,21 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                       )}
                     </>
                   )}
-                  {location.pathname === "/my" && !hideHeaderActions && (
-                    <HeaderIconButton
-                      $isMobile={isMobile}
-                      onClick={() => navigate("/my/settings")}
-                    >
-                      <Settings size={isMobile ? 18 : 20} />
-                    </HeaderIconButton>
+                  {routeInfo.isMyPage && !hideHeaderActions && (
+                    <>
+                      <HeaderIconButton
+                        $isMobile={isMobile}
+                        onClick={handleNotifications}
+                      >
+                        <Bell size={isMobile ? 18 : 20} />
+                      </HeaderIconButton>
+                      <HeaderIconButton
+                        $isMobile={isMobile}
+                        onClick={() => navigate("/my/settings")}
+                      >
+                        <Settings size={isMobile ? 18 : 20} />
+                      </HeaderIconButton>
+                    </>
                   )}
                 </>
               )}
