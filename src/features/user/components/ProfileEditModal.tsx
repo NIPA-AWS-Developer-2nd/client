@@ -7,6 +7,8 @@ import { CATEGORIES_WITHOUT_ALL } from "../../../data/categories";
 import { useOnboardingStore } from "../../../shared/store";
 import { uploadToS3 } from "../../../shared/utils/s3Upload";
 import { getOptimizedImageUrl } from "../../../shared/utils/imageOptimization";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
+import { deviceDetection } from "../../../shared/utils/deviceDetection";
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -425,26 +427,6 @@ const CharacterCount = styled.div`
   margin-top: 4px;
 `;
 
-const Select = styled.select<{ $isMobile?: boolean }>`
-  width: 100%;
-  padding: ${({ $isMobile }) => ($isMobile ? "12px 14px" : "14px 16px")};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "15px")};
-  color: ${({ theme }) => theme.colors.text.primary};
-  background: ${({ theme }) => theme.colors.input};
-  transition: ${({ theme }) => theme.transitions.fast};
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
-  }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.text.placeholder};
-  }
-`;
 
 const GenderButtonGroup = styled.div`
   display: flex;
@@ -1032,25 +1014,23 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
           <Section $isMobile={isMobile}>
             <FormField $isMobile={isMobile}>
               <Label $isMobile={isMobile}>출생연도</Label>
-              <Select
-                $isMobile={isMobile}
+              <CustomSelect
                 value={selectedBirthYear}
-                onChange={(e) => handleBirthYearSelect(e.target.value)}
-              >
-                <option value="">출생연도를 선택해주세요</option>
-                {(() => {
+                options={(() => {
                   const currentYear = new Date().getFullYear();
                   const options = [];
                   for (let year = currentYear - 14; year >= 1950; year--) {
-                    options.push(
-                      <option key={year} value={year.toString()}>
-                        {year}년
-                      </option>
-                    );
+                    options.push({
+                      value: year.toString(),
+                      label: `${year}년`
+                    });
                   }
                   return options;
                 })()}
-              </Select>
+                placeholder="출생연도를 선택해주세요"
+                onChange={handleBirthYearSelect}
+                $isMobile={deviceDetection.isMobile()}
+              />
             </FormField>
 
             <FormField $isMobile={isMobile}>

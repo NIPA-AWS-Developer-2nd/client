@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Check } from "lucide-react";
 import { useOnboardingStore } from "../../../shared/store";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
+import { deviceDetection } from "../../../shared/utils/deviceDetection";
 
 const Container = styled.div`
   display: flex;
@@ -51,20 +53,6 @@ const Input = styled.input`
   }
 `;
 
-const Select = styled.select`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 8px;
-  font-size: 14px;
-  background: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.text.primary};
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-`;
 
 const GenderButtonGroup = styled.div`
   display: flex;
@@ -265,8 +253,8 @@ export const Step1BasicInfo: React.FC<Props> = ({
     }
   };
 
-  const handleBirthYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateFormData({ birthYear: e.target.value });
+  const handleBirthYearChange = (value: string) => {
+    updateFormData({ birthYear: value });
   };
 
   const handleGenderSelect = (gender: "male" | "female") => {
@@ -320,7 +308,10 @@ export const Step1BasicInfo: React.FC<Props> = ({
   const currentYear = new Date().getFullYear();
   const birthYearOptions = [];
   for (let year = currentYear - 14; year >= 1950; year--) {
-    birthYearOptions.push(year);
+    birthYearOptions.push({
+      value: year.toString(),
+      label: `${year}년`
+    });
   }
 
   return (
@@ -330,18 +321,13 @@ export const Step1BasicInfo: React.FC<Props> = ({
 
       <FormGroup>
         <Label htmlFor="birthYear">출생연도 *</Label>
-        <Select
-          id="birthYear"
+        <CustomSelect
           value={formData.birthYear}
+          options={birthYearOptions}
+          placeholder="출생연도를 선택해주세요"
           onChange={handleBirthYearChange}
-        >
-          <option value="">출생연도를 선택해주세요</option>
-          {birthYearOptions.map((year) => (
-            <option key={year} value={year.toString()}>
-              {year}년
-            </option>
-          ))}
-        </Select>
+          $isMobile={deviceDetection.isMobile()}
+        />
         {getBirthYearValidation() && (
           <FieldValidationMessage>
             {getBirthYearValidation()}
