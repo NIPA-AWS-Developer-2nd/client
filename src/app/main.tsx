@@ -26,9 +26,9 @@ if (window.Kakao) {
   const appKey = import.meta.env.VITE_KAKAO_APP_KEY;
   if (appKey) {
     window.Kakao.init(appKey);
-    console.log("Kakao SDK initialized:", window.Kakao.isInitialized());
+    // console.log("Kakao SDK initialized:", window.Kakao.isInitialized());
   } else {
-    console.error("Kakao app key not found in environment variables");
+    // console.error("Kakao app key not found in environment variables");
   }
 } else {
   console.error("Kakao SDK not loaded");

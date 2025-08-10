@@ -48,6 +48,11 @@ export interface KakaoPlace {
   category_group_code?: string;
 }
 
+export interface LocationData {
+  district: string;
+  regionCode: string;
+}
+
 export interface TraitSelectorProps {
   traits: ParticipantTrait[];
   selectedTraitIds: string[];
@@ -57,18 +62,8 @@ export interface TraitSelectorProps {
 
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
 
-export interface User {
-  id: number;
-  provider: "KAKAO" | "NAVER" | "GOOGLE";
-  provider_user_id: string;
-  email: string;
-  name: string;
-  phone?: string;
-  profile_image_url?: string;
-  status: AccountStatus;
-  created_at: string;
-  updated_at: string;
-}
+// User type is now defined in features/auth/hooks/useAuth.ts
+// Import from there when needed: import type { User } from "../features/auth/hooks/useAuth";
 
 export type VerificationStatus =
   | "PENDING"

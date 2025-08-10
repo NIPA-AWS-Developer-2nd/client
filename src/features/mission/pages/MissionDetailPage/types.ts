@@ -1,4 +1,4 @@
-import type { MissionWithDetails, MeetingWithDetails } from "../../../../shared/store/missionStore";
+import type { MissionWithDetails } from "../../../../shared/store/missionStore";
 
 export interface MissionDetailPageProps {
   isMobile: boolean;
@@ -26,9 +26,7 @@ export interface MissionInfoProps {
 }
 
 export interface MissionActionsProps {
-  meetings: MeetingWithDetails[];
-  missionId?: string;
   isMobile: boolean;
   onCreateMeeting: () => void;
-  onMeetingClick: (meetingId: string) => void;
+  onSearchMeetings: () => void;
 }

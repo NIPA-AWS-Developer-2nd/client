@@ -1,35 +1,7 @@
-import { lightColors, darkColors } from './colors';
-import { fonts, fontSize, fontWeight, lineHeight } from './typography';
-import { breakpoints } from './breakpoints';
-import { spacing, borderRadius, shadows, darkShadows, transitions } from './spacing';
+import { lightTheme, darkTheme } from '../theme';
 
-// Light Theme
-export const lightTheme = {
-  colors: lightColors,
-  fonts,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  breakpoints,
-  spacing,
-  borderRadius,
-  shadows,
-  transitions,
-} as const;
-
-// Dark Theme
-export const darkTheme = {
-  colors: darkColors,
-  fonts,
-  fontSize,
-  fontWeight,
-  lineHeight,
-  breakpoints,
-  spacing,
-  borderRadius,
-  shadows: darkShadows,
-  transitions,
-} as const;
+// Re-export existing themes
+export { lightTheme, darkTheme };
 
 // Theme types
 export type Theme = typeof lightTheme;
@@ -57,7 +29,7 @@ export const getActiveTheme = (mode: ThemeMode) => {
 };
 
 // Re-exports for convenience
-export * from './colors';
+export * from '../theme';
 export * from './typography';
 export * from './breakpoints';
 export * from './spacing';

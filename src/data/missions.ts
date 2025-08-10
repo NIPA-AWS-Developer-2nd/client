@@ -1,8 +1,21 @@
 import type { MissionWithDetails } from "../shared/store/missionStore";
 
+// ULID 생성 (실제로는 서버에서 생성하지만 목데이터용)
+const MISSION_IDS = {
+  FOOD_RESTAURANT: '01JG9H7E2FQMC8GN1VKXR6W3T9',
+  SPORTS_RUNNING: '01JG9H7E2GQMC8GN1VKXR6W3TA', 
+  CULTURE_LOTTE: '01JG9H7E2HQMC8GN1VKXR6W3TB',
+  CAFE_VISIT: '01JG9H7E2JQMC8GN1VKXR6W3TC',
+  GAMING_POOL: '01JG9H7E2KQMC8GN1VKXR6W3TD',
+  CULTURE_MUSEUM: '01JG9H7E2LQMC8GN1VKXR6W3TE',
+  SHOPPING_MALL: '01JG9H7E2MQMC8GN1VKXR6W3TF',
+  FOOD_COOKING: '01JG9H7E2NQMC8GN1VKXR6W3TG',
+  PHOTO_HANGANG: '01JG9H7E2PQMC8GN1VKXR6W3TH'
+};
+
 export const MISSIONS_DATA: MissionWithDetails[] = [
   {
-    id: "1",
+    id: MISSION_IDS.FOOD_RESTAURANT,
     title: "송파구 맛집 방문하기",
     description: "송파구 내 인기 맛집을 방문하고 인증 사진을 업로드하세요.",
     point: 500,
@@ -21,51 +34,51 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     updatedAt: "2024-01-01T00:00:00Z",
     status: "ACTIVE",
     context: {
-      id: "1-context",
-      missionId: "1",
+      id: `${MISSION_IDS.FOOD_RESTAURANT}-context`,
+      missionId: MISSION_IDS.FOOD_RESTAURANT,
       photoGuide:
         "음식 사진, 메뉴판, 가게 외관, 함께 식사하는 모습을 촬영해주세요. 음식이 잘 보이도록 밝은 곳에서 촬영하면 좋습니다.",
     },
     samplePhotos: [
       {
-        id: "1-sample-1",
-        missionId: "1",
+        id: `${MISSION_IDS.FOOD_RESTAURANT}-sample-1`,
+        missionId: MISSION_IDS.FOOD_RESTAURANT,
         photoUrl:
           "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400",
       },
       {
-        id: "1-sample-2",
-        missionId: "1",
+        id: `${MISSION_IDS.FOOD_RESTAURANT}-sample-2`,
+        missionId: MISSION_IDS.FOOD_RESTAURANT,
         photoUrl:
           "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400",
       },
       {
-        id: "1-sample-3",
-        missionId: "1",
+        id: `${MISSION_IDS.FOOD_RESTAURANT}-sample-3`,
+        missionId: MISSION_IDS.FOOD_RESTAURANT,
         photoUrl:
           "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400",
       },
     ],
     warnings: [
       {
-        id: "1-warn-1",
-        missionId: "1",
+        id: `${MISSION_IDS.FOOD_RESTAURANT}-warn-1`,
+        missionId: MISSION_IDS.FOOD_RESTAURANT,
         content: "예약이 필요한 맛집은 미리 확인하세요",
       },
       {
-        id: "1-warn-2",
-        missionId: "1",
+        id: `${MISSION_IDS.FOOD_RESTAURANT}-warn-2`,
+        missionId: MISSION_IDS.FOOD_RESTAURANT,
         content: "식사 비용은 개인 부담입니다",
       },
       {
-        id: "1-warn-3",
-        missionId: "1",
+        id: `${MISSION_IDS.FOOD_RESTAURANT}-warn-3`,
+        missionId: MISSION_IDS.FOOD_RESTAURANT,
         content: "알레르기가 있는 경우 미리 확인하세요",
       },
     ],
   },
   {
-    id: "2",
+    id: MISSION_IDS.SPORTS_RUNNING,
     title: "송파구 한강공원 러닝 5km 완주",
     description: "송파구 한강공원에서 5km 러닝을 완주하고 기록을 인증하세요.",
     point: 800,
@@ -84,51 +97,51 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     updatedAt: "2024-01-01T00:00:00Z",
     status: "ACTIVE",
     context: {
-      id: "2-context",
-      missionId: "2",
+      id: `${MISSION_IDS.SPORTS_RUNNING}-context`,
+      missionId: MISSION_IDS.SPORTS_RUNNING,
       photoGuide:
         "러닝 시작 전과 완주 후 사진을 촬영해주세요. 러닝 앱이나 스마트워치의 기록 화면도 함께 촬영하면 좋습니다. 5km 완주 인증을 위해 러닝 경로와 거리를 확인할 수 있는 사진이 필요합니다.",
     },
     samplePhotos: [
       {
-        id: "2-sample-1",
-        missionId: "2",
+        id: `${MISSION_IDS.SPORTS_RUNNING}-sample-1`,
+        missionId: MISSION_IDS.SPORTS_RUNNING,
         photoUrl:
           "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400",
       },
       {
-        id: "2-sample-2",
-        missionId: "2",
+        id: `${MISSION_IDS.SPORTS_RUNNING}-sample-2`,
+        missionId: MISSION_IDS.SPORTS_RUNNING,
         photoUrl:
           "https://images.unsplash.com/photo-1659242710553-3f8513f136b3?w=400",
       },
       {
-        id: "2-sample-3",
-        missionId: "2",
+        id: `${MISSION_IDS.SPORTS_RUNNING}-sample-3`,
+        missionId: MISSION_IDS.SPORTS_RUNNING,
         photoUrl:
           "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400",
       },
     ],
     warnings: [
       {
-        id: "2-warn-1",
-        missionId: "2",
+        id: `${MISSION_IDS.SPORTS_RUNNING}-warn-1`,
+        missionId: MISSION_IDS.SPORTS_RUNNING,
         content: "준비운동을 충분히 하고 시작하세요",
       },
       {
-        id: "2-warn-2",
-        missionId: "2",
+        id: `${MISSION_IDS.SPORTS_RUNNING}-warn-2`,
+        missionId: MISSION_IDS.SPORTS_RUNNING,
         content: "개인 체력에 맞춰 무리하지 마세요",
       },
       {
-        id: "2-warn-3",
-        missionId: "2",
+        id: `${MISSION_IDS.SPORTS_RUNNING}-warn-3`,
+        missionId: MISSION_IDS.SPORTS_RUNNING,
         content: "수분 보충용 물을 꼭 준비하세요",
       },
     ],
   },
   {
-    id: "3",
+    id: MISSION_IDS.CULTURE_LOTTE,
     title: "송파구 롯데월드 어트랙션 체험",
     description:
       "송파구 롯데월드에서 5개 이상의 어트랙션을 체험하고 사진을 공유하세요.",
@@ -148,51 +161,51 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     updatedAt: "2024-01-01T00:00:00Z",
     status: "ACTIVE",
     context: {
-      id: "3-context",
-      missionId: "3",
+      id: `${MISSION_IDS.CULTURE_LOTTE}-context`,
+      missionId: MISSION_IDS.CULTURE_LOTTE,
       photoGuide:
         "각 어트랙션에서 탑승 전후 사진을 촬영해주세요. 어트랙션 이름이 보이는 안내판과 함께 인증샷을 찍어주시면 됩니다. 최소 5개 어트랙션에서 각각 1장씩 사진이 필요합니다.",
     },
     samplePhotos: [
       {
-        id: "3-sample-1",
-        missionId: "3",
+        id: `${MISSION_IDS.CULTURE_LOTTE}-sample-1`,
+        missionId: MISSION_IDS.CULTURE_LOTTE,
         photoUrl:
           "https://images.unsplash.com/photo-1465996140498-df84be101126?w=400",
       },
       {
-        id: "3-sample-2",
-        missionId: "3",
+        id: `${MISSION_IDS.CULTURE_LOTTE}-sample-2`,
+        missionId: MISSION_IDS.CULTURE_LOTTE,
         photoUrl:
           "https://images.unsplash.com/photo-1586882829491-b81178aa622e?w=400",
       },
       {
-        id: "3-sample-3",
-        missionId: "3",
+        id: `${MISSION_IDS.CULTURE_LOTTE}-sample-3`,
+        missionId: MISSION_IDS.CULTURE_LOTTE,
         photoUrl:
           "https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?w=400",
       },
     ],
     warnings: [
       {
-        id: "3-warn-1",
-        missionId: "3",
+        id: `${MISSION_IDS.CULTURE_LOTTE}-warn-1`,
+        missionId: MISSION_IDS.CULTURE_LOTTE,
         content: "입장료 및 이용료는 개인 부담입니다",
       },
       {
-        id: "3-warn-2",
-        missionId: "3",
+        id: `${MISSION_IDS.CULTURE_LOTTE}-warn-2`,
+        missionId: MISSION_IDS.CULTURE_LOTTE,
         content: "어트랙션 이용 제한이 있을 수 있으니 확인하세요",
       },
       {
-        id: "3-warn-3",
-        missionId: "3",
+        id: `${MISSION_IDS.CULTURE_LOTTE}-warn-3`,
+        missionId: MISSION_IDS.CULTURE_LOTTE,
         content: "혼잡한 시간대를 피해 방문하는 것을 권장합니다",
       },
     ],
   },
   {
-    id: "4",
+    id: MISSION_IDS.CAFE_VISIT,
     title: "송파구 카페 방문",
     description: "송파구의 특색있는 카페를 방문하고 음료와 함께 인증하세요.",
     point: 350,
@@ -211,8 +224,8 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     updatedAt: "2024-01-01T00:00:00Z",
     status: "ACTIVE",
     context: {
-      id: "4-context",
-      missionId: "4",
+      id: `${MISSION_IDS.CAFE_VISIT}-context`,
+      missionId: MISSION_IDS.CAFE_VISIT,
       photoGuide:
         "카페 외관, 내부 인테리어, 주문한 음료를 함께 촬영해주세요. 카페 이름이 보이는 메뉴판이나 로고도 함께 찍으면 좋습니다.",
     },
@@ -256,7 +269,7 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     ],
   },
   {
-    id: "5",
+    id: MISSION_IDS.GAMING_POOL,
     title: "송파구 당구장 게임",
     description: "송파구 당구장에서 친구들과 함께 당구를 치며 즐기세요.",
     point: 400,
@@ -319,7 +332,7 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     ],
   },
   {
-    id: "6",
+    id: MISSION_IDS.CULTURE_MUSEUM,
     title: "송파구 박물관 탐방",
     description: "송파구 내 박물관을 방문하고 전시품과 함께 사진을 촬영하세요.",
     point: 700,
@@ -378,7 +391,7 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     ],
   },
   {
-    id: "7",
+    id: MISSION_IDS.SHOPPING_MALL,
     title: "송파구 쇼핑몰 방문",
     description: "송파구 지역 쇼핑몰을 방문하고 쇼핑을 즐기세요.",
     point: 400,
@@ -437,7 +450,7 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     ],
   },
   {
-    id: "8",
+    id: MISSION_IDS.FOOD_COOKING,
     title: "송파구 쿠킹 클래스 체험",
     description:
       "송파구 요리 스튜디오에서 함께 요리를 배우고 완성품을 인증하세요.",
@@ -501,7 +514,7 @@ export const MISSIONS_DATA: MissionWithDetails[] = [
     ],
   },
   {
-    id: "9",
+    id: MISSION_IDS.PHOTO_HANGANG,
     title: "송파구 한강공원 사진 촬영",
     description:
       "송파구 한강공원에서 일몰과 야경을 배경으로 인생샷을 촬영하세요.",

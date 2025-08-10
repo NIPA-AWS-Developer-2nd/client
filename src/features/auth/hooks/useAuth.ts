@@ -1,12 +1,32 @@
 import { useState, useEffect } from "react";
 import { authFetch, apiUrl } from "../../../shared/utils/api";
+import type { LocationData, AccountStatus } from "../../../types";
 
+// 백엔드 API와 일치하는 간소화된 User 타입
 export interface User {
-  id: string | number;
-  email: string;
-  nickname: string;
-  profileImage: string;
-  provider: "kakao" | "naver" | "google";
+  id: string; // ULID
+  phoneNumber?: string;
+  status: AccountStatus;
+  phoneVerifiedAt?: string;
+  onboardingCompletedAt?: string;
+  lastLoginAt?: string;
+  districtVerifiedAt?: string;
+
+  // 온보딩 상태 계산 필드
+  isNewUser?: boolean;
+  hasCompletedOnboarding?: boolean;
+
+  // 소셜 로그인에서 가져온 기본 정보
+  nickname?: string;
+  birthYear?: number;
+  gender?: "male" | "female";
+  bio?: string;
+  profile_image_url?: string;
+  interests?: string[];
+  hashtags?: number[];
+  mbti?: string;
+  districtId?: string;
+  locationData?: LocationData;
 }
 
 export interface AuthContextType {
@@ -14,7 +34,6 @@ export interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (provider: "kakao" | "google" | "naver") => Promise<void>;
-  testLogin: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -29,44 +48,52 @@ export const useAuth = (): AuthContextType => {
       return;
     }
 
-    // 테스트 로그인 사용자인지 확인
-    const isTestLogin = localStorage.getItem("isTestLogin") === "true";
-    const testUserData = localStorage.getItem("testUser");
-
-    if (isTestLogin && testUserData) {
-      // 테스트 로그인인 경우 로컬스토리지에서 사용자 정보 복원
-      try {
-        const userData = JSON.parse(testUserData);
-        setUser(userData);
-        return;
-      } catch (error) {
-        console.error("Failed to parse test user data:", error);
-        // 파싱 실패 시 테스트 로그인 정보 제거
-        localStorage.removeItem("isTestLogin");
-        localStorage.removeItem("testUser");
-      }
-    }
-
     const checkAuthStatus = async () => {
       try {
+        // console.log("인증 상태 확인 시작");
+
         const response = await fetch(apiUrl("/auth/me"), {
           credentials: "include",
         });
 
         if (response.ok) {
           const userData = await response.json();
-          setUser(userData);
+          // console.log("사용자 인증 성공:", userData.id);
+          // console.log("/auth/me 응답 데이터:", userData);
+
+          // 온보딩 완료 여부 확인
+          const hasCompletedOnboarding = !!userData.onboardingCompletedAt;
+          // console.log("온보딩 완료 상태:", hasCompletedOnboarding);
+          // console.log("onboardingCompletedAt:", userData.onboardingCompletedAt);
+
+          if (
+            !hasCompletedOnboarding &&
+            window.location.pathname !== "/onboarding"
+          ) {
+            window.location.href = "/onboarding";
+            return;
+          }
+
+          setUser({
+            ...userData,
+            hasCompletedOnboarding,
+            isNewUser: !hasCompletedOnboarding,
+          });
         } else if (response.status === 401) {
-          // 개발 환경에서는 401 에러 시 로그만 남기고 계속 진행
-          console.log("Authentication failed: Invalid token");
-          
-          // 프로덕션 환경에서만 로그인 페이지로 리다이렉트
-          if (import.meta.env.PROD) {
+          console.log("인증 실패: 토큰 무효");
+
+          // 개발/프로덕션 모두 일관된 로그인 처리
+          if (import.meta.env.DEV) {
+            // console.log("개발 환경: 로그인 페이지로 이동");
+          }
+
+          // 현재 페이지가 로그인 페이지가 아닌 경우에만 리다이렉트
+          if (window.location.pathname !== "/login") {
             window.location.href = "/login";
           }
         }
-      } catch (error) {
-        console.log("No auth", error);
+      } catch (_err) {
+        // console.log("인증 상태 확인 에러:", err);
       }
     };
 
@@ -87,52 +114,13 @@ export const useAuth = (): AuthContextType => {
     }
   };
 
-  const testLogin = async () => {
-    setIsLoading(true);
-    try {
-      // 테스트용 가짜 사용자 데이터
-      const testUser: User = {
-        id: "test-user",
-        email: "test@example.com",
-        nickname: "테스트",
-        profileImage: "",
-        provider: "kakao",
-      };
-
-      // 가짜 로그인 프로세스 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // 로컬스토리지에 테스트 로그인 정보 저장
-      localStorage.setItem("isTestLogin", "true");
-      localStorage.setItem("testUser", JSON.stringify(testUser));
-
-      setUser(testUser);
-
-      // 홈으로 리다이렉트
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Test login failed:", error);
-      setIsLoading(false);
-      throw error;
-    }
-  };
-
   const logout = async () => {
     try {
-      // 테스트 로그인인지 확인
-      const isTestLogin = localStorage.getItem("isTestLogin") === "true";
-      
-      if (isTestLogin) {
-        // 테스트 로그인인 경우 로컬스토리지만 정리
-        localStorage.removeItem("isTestLogin");
-        localStorage.removeItem("testUser");
-      } else {
-        // 실제 백엔드 로그아웃
-        await authFetch(apiUrl("/auth/logout"), {
-          redirect: "manual", // 리다이렉트 자동 처리 방지
-        });
-      }
-      
+      // 백엔드 로그아웃 API 호출
+      await authFetch(apiUrl("/auth/logout"), {
+        redirect: "manual", // 리다이렉트 자동 처리 방지
+      });
+
       setUser(null);
 
       // 로그인 페이지로 리다이렉트
@@ -141,9 +129,6 @@ export const useAuth = (): AuthContextType => {
       console.error("Logout failed:", error);
       // 에러가 있어도 로그인 페이지로 이동
       setUser(null);
-      // 테스트 로그인 정보도 정리
-      localStorage.removeItem("isTestLogin");
-      localStorage.removeItem("testUser");
       window.location.href = "/login";
     }
   };
@@ -153,7 +138,6 @@ export const useAuth = (): AuthContextType => {
     isLoading,
     isAuthenticated,
     login,
-    testLogin,
     logout,
   };
 };

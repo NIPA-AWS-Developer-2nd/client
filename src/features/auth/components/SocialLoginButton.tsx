@@ -6,13 +6,13 @@ import googleLogoImg from "../../../assets/images/google-logo.png";
 import naverLogoImg from "../../../assets/images/naver-logo.png";
 
 interface SocialLoginButtonProps {
-  provider: "apple" | "kakao" | "google" | "naver" | "test";
+  provider: "apple" | "kakao" | "google" | "naver";
   onClick: () => void;
   disabled?: boolean;
 }
 
 const Button = styled.button<{
-  $provider: "apple" | "kakao" | "google" | "naver" | "test";
+  $provider: "apple" | "kakao" | "google" | "naver";
   $disabled?: boolean;
 }>`
   width: 100%;
@@ -63,20 +63,23 @@ const Button = styled.button<{
           background-color: #04c75b;
           color: #FFFFFF;
         `;
-      case "test":
-        return `
-          background-color: #000000;
-          color: #FFFFFF;
-        `;
       default:
         return "";
     }
   }}
 
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
   @media (hover: none) and (pointer: coarse) {
     &:hover:not(:active) {
-      background-color: inherit !important;
+      transform: none !important;
     }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
   }
 
   &:focus {
@@ -86,7 +89,7 @@ const Button = styled.button<{
 `;
 
 const Icon = styled.div<{
-  $provider: "apple" | "kakao" | "google" | "naver" | "test";
+  $provider: "apple" | "kakao" | "google" | "naver";
   $src?: string;
 }>`
   width: 20px;
@@ -97,16 +100,7 @@ const Icon = styled.div<{
   justify-content: center;
 
   ${({ $provider, $src }) => {
-    if ($provider === "test") {
-      return `
-        background: none;
-        font-size: 20px;
-        font-weight: bold;
-        &::before {
-          content: "T";
-        }
-      `;
-    } else if ($src) {
+    if ($src) {
       return `
         background-image: url(${$src});
         background-size: contain;
@@ -133,7 +127,7 @@ const Icon = styled.div<{
 `;
 
 const getProviderText = (
-  provider: "apple" | "kakao" | "google" | "naver" | "test"
+  provider: "apple" | "kakao" | "google" | "naver"
 ) => {
   switch (provider) {
     case "apple":
@@ -144,15 +138,13 @@ const getProviderText = (
       return "Google로 계속하기";
     case "naver":
       return "네이버로 계속하기";
-    case "test":
-      return "테스트 로그인";
     default:
       return "";
   }
 };
 
 const getProviderIcon = (
-  provider: "apple" | "kakao" | "google" | "naver" | "test"
+  provider: "apple" | "kakao" | "google" | "naver"
 ) => {
   switch (provider) {
     case "apple":
@@ -163,8 +155,6 @@ const getProviderIcon = (
       return googleLogoImg;
     case "naver":
       return naverLogoImg;
-    case "test":
-      return "";
     default:
       return "";
   }
