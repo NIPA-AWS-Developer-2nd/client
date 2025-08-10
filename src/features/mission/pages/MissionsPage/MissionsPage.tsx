@@ -29,7 +29,7 @@ import { useMissionStore } from "../../../../shared/store/missionStore";
 // Lucide 아이콘 매핑
 const getIconComponent = (iconName: string | null): LucideIcon | null => {
   if (!iconName) return null;
-  
+
   const iconMap: Record<string, LucideIcon> = {
     Utensils,
     Palette,
@@ -43,7 +43,7 @@ const getIconComponent = (iconName: string | null): LucideIcon | null => {
     Plane,
     Cat,
   };
-  
+
   return iconMap[iconName] || null;
 };
 
@@ -97,8 +97,10 @@ const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "10px 16px" : "12px 20px")};
   background: linear-gradient(
     135deg,
-    ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.gray50},
-    ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.white}
+    ${({ $isActive, theme }) =>
+      $isActive ? theme.colors.primary : theme.colors.gray50},
+    ${({ $isActive, theme }) =>
+      $isActive ? theme.colors.primary : theme.colors.white}
   );
   border: 1px solid
     ${({ $isActive, theme }) =>
@@ -118,8 +120,10 @@ const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
       $isActive ? theme.colors.primary : theme.colors.primary + "30"};
     background: linear-gradient(
       135deg,
-      ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.primary + "05"},
-      ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.white}
+      ${({ $isActive, theme }) =>
+        $isActive ? theme.colors.primary : theme.colors.primary + "05"},
+      ${({ $isActive, theme }) =>
+        $isActive ? theme.colors.primary : theme.colors.white}
     );
   }
 
@@ -533,7 +537,7 @@ export const MissionsPage: React.FC = () => {
 
   // Zustand 스토어 사용
   const {
-    missions: allMissions,
+    missions,
     categories,
     isLoadingMissions,
     isLoadingCategories,
@@ -553,15 +557,24 @@ export const MissionsPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 필터링된 미션 목록 (클라이언트 사이드 필터링)
+  // 클라이언트 사이드 필터링 목록
   const filteredMissions = React.useMemo(() => {
-    return getFilteredMissions({
+    const filtered = getFilteredMissions({
       category: activeFilter,
       difficulty: difficultyFilter,
       participants: participantsFilter,
       duration: durationFilter,
       point: pointFilter,
     });
+    // console.log('Filtering missions:', {
+    //   activeFilter,
+    //   allMissionsCount: missions.length,
+    //   filteredCount: filtered.length,
+    //   missions: missions.map(m => ({ id: m.id, title: m.title, category: m.category }))
+    // });
+    return filtered;
+    // missions는 새로고침 시 정상 작동을 위해 필요한 의존성
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     getFilteredMissions,
     activeFilter,
@@ -569,6 +582,7 @@ export const MissionsPage: React.FC = () => {
     participantsFilter,
     durationFilter,
     pointFilter,
+    missions,
   ]);
 
   // 페이지네이션된 미션 목록
@@ -590,18 +604,14 @@ export const MissionsPage: React.FC = () => {
   // 에러 표시
   React.useEffect(() => {
     if (error) {
-      console.error('미션 스토어 에러:', error);
+      console.error("미션 스토어 에러:", error);
       // 5초 후 에러 자동 클리어
       const timer = setTimeout(clearError, 5000);
       return () => clearTimeout(timer);
     }
   }, [error, clearError]);
 
-
-
-
-
-  // 필터 변경 시 첫 페이지로 이동 (URL도 업데이트)
+  // 필터 변경 시 첫 페이지로 이동
   React.useEffect(() => {
     setCurrentPage(1);
     // 페이지 파라미터만 삭제하고 다른 파라미터는 유지
@@ -704,36 +714,41 @@ export const MissionsPage: React.FC = () => {
       <FilterSection $isMobile={isMobile}>
         <FilterHeader $isMobile={isMobile}>
           <FilterTabs $isMobile={isMobile}>
-            {isLoadingCategories ? (
-              // 로딩 중일 때 스켈레톤 표시
-              Array(5).fill(0).map((_, index) => (
-                <div key={index} style={{ 
-                  width: '80px', 
-                  height: '36px', 
-                  backgroundColor: '#f3f4f6', 
-                  borderRadius: '12px',
-                  animation: 'pulse 1.5s ease-in-out infinite'
-                }} />
-              ))
-            ) : (
-              categories.map((filter) => {
-                const IconComponent = getIconComponent(filter.icon);
-                return (
-                  <FilterTab
-                    key={filter.id}
-                    $isActive={activeFilter === filter.id}
-                    $isMobile={isMobile}
-                    onClick={() => {
-                      setActiveFilter(filter.id);
-                      updateURLParams({ category: filter.id });
-                    }}
-                  >
-                    {IconComponent && <IconComponent size={isMobile ? 14 : 14} />}
-                    {filter.label}
-                  </FilterTab>
-                );
-              })
-            )}
+            {isLoadingCategories
+              ? // 로딩 중일 때 스켈레톤 표시
+                Array(5)
+                  .fill(0)
+                  .map((_, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        width: "80px",
+                        height: "36px",
+                        backgroundColor: "#f3f4f6",
+                        borderRadius: "12px",
+                        animation: "pulse 1.5s ease-in-out infinite",
+                      }}
+                    />
+                  ))
+              : categories.map((filter) => {
+                  const IconComponent = getIconComponent(filter.icon);
+                  return (
+                    <FilterTab
+                      key={filter.id}
+                      $isActive={activeFilter === filter.id}
+                      $isMobile={isMobile}
+                      onClick={() => {
+                        setActiveFilter(filter.id);
+                        updateURLParams({ category: filter.id });
+                      }}
+                    >
+                      {IconComponent && (
+                        <IconComponent size={isMobile ? 14 : 14} />
+                      )}
+                      {filter.label}
+                    </FilterTab>
+                  );
+                })}
           </FilterTabs>
         </FilterHeader>
 
@@ -817,71 +832,92 @@ export const MissionsPage: React.FC = () => {
         </AdditionalFilters>
       </FilterSection>
 
-      {isLoadingMissions ? (
+      {isLoadingMissions || (missions.length === 0 && !error) ? (
         // 로딩 중일 때 스켈레톤 표시
-        Array(MISSIONS_PER_PAGE).fill(0).map((_, index) => (
-          <div key={index} style={{
-            background: 'white',
-            borderRadius: '12px',
-            marginBottom: isMobile ? '16px' : '16px',
-            overflow: 'hidden',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)',
-            maxWidth: !isMobile ? '800px' : 'auto',
-            marginLeft: !isMobile ? 'auto' : '0',
-            marginRight: !isMobile ? 'auto' : '0',
-          }}>
-            {/* 썸네일 스켈레톤 */}
-            <div style={{
-              width: '100%',
-              height: isMobile ? '180px' : '160px',
-              backgroundColor: '#f3f4f6',
-              animation: 'pulse 1.5s ease-in-out infinite'
-            }} />
-            <div style={{ padding: isMobile ? '16px' : '16px' }}>
-              {/* 제목 스켈레톤 */}
-              <div style={{
-                width: '70%',
-                height: '20px',
-                backgroundColor: '#f3f4f6',
-                marginBottom: '8px',
-                borderRadius: '4px',
-                animation: 'pulse 1.5s ease-in-out infinite'
-              }} />
-              {/* 설명 스켈레톤 */}
-              <div style={{
-                width: '100%',
-                height: '16px',
-                backgroundColor: '#f3f4f6',
-                marginBottom: '16px',
-                borderRadius: '4px',
-                animation: 'pulse 1.5s ease-in-out infinite'
-              }} />
-              {/* 메타 정보 스켈레톤 */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: isMobile ? '12px' : '16px'
-              }}>
-                {Array(3).fill(0).map((_, metaIndex) => (
-                  <div key={metaIndex} style={{
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '6px',
-                    padding: isMobile ? '8px' : '10px',
-                    textAlign: 'center'
-                  }}>
-                    <div style={{
-                      width: '100%',
-                      height: '14px',
-                      backgroundColor: '#f3f4f6',
-                      borderRadius: '4px',
-                      animation: 'pulse 1.5s ease-in-out infinite'
-                    }} />
-                  </div>
-                ))}
+        Array(MISSIONS_PER_PAGE)
+          .fill(0)
+          .map((_, index) => (
+            <div
+              key={index}
+              style={{
+                background: "white",
+                borderRadius: "12px",
+                marginBottom: isMobile ? "16px" : "16px",
+                overflow: "hidden",
+                boxShadow:
+                  "0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)",
+                maxWidth: !isMobile ? "800px" : "auto",
+                marginLeft: !isMobile ? "auto" : "0",
+                marginRight: !isMobile ? "auto" : "0",
+              }}
+            >
+              {/* 썸네일 스켈레톤 */}
+              <div
+                style={{
+                  width: "100%",
+                  height: isMobile ? "180px" : "160px",
+                  backgroundColor: "#f3f4f6",
+                  animation: "pulse 1.5s ease-in-out infinite",
+                }}
+              />
+              <div style={{ padding: isMobile ? "16px" : "16px" }}>
+                {/* 제목 스켈레톤 */}
+                <div
+                  style={{
+                    width: "70%",
+                    height: "20px",
+                    backgroundColor: "#f3f4f6",
+                    marginBottom: "8px",
+                    borderRadius: "4px",
+                    animation: "pulse 1.5s ease-in-out infinite",
+                  }}
+                />
+                {/* 설명 스켈레톤 */}
+                <div
+                  style={{
+                    width: "100%",
+                    height: "16px",
+                    backgroundColor: "#f3f4f6",
+                    marginBottom: "16px",
+                    borderRadius: "4px",
+                    animation: "pulse 1.5s ease-in-out infinite",
+                  }}
+                />
+                {/* 메타 정보 스켈레톤 */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: isMobile ? "12px" : "16px",
+                  }}
+                >
+                  {Array(3)
+                    .fill(0)
+                    .map((_, metaIndex) => (
+                      <div
+                        key={metaIndex}
+                        style={{
+                          backgroundColor: "#f9fafb",
+                          borderRadius: "6px",
+                          padding: isMobile ? "8px" : "10px",
+                          textAlign: "center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "14px",
+                            backgroundColor: "#f3f4f6",
+                            borderRadius: "4px",
+                            animation: "pulse 1.5s ease-in-out infinite",
+                          }}
+                        />
+                      </div>
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))
+          ))
       ) : paginatedMissions.length > 0 ? (
         <>
           {paginatedMissions.map((mission) => (
