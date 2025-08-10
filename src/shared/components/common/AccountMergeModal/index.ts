@@ -1,0 +1,1 @@
+export { AccountMergeModal } from './AccountMergeModal';
