@@ -22,10 +22,8 @@ export const MissionDetailPage: React.FC = () => {
   
   const { 
     currentMission, 
-    meetings, 
     isLoading, 
-    fetchMissionDetails, 
-    fetchMeetings 
+    fetchMissionDetails 
   } = useMissionStore();
 
   React.useEffect(() => {
@@ -40,21 +38,20 @@ export const MissionDetailPage: React.FC = () => {
   React.useEffect(() => {
     if (id) {
       setIsInitialLoad(true);
-      Promise.all([
-        fetchMissionDetails(id),
-        fetchMeetings(id)
-      ]).finally(() => {
+      fetchMissionDetails(id).finally(() => {
         setTimeout(() => setIsInitialLoad(false), 100);
       });
     }
-  }, [id, fetchMissionDetails, fetchMeetings]);
+  }, [id, fetchMissionDetails]);
 
   const handleCreateMeeting = () => {
-    navigate(`/meetings/create?missionId=${id}`);
+    navigate(`/meetings/new?missionId=${id}`);
   };
-
-  const handleMeetingClick = (meetingId: string) => {
-    navigate(`/meetings/${meetingId}`);
+  
+  const handleSearchMeetings = () => {
+    // 미션 컨텍스트와 함께 모임 리스트로 이동
+    const tags = currentMission?.category?.join(',') || '';
+    navigate(`/meetings?missionId=${id}&tags=${tags}`);
   };
 
   const handleShareModalClose = () => {
@@ -98,11 +95,9 @@ export const MissionDetailPage: React.FC = () => {
         <MissionContent mission={currentMission} isMobile={isMobile} />
         <MissionInfo mission={currentMission} isMobile={isMobile} />
         <MissionActions
-          meetings={meetings}
-          missionId={id}
           isMobile={isMobile}
           onCreateMeeting={handleCreateMeeting}
-          onMeetingClick={handleMeetingClick}
+          onSearchMeetings={handleSearchMeetings}
         />
       </ContentSection>
       

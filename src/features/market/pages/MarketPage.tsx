@@ -43,8 +43,8 @@ const PointsIcon = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const PointsTitle = styled.h2<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "16px" : "18px")};
-  font-weight: 600;
+  font-size: ${({ $isMobile }) => ($isMobile ? "20px" : "22px")};
+  font-weight: 700;
   margin: 0 0 20px 0;
   opacity: 0.9;
 `;

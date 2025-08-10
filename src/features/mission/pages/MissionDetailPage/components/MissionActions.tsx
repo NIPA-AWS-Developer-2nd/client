@@ -18,9 +18,10 @@ const ActionImage = styled.img<{ $isMobile?: boolean }>`
   height: auto;
   margin: 0 auto 20px;
   display: block;
-  filter: ${({ theme }) => 
-    theme.colors.background === '#2D3748' ? 'brightness(0.8) blur(0.5px)' : 'none'
-  };
+  filter: ${({ theme }) =>
+    theme.colors.background === "#2D3748"
+      ? "brightness(0.8) blur(0.5px)"
+      : "none"};
   transition: filter 0.2s ease;
 `;
 
@@ -91,10 +92,9 @@ const ActionButton = styled.button<{
 `;
 
 export const MissionActions: React.FC<MissionActionsProps> = ({
-  meetings,
   isMobile,
   onCreateMeeting,
-  onMeetingClick,
+  onSearchMeetings,
 }) => {
   return (
     <ActionSection $isMobile={isMobile}>
@@ -104,8 +104,8 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
         alt="미션 가이드"
         loading="lazy"
         onError={(e) => {
-          console.log('Guide image failed to load:', missionGuideImage);
-          e.currentTarget.style.display = 'none';
+          console.log("Guide image failed to load:", missionGuideImage);
+          e.currentTarget.style.display = "none";
         }}
       />
       <ActionTitle $isMobile={isMobile}>
@@ -119,13 +119,7 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
         <ActionButton
           $isMobile={isMobile}
           $variant="secondary"
-          onClick={() => {
-            if (meetings.length > 0) {
-              onMeetingClick(meetings[0].id);
-            } else {
-              alert("참여 가능한 모임이 없습니다.");
-            }
-          }}
+          onClick={onSearchMeetings}
         >
           참여할 모임 찾기
         </ActionButton>

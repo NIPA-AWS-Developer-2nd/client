@@ -68,9 +68,9 @@ const PointsValue = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const PointsLabel = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
+  font-size: ${({ $isMobile }) => ($isMobile ? "17px" : "19px")};
   opacity: 0.8;
-  font-weight: 500;
+  font-weight: 600;
 `;
 
 const CategoriesCard = styled.div<{ $isMobile?: boolean }>`
