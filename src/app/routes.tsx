@@ -3,7 +3,9 @@ import { ResponsiveLayout } from "../shared/layout/ResponsiveLayout";
 import {
   HomePage,
   MarketPage,
-  MeetingsPage,
+  MeetingListPage,
+  MeetingDetailPage,
+  MeetingCreatePage,
   MissionsPage,
   MyPage,
   AppSettingsPage,
@@ -12,6 +14,7 @@ import {
   MissionDetailPage,
   AuthSuccessPage,
   NotFoundPage,
+  OnboardingPage,
 } from "../features";
 
 export const AppRoutes = () => {
@@ -21,6 +24,7 @@ export const AppRoutes = () => {
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/auth/success" element={<AuthSuccessPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/onboarding" element={<OnboardingPage />} />
 
       {/* Main app routes */}
       <Route
@@ -64,8 +68,35 @@ export const AppRoutes = () => {
           <ResponsiveLayout
             title="Halsaram — 번개모임 커뮤니티"
             showBanner={true}
+            noPadding={true}
           >
-            <MeetingsPage />
+            <MeetingListPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/meetings/new"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+            noPadding={true}
+            hideBottomNav={true}
+          >
+            <MeetingCreatePage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/meetings/:id"
+        element={
+          <ResponsiveLayout
+            title="Halsaram — 번개모임 커뮤니티"
+            showBanner={true}
+            noPadding={true}
+            hideBottomNav={true}
+          >
+            <MeetingDetailPage />
           </ResponsiveLayout>
         }
       />

@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { SplashScreen } from "../shared/components/common";
 import { AppProviders } from "./providers/AppProviders";
 import { AppRoutes } from "./routes";
+import { routeUtils } from "../shared/constants/routes";
 
 const AppContent = () => {
   const [showSplash, setShowSplash] = useState(() => {
@@ -10,13 +11,9 @@ const AppContent = () => {
   });
   const location = useLocation();
 
-  // 로그인 페이지나 콜백 페이지에서는 스플래시 안보이기
+  // 인증 관련 페이지에서는 스플래시 화면 표시하지 않음
   useEffect(() => {
-    if (
-      location.pathname === "/login" ||
-      location.pathname === "/auth/callback" ||
-      location.pathname === "/auth/success"
-    ) {
+    if (routeUtils.isLayoutExcluded(location.pathname)) {
       setShowSplash(false);
       sessionStorage.setItem("hasShownSplash", "true");
     }
@@ -29,12 +26,8 @@ const AppContent = () => {
     }, 100);
   };
 
-  if (
-    showSplash &&
-    location.pathname !== "/login" &&
-    location.pathname !== "/auth/callback" &&
-    location.pathname !== "/auth/success"
-  ) {
+  // 스플래시 화면 표시 조건: 스플래시가 켜져 있고, 레이아웃 제외 페이지가 아닌 경우
+  if (showSplash && !routeUtils.isLayoutExcluded(location.pathname)) {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
