@@ -7,12 +7,45 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Utensils,
+  Palette,
+  Coffee,
+  Dumbbell,
+  Gamepad2,
+  Camera,
+  ShoppingBag,
+  Music,
+  Heart,
+  Plane,
+  Cat,
+  type LucideIcon,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
-import type { MissionWithDetails, Difficulty } from "../../../../types";
-import { MISSIONS_DATA } from "../../../../data/missions";
-import { CATEGORIES, getCategoryLabel } from "../../../../data/categories";
+import type { Difficulty } from "../../../../types";
+import { getCategoryLabel } from "../../../../data/categories";
+import { useMissionStore } from "../../../../shared/store/missionStore";
+
+// Lucide 아이콘 매핑
+const getIconComponent = (iconName: string | null): LucideIcon | null => {
+  if (!iconName) return null;
+  
+  const iconMap: Record<string, LucideIcon> = {
+    Utensils,
+    Palette,
+    Coffee,
+    Dumbbell,
+    Gamepad2,
+    Camera,
+    ShoppingBag,
+    Music,
+    Heart,
+    Plane,
+    Cat,
+  };
+  
+  return iconMap[iconName] || null;
+};
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
@@ -57,27 +90,37 @@ const FilterTabs = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: ${({ $isMobile }) => ($isMobile ? "8px 16px" : "8px 14px")};
+  padding: ${({ $isMobile }) => ($isMobile ? "10px 16px" : "12px 20px")};
+  background: linear-gradient(
+    135deg,
+    ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.gray50},
+    ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.white}
+  );
   border: 1px solid
     ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.border};
-  background: ${({ $isActive, theme }) =>
-    $isActive ? theme.colors.primary : theme.colors.white};
+      $isActive ? theme.colors.primary + "30" : theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
   color: ${({ $isActive, theme }) =>
-    $isActive ? theme.colors.white : theme.colors.text.secondary};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "13px")};
-  font-weight: 500;
+    $isActive ? theme.colors.white : theme.colors.text.primary};
+  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
+  font-weight: 600;
   cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
+  transition: all 0.2s ease;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    background: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray50};
+    border-color: ${({ $isActive, theme }) =>
+      $isActive ? theme.colors.primary : theme.colors.primary + "30"};
+    background: linear-gradient(
+      135deg,
+      ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.primary + "05"},
+      ${({ $isActive, theme }) => $isActive ? theme.colors.primary : theme.colors.white}
+    );
   }
 
   &:focus {
@@ -178,12 +221,12 @@ const ResetFiltersButton = styled.button<{ $isMobile?: boolean }>`
 
 const MissionCard = styled.div<{ $isMobile?: boolean }>`
   background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "16px")};
   overflow: hidden;
   transition: ${({ theme }) => theme.transitions.fast};
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
   ${({ $isMobile }) =>
     !$isMobile &&
     `
@@ -191,11 +234,6 @@ const MissionCard = styled.div<{ $isMobile?: boolean }>`
     margin-left: auto;
     margin-right: auto;
   `}
-
-  &:hover {
-    box-shadow: ${({ theme }) => theme.shadows.md};
-    transform: translateY(-2px);
-  }
 `;
 
 const MissionThumbnail = styled.div<{ $isMobile?: boolean }>`
@@ -300,12 +338,32 @@ const CategoryTags = styled.div`
 `;
 
 const CategoryTag = styled.span<{ $isMobile?: boolean }>`
-  padding: ${({ $isMobile }) => ($isMobile ? "2px 6px" : "4px 8px")};
-  background: ${({ theme }) => theme.colors.primary}15;
-  color: ${({ theme }) => theme.colors.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-size: ${({ $isMobile }) => ($isMobile ? "10px" : "11px")};
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ $isMobile }) => ($isMobile ? "10px 16px" : "12px 20px")};
+  background: linear-gradient(
+    135deg,
+    ${({ theme }) => theme.colors.gray50},
+    ${({ theme }) => theme.colors.white}
+  );
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  color: ${({ theme }) => theme.colors.text.primary};
+  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary}30;
+    background: linear-gradient(
+      135deg,
+      ${({ theme }) => theme.colors.primary}05,
+      ${({ theme }) => theme.colors.white}
+    );
+  }
 `;
 
 const MissionTitle = styled.h3<{ $isMobile?: boolean }>`
@@ -331,7 +389,6 @@ const MissionMeta = styled.div<{ $isMobile?: boolean }>`
 
 const MetaItem = styled.div<{ $isMobile?: boolean }>`
   background: ${({ theme }) => theme.colors.gray50};
-  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   padding: ${({ $isMobile }) => ($isMobile ? "8px" : "10px")};
   text-align: center;
@@ -474,6 +531,19 @@ export const MissionsPage: React.FC = () => {
     [searchParams, setSearchParams]
   );
 
+  // Zustand 스토어 사용
+  const {
+    missions: allMissions,
+    categories,
+    isLoadingMissions,
+    isLoadingCategories,
+    error,
+    fetchMissions,
+    fetchCategories,
+    getFilteredMissions,
+    clearError,
+  } = useMissionStore();
+
   React.useEffect(() => {
     const handleResize = () => {
       setIsMobile(deviceDetection.isMobile());
@@ -483,93 +553,53 @@ export const MissionsPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const filters = CATEGORIES;
-
-  const missions: MissionWithDetails[] = React.useMemo(() => MISSIONS_DATA, []);
-
+  // 필터링된 미션 목록 (클라이언트 사이드 필터링)
   const filteredMissions = React.useMemo(() => {
-    let filtered =
-      activeFilter === "all"
-        ? missions
-        : missions.filter((mission) => mission.category.includes(activeFilter));
-
-    // 난이도 필터
-    if (difficultyFilter !== "all") {
-      filtered = filtered.filter(
-        (mission) => mission.difficulty === difficultyFilter
-      );
-    }
-
-    // 참여인원 필터
-    if (participantsFilter !== "all") {
-      filtered = filtered.filter((mission) => {
-        switch (participantsFilter) {
-          case "medium":
-            return mission.maxParticipants >= 4 && mission.maxParticipants <= 6;
-          case "large":
-            return mission.maxParticipants > 6;
-          default:
-            return true;
-        }
-      });
-    }
-
-    // 예상시간 필터
-    if (durationFilter !== "all") {
-      filtered = filtered.filter((mission) => {
-        switch (durationFilter) {
-          case "short":
-            return mission.duration <= 90;
-          case "medium":
-            return mission.duration > 90 && mission.duration <= 180;
-          case "long":
-            return mission.duration > 180;
-          default:
-            return true;
-        }
-      });
-    }
-
-    // 포인트 범위 필터
-    if (pointFilter !== "all") {
-      filtered = filtered.filter((mission) => {
-        switch (pointFilter) {
-          case "low":
-            return mission.point < 400;
-          case "medium":
-            return mission.point >= 400 && mission.point < 800;
-          case "high":
-            return mission.point >= 800;
-          default:
-            return true;
-        }
-      });
-    }
-
-    return filtered;
+    return getFilteredMissions({
+      category: activeFilter,
+      difficulty: difficultyFilter,
+      participants: participantsFilter,
+      duration: durationFilter,
+      point: pointFilter,
+    });
   }, [
+    getFilteredMissions,
     activeFilter,
-    missions,
     difficultyFilter,
     participantsFilter,
     durationFilter,
     pointFilter,
   ]);
 
-  const sortedMissions = React.useMemo(() => {
-    // 기본적으로 포인트 높은 순으로 정렬
-    return [...filteredMissions].sort((a, b) => b.point - a.point);
-  }, [filteredMissions]);
-
   // 페이지네이션된 미션 목록
   const paginatedMissions = React.useMemo(() => {
     const startIndex = (currentPage - 1) * MISSIONS_PER_PAGE;
     const endIndex = startIndex + MISSIONS_PER_PAGE;
-    return sortedMissions.slice(startIndex, endIndex);
-  }, [sortedMissions, currentPage]);
+    return filteredMissions.slice(startIndex, endIndex);
+  }, [filteredMissions, currentPage]);
 
   // 총 페이지 수
-  const totalPages = Math.ceil(sortedMissions.length / MISSIONS_PER_PAGE);
+  const totalPages = Math.ceil(filteredMissions.length / MISSIONS_PER_PAGE);
+
+  // 초기 데이터 로드
+  React.useEffect(() => {
+    fetchMissions();
+    fetchCategories();
+  }, [fetchMissions, fetchCategories]);
+
+  // 에러 표시
+  React.useEffect(() => {
+    if (error) {
+      console.error('미션 스토어 에러:', error);
+      // 5초 후 에러 자동 클리어
+      const timer = setTimeout(clearError, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
+
+
+
+
 
   // 필터 변경 시 첫 페이지로 이동 (URL도 업데이트)
   React.useEffect(() => {
@@ -674,23 +704,36 @@ export const MissionsPage: React.FC = () => {
       <FilterSection $isMobile={isMobile}>
         <FilterHeader $isMobile={isMobile}>
           <FilterTabs $isMobile={isMobile}>
-            {filters.map((filter) => {
-              const IconComponent = filter.icon;
-              return (
-                <FilterTab
-                  key={filter.id}
-                  $isActive={activeFilter === filter.id}
-                  $isMobile={isMobile}
-                  onClick={() => {
-                    setActiveFilter(filter.id);
-                    updateURLParams({ category: filter.id });
-                  }}
-                >
-                  {IconComponent && <IconComponent size={isMobile ? 14 : 14} />}
-                  {filter.label}
-                </FilterTab>
-              );
-            })}
+            {isLoadingCategories ? (
+              // 로딩 중일 때 스켈레톤 표시
+              Array(5).fill(0).map((_, index) => (
+                <div key={index} style={{ 
+                  width: '80px', 
+                  height: '36px', 
+                  backgroundColor: '#f3f4f6', 
+                  borderRadius: '12px',
+                  animation: 'pulse 1.5s ease-in-out infinite'
+                }} />
+              ))
+            ) : (
+              categories.map((filter) => {
+                const IconComponent = getIconComponent(filter.icon);
+                return (
+                  <FilterTab
+                    key={filter.id}
+                    $isActive={activeFilter === filter.id}
+                    $isMobile={isMobile}
+                    onClick={() => {
+                      setActiveFilter(filter.id);
+                      updateURLParams({ category: filter.id });
+                    }}
+                  >
+                    {IconComponent && <IconComponent size={isMobile ? 14 : 14} />}
+                    {filter.label}
+                  </FilterTab>
+                );
+              })
+            )}
           </FilterTabs>
         </FilterHeader>
 
@@ -774,7 +817,72 @@ export const MissionsPage: React.FC = () => {
         </AdditionalFilters>
       </FilterSection>
 
-      {paginatedMissions.length > 0 ? (
+      {isLoadingMissions ? (
+        // 로딩 중일 때 스켈레톤 표시
+        Array(MISSIONS_PER_PAGE).fill(0).map((_, index) => (
+          <div key={index} style={{
+            background: 'white',
+            borderRadius: '12px',
+            marginBottom: isMobile ? '16px' : '16px',
+            overflow: 'hidden',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)',
+            maxWidth: !isMobile ? '800px' : 'auto',
+            marginLeft: !isMobile ? 'auto' : '0',
+            marginRight: !isMobile ? 'auto' : '0',
+          }}>
+            {/* 썸네일 스켈레톤 */}
+            <div style={{
+              width: '100%',
+              height: isMobile ? '180px' : '160px',
+              backgroundColor: '#f3f4f6',
+              animation: 'pulse 1.5s ease-in-out infinite'
+            }} />
+            <div style={{ padding: isMobile ? '16px' : '16px' }}>
+              {/* 제목 스켈레톤 */}
+              <div style={{
+                width: '70%',
+                height: '20px',
+                backgroundColor: '#f3f4f6',
+                marginBottom: '8px',
+                borderRadius: '4px',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }} />
+              {/* 설명 스켈레톤 */}
+              <div style={{
+                width: '100%',
+                height: '16px',
+                backgroundColor: '#f3f4f6',
+                marginBottom: '16px',
+                borderRadius: '4px',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }} />
+              {/* 메타 정보 스켈레톤 */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: isMobile ? '12px' : '16px'
+              }}>
+                {Array(3).fill(0).map((_, metaIndex) => (
+                  <div key={metaIndex} style={{
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px',
+                    padding: isMobile ? '8px' : '10px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      width: '100%',
+                      height: '14px',
+                      backgroundColor: '#f3f4f6',
+                      borderRadius: '4px',
+                      animation: 'pulse 1.5s ease-in-out infinite'
+                    }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))
+      ) : paginatedMissions.length > 0 ? (
         <>
           {paginatedMissions.map((mission) => (
             <MissionCard
@@ -889,7 +997,7 @@ export const MissionsPage: React.FC = () => {
             <Search size={isMobile ? 48 : 64} />
           </EmptyIcon>
           <EmptyText $isMobile={isMobile}>
-            {filters.find((f) => f.id === activeFilter)?.label} 카테고리에
+            {categories.find((f) => f.id === activeFilter)?.label} 카테고리에
             미션이 없습니다.
           </EmptyText>
         </EmptyState>
