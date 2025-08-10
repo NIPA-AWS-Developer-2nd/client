@@ -6,8 +6,6 @@ import {
   AlertCircle,
   Users,
   Trophy,
-  Mail,
-  Phone,
   Edit2,
   Heart,
   Award,
@@ -16,14 +14,18 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
-import { useAuth } from "../../../auth";
+import { useAuth, type User } from "../../../auth";
 import { ProfileEditModal } from "../../components/ProfileEditModal";
-import type {
-  User,
-  VerificationStatus,
-  AccountStatus,
-} from "../../../../types";
-import { CATEGORIES_WITHOUT_ALL } from "../../../../data/categories";
+import {
+  userApiService,
+  type CompleteUserInfo,
+  type LevelInfo,
+  type ActivityStats,
+} from "../../../../shared/services";
+import { useOnboardingStore } from "../../../../shared/store";
+import { ImageModal } from "../../../../shared/components/common/ImageModal";
+import { useImageModal } from "../../../../shared/hooks/useImageModal";
+import type { VerificationStatus } from "../../../../types";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
@@ -154,35 +156,6 @@ const VerificationBadge = styled.div<{
   }}
 `;
 
-const ContactInfo = styled.div`
-  display: flex;
-  gap: 20px;
-  margin-top: 8px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 6px;
-  }
-`;
-
-const ProfileEmail = styled.p<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
-const ProfilePhone = styled.p<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-`;
-
 const LevelProgressBar = styled.div`
   width: 100%;
   height: 8px;
@@ -240,7 +213,6 @@ const ActivityCard = styled.div<{ $isMobile?: boolean }>`
   box-shadow: ${({ theme }) => theme.shadows.sm};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray50};
     transform: translateY(-1px);
     box-shadow: ${({ theme }) => theme.shadows.md};
   }
@@ -290,10 +262,6 @@ const ProfileEditButton = styled.button<{ $isMobile?: boolean }>`
   z-index: 10;
   box-shadow: ${({ theme }) => theme.shadows.sm};
 
-  &:hover {
-    background: ${({ theme }) => theme.colors.gray50};
-  }
-
   &:active {
     transform: scale(0.98);
   }
@@ -336,10 +304,6 @@ const CategoryTag = styled.div<{ $isMobile?: boolean }>`
   font-weight: 500;
   transition: ${({ theme }) => theme.transitions.fast};
   cursor: pointer;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.gray50};
-  }
 `;
 
 const AchievementSection = styled.div<{ $isMobile?: boolean }>`
@@ -387,8 +351,6 @@ const AchievementItem = styled.div<{
   &:hover {
     transform: translateY(-2px);
     box-shadow: ${({ theme }) => theme.shadows.md};
-    background: ${({ $achieved, theme }) =>
-      $achieved ? theme.colors.primary + "15" : theme.colors.gray50};
   }
 `;
 
@@ -425,6 +387,18 @@ export const MyPage: React.FC = () => {
   const { user } = useAuth();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [showProfileEditModal, setShowProfileEditModal] = React.useState(false);
+  const [userInfo, setUserInfo] = React.useState<CompleteUserInfo | null>(null);
+  const [levelInfo, setLevelInfo] = React.useState<LevelInfo | null>(null);
+  const [activityStats, setActivityStats] =
+    React.useState<ActivityStats | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // 온보딩 스토어에서 카테고리 데이터 가져오기
+  const { categories, loadStaticData } = useOnboardingStore();
+
+  // 이미지 모달 훅
+  const imageModal = useImageModal(1);
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -435,19 +409,89 @@ export const MyPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Mock 사용자 데이터
-  const mockUserData: User = {
-    id: 1,
-    provider: "KAKAO",
-    provider_user_id: "123456789",
-    email: user?.email || "mission@example.com",
-    name: user?.nickname || "unknown",
-    phone: "010-1234-5678",
-    profile_image_url: user?.profileImage || undefined,
-    status: "ACTIVE" as AccountStatus,
-    created_at: "2024-01-15T00:00:00Z",
-    updated_at: new Date().toISOString(),
-  };
+  // 사용자 프로필 정보 및 활동 통계 조회
+  React.useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        console.log("🔄 사용자 데이터 조회 시작:", user?.id);
+        setIsLoading(true);
+        setError(null);
+
+        // 동시에 사용자 정보와 활동 통계 조회
+        const [userData, activityData] = await Promise.all([
+          userApiService.getMe(),
+          userApiService.getActivityStats(),
+        ]);
+
+        console.log("✅ 사용자 정보 조회 성공:", userData);
+        console.log("✅ 활동 통계 조회 성공:", activityData);
+
+        setUserInfo(userData);
+        setActivityStats(activityData);
+      } catch (err) {
+        console.error("❌ 사용자 데이터 조회 실패:", err);
+        setError(err instanceof Error ? err.message : "Unknown error");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  // 카테고리 데이터 로드
+  React.useEffect(() => {
+    if (categories.length === 0) {
+      loadStaticData();
+    }
+  }, [categories.length, loadStaticData]);
+
+  // 레벨 정보 조회
+  React.useEffect(() => {
+    const fetchLevelInfo = async () => {
+      if (userInfo?.profile?.level) {
+        try {
+          const levelData = await userApiService.getLevelInfo(
+            userInfo.profile.level
+          );
+          setLevelInfo(levelData);
+        } catch (err) {
+          console.error("❌ 레벨 정보 조회 실패:", err);
+        }
+      }
+    };
+
+    fetchLevelInfo();
+  }, [userInfo]);
+
+  // 로딩 상태
+  if (isLoading) {
+    return (
+      <PageContainer $isMobile={isMobile}>
+        <div>사용자 정보를 불러오는 중...</div>
+      </PageContainer>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <PageContainer $isMobile={isMobile}>
+        <div>사용자 정보를 불러오는데 실패했습니다: {error}</div>
+      </PageContainer>
+    );
+  }
+
+  // userInfo가 없으면 로딩 상태 표시
+  if (!userInfo) {
+    return (
+      <PageContainer $isMobile={isMobile}>
+        <div>사용자 정보를 불러오는 중...</div>
+      </PageContainer>
+    );
+  }
 
   const getVerificationIcon = (status: VerificationStatus) => {
     switch (status) {
@@ -462,18 +506,38 @@ export const MyPage: React.FC = () => {
     }
   };
 
-  // 관심 카테고리 데이터
-  const selectedCategories = [
-    "culture",
-    "sports",
-    "food",
-    "travel",
-    "gaming",
-    "photo",
-  ];
-  const interestCategories = CATEGORIES_WITHOUT_ALL.filter((cat) =>
-    selectedCategories.includes(cat.id)
-  ).map((cat) => cat.label);
+  // 관심사 데이터 (이모지 포함)
+  const userInterests = (userInfo?.profile?.interests || []).map(
+    (interestName) => {
+      // 백엔드 카테고리에서 해당하는 이모지 찾기
+      const category = categories.find((cat) => cat.name === interestName);
+      return category ? `${category.icon} ${category.name}` : interestName;
+    }
+  );
+
+  // 해시태그 데이터 (실제 사용자 데이터 사용)
+  const userHashtags: string[] = userInfo.profile?.hashtags || [
+    "#활발한",
+    "#친근한",
+    "#긍정적인",
+  ]; // 기본값
+
+  // 레벨 진행률 계산
+  const calculateProgress = () => {
+    if (!levelInfo || !userInfo?.profile?.points) return 0;
+    const currentPoints = userInfo.profile.points;
+    const requiredPoints = levelInfo.requiredPoints;
+    const prevLevelPoints =
+      levelInfo.level === 1 ? 0 : Math.max(0, requiredPoints - 100); // 임시로 이전 레벨 포인트 계산
+    const progressPoints = currentPoints - prevLevelPoints;
+    const levelRange = requiredPoints - prevLevelPoints;
+    return Math.min((progressPoints / levelRange) * 100, 100);
+  };
+
+  const getRemainingPoints = () => {
+    if (!levelInfo || !userInfo?.profile?.points) return 0;
+    return Math.max(0, levelInfo.requiredPoints - userInfo.profile.points);
+  };
 
   // 업적 데이터
   const achievements = [
@@ -532,10 +596,20 @@ export const MyPage: React.FC = () => {
           편집
         </ProfileEditButton>
 
-        <ProfileAvatar $isMobile={isMobile}>
-          {mockUserData.profile_image_url ? (
+        <ProfileAvatar
+          $isMobile={isMobile}
+          onClick={() => {
+            if (userInfo.profile?.profileImageUrl) {
+              imageModal.openModal(0);
+            }
+          }}
+          style={{
+            cursor: userInfo.profile?.profileImageUrl ? "pointer" : "default",
+          }}
+        >
+          {userInfo.profile?.profileImageUrl ? (
             <img
-              src={mockUserData.profile_image_url}
+              src={userInfo.profile.profileImageUrl}
               alt="Profile"
               style={{
                 width: "100%",
@@ -551,49 +625,107 @@ export const MyPage: React.FC = () => {
 
         <ProfileInfoContainer>
           <ProfileHeader>
-            <ProfileName $isMobile={isMobile}>{mockUserData.name}</ProfileName>
+            <ProfileName $isMobile={isMobile}>
+              {userInfo.profile?.nickname || "사용자"}
+            </ProfileName>
             <VerificationContainer>
-              <VerificationBadge $status={"APPROVED"} $isMobile={isMobile}>
-                {getVerificationIcon("APPROVED")}
+              <VerificationBadge
+                $status={userInfo.phoneVerifiedAt ? "APPROVED" : "PENDING"}
+                $isMobile={isMobile}
+              >
+                {getVerificationIcon(
+                  userInfo.phoneVerifiedAt ? "APPROVED" : "PENDING"
+                )}
                 번호 인증
               </VerificationBadge>
               <VerificationBadge
-                $status={"APPROVED"}
+                $status={userInfo.districtVerifiedAt ? "APPROVED" : "PENDING"}
                 $isMobile={isMobile}
                 $isLocation={true}
               >
-                {getVerificationIcon("APPROVED")}
+                {getVerificationIcon(
+                  userInfo.districtVerifiedAt ? "APPROVED" : "PENDING"
+                )}
                 지역 인증
               </VerificationBadge>
             </VerificationContainer>
           </ProfileHeader>
 
           <LevelDisplaySection $isMobile={isMobile}>
-            <LevelText $isMobile={isMobile}>Lv.8</LevelText>
-            <PointsText $isMobile={isMobile}>1,250P</PointsText>
+            <LevelText $isMobile={isMobile}>
+              Lv.{userInfo.profile?.level || 1}
+            </LevelText>
+            <PointsText $isMobile={isMobile}>
+              {userInfo.profile?.points || 0}P
+            </PointsText>
           </LevelDisplaySection>
 
           <ProgressSection>
             <LevelProgressBar>
-              <LevelProgress $progress={65} />
+              <LevelProgress $progress={calculateProgress()} />
             </LevelProgressBar>
             <LevelProgressText $isMobile={isMobile}>
-              다음 레벨까지 350P
+              {userInfo.profile?.level === 1 ? (
+                "첫 미션을 통해 경험을 쌓아보세요 🎯"
+              ) : (
+                <>
+                  다음 레벨까지 {getRemainingPoints()}P
+                  {levelInfo && levelInfo.rewardAiTickets > 0 && (
+                    <span style={{ marginLeft: "8px", color: "#10B981" }}>
+                      🎫 {levelInfo.rewardAiTickets}개 보상
+                    </span>
+                  )}
+                </>
+              )}
             </LevelProgressText>
           </ProgressSection>
 
-          <ContactInfo>
-            <ProfileEmail $isMobile={isMobile}>
-              <Mail size={12} />
-              {mockUserData.email}
-            </ProfileEmail>
-            <ProfilePhone $isMobile={isMobile}>
-              <Phone size={12} />
-              {mockUserData.phone}
-            </ProfilePhone>
-          </ContactInfo>
+          {/* 자기소개 표시 */}
+          {userInfo.profile?.bio && (
+            <div
+              style={{
+                marginTop: "12px",
+                padding: "8px 0",
+                fontSize: isMobile ? "14px" : "15px",
+                color: "#6B7280",
+                lineHeight: "1.4",
+              }}
+            >
+              {userInfo.profile.bio}
+            </div>
+          )}
         </ProfileInfoContainer>
       </ProfileCard>
+
+      {/* 관심사 섹션 */}
+      <PreferenceSection $isMobile={isMobile}>
+        <PreferenceTitle $isMobile={isMobile}>
+          <Heart size={isMobile ? 16 : 18} />
+          관심 카테고리
+        </PreferenceTitle>
+        <CategoryTags>
+          {userInterests.map((interest, index) => (
+            <CategoryTag key={index} $isMobile={isMobile}>
+              {interest}
+            </CategoryTag>
+          ))}
+        </CategoryTags>
+      </PreferenceSection>
+
+      {/* 해시태그 섹션 */}
+      <PreferenceSection $isMobile={isMobile}>
+        <PreferenceTitle $isMobile={isMobile}>
+          <MessageSquare size={isMobile ? 16 : 18} />
+          해시태그
+        </PreferenceTitle>
+        <CategoryTags>
+          {userHashtags.map((hashtag, index) => (
+            <CategoryTag key={index} $isMobile={isMobile}>
+              {hashtag}
+            </CategoryTag>
+          ))}
+        </CategoryTags>
+      </PreferenceSection>
 
       <ActivitySection $isMobile={isMobile}>
         <ActivityTitle $isMobile={isMobile}>
@@ -605,7 +737,9 @@ export const MyPage: React.FC = () => {
             <ActivityIcon $color="#10B981">
               <CheckCircle size={16} />
             </ActivityIcon>
-            <ActivityValue $isMobile={isMobile}>45</ActivityValue>
+            <ActivityValue $isMobile={isMobile}>
+              {activityStats?.verificationCount || 0}
+            </ActivityValue>
             <ActivityLabel $isMobile={isMobile}>인증 횟수</ActivityLabel>
           </ActivityCard>
 
@@ -613,7 +747,9 @@ export const MyPage: React.FC = () => {
             <ActivityIcon $color="#7C3AED">
               <MessageSquare size={16} />
             </ActivityIcon>
-            <ActivityValue $isMobile={isMobile}>24</ActivityValue>
+            <ActivityValue $isMobile={isMobile}>
+              {activityStats?.reviewCount || 0}
+            </ActivityValue>
             <ActivityLabel $isMobile={isMobile}>작성한 리뷰</ActivityLabel>
           </ActivityCard>
 
@@ -624,7 +760,9 @@ export const MyPage: React.FC = () => {
             <ActivityIcon $color="#6366F1">
               <Users size={16} />
             </ActivityIcon>
-            <ActivityValue $isMobile={isMobile}>18</ActivityValue>
+            <ActivityValue $isMobile={isMobile}>
+              {activityStats?.hostedMeetingCount || 0}
+            </ActivityValue>
             <ActivityLabel $isMobile={isMobile}>주최한 모임</ActivityLabel>
           </ActivityCard>
 
@@ -635,25 +773,13 @@ export const MyPage: React.FC = () => {
             <ActivityIcon $color="#F59E0B">
               <Trophy size={16} />
             </ActivityIcon>
-            <ActivityValue $isMobile={isMobile}>12</ActivityValue>
+            <ActivityValue $isMobile={isMobile}>
+              {activityStats?.completedMissionCount || 0}
+            </ActivityValue>
             <ActivityLabel $isMobile={isMobile}>완료한 미션</ActivityLabel>
           </ActivityCard>
         </ActivityGrid>
       </ActivitySection>
-
-      <PreferenceSection $isMobile={isMobile}>
-        <PreferenceTitle $isMobile={isMobile}>
-          <Heart size={isMobile ? 16 : 18} />
-          관심 카테고리
-        </PreferenceTitle>
-        <CategoryTags>
-          {interestCategories.map((category, index) => (
-            <CategoryTag key={index} $isMobile={isMobile}>
-              {category}
-            </CategoryTag>
-          ))}
-        </CategoryTags>
-      </PreferenceSection>
 
       <AchievementSection $isMobile={isMobile}>
         <AchievementTitle $isMobile={isMobile}>
@@ -689,14 +815,117 @@ export const MyPage: React.FC = () => {
         isOpen={showProfileEditModal}
         onClose={() => setShowProfileEditModal(false)}
         isMobile={isMobile}
-        user={mockUserData}
-        onSave={(updatedUser) => {
-          console.log("프로필 업데이트:", updatedUser);
-          // TODO: 실제 API 호출로 프로필 업데이트
-          alert("프로필이 성공적으로 업데이트되었습니다!");
-          setShowProfileEditModal(false);
+        user={
+          {
+            ...user,
+            // 기본 정보
+            phoneNumber: userInfo.phoneNumber,
+
+            // 프로필 정보
+            name: userInfo.profile?.nickname,
+            nickname: userInfo.profile?.nickname,
+            birthYear: userInfo.profile?.birthYear?.toString(),
+            gender: userInfo.profile?.gender,
+            bio: userInfo.profile?.bio,
+            profile_image_url: userInfo.profile?.profileImageUrl,
+            interests: userInfo.profile?.interests
+              ? (userInfo.profile.interests
+                  .map((interestName) => {
+                    const category = categories.find(
+                      (cat) => cat.name === interestName
+                    );
+                    return category ? category.id : interestName;
+                  })
+                  .filter((id) => typeof id === "string") as string[])
+              : [],
+            hashtags: userInfo.profile?.hashtags
+              ? (userInfo.profile.hashtags
+                  .map((hashtagName) => {
+                    const hashtag = categories.find(
+                      (cat) => cat.name === hashtagName
+                    );
+                    return hashtag ? parseInt(hashtag.id, 10) : null;
+                  })
+                  .filter((id) => id !== null) as number[])
+              : [],
+            mbti: userInfo.profile?.mbti,
+            districtId: userInfo.profile?.district?.id,
+
+            // 지역 정보 (district가 있으면 locationData 설정)
+            locationData: userInfo.profile?.district
+              ? {
+                  districtId: userInfo.profile.district.id,
+                  districtName: userInfo.profile.district.name,
+                  city: userInfo.profile.district.city,
+                  regionCode: userInfo.profile.district.id,
+                }
+              : undefined,
+
+            // 인증 상태 정보
+            isPhoneVerified: !!userInfo.phoneVerifiedAt,
+            isLocationVerified: !!userInfo.districtVerifiedAt,
+          } as User
+        }
+        onSave={async (updatedUser) => {
+          try {
+            console.log("프로필 업데이트:", updatedUser);
+
+            // API 요청 데이터 구성
+            // interests를 number 배열로 변환
+            const userInterestIds = Array.isArray(updatedUser.interests)
+              ? updatedUser.interests
+                  .map((id) => parseInt(id, 10))
+                  .filter((id) => !isNaN(id))
+              : [];
+
+            // hashtags를 ID 배열로 변환 (이미 number 배열)
+            const userHashtagIds = Array.isArray(updatedUser.hashtags)
+              ? updatedUser.hashtags
+              : [];
+
+            const updateData = {
+              nickname: updatedUser.nickname,
+              bio: updatedUser.bio,
+              profileImageUrl: updatedUser.profile_image_url,
+              userInterestIds: userInterestIds,
+              mbti: updatedUser.mbti,
+              districtId: updatedUser.districtId,
+              birthYear: updatedUser.birthYear,
+              gender: updatedUser.gender,
+            };
+
+            console.log("API 요청 데이터:", updateData);
+
+            // 실제 API 호출로 프로필 업데이트
+            await userApiService.updateProfile(updateData);
+
+            alert("프로필이 성공적으로 업데이트되었습니다!");
+            setShowProfileEditModal(false);
+
+            // 프로필 정보 다시 조회
+            const refreshedUserInfo = await userApiService.getMe();
+            setUserInfo(refreshedUserInfo);
+          } catch (error) {
+            console.error("프로필 업데이트 실패:", error);
+            alert(
+              `프로필 업데이트에 실패했습니다: ${
+                error instanceof Error ? error.message : "알 수 없는 오류"
+              }`
+            );
+          }
         }}
       />
+
+      {/* 프로필 이미지 확대 모달 */}
+      {userInfo.profile?.profileImageUrl && (
+        <ImageModal
+          isOpen={imageModal.isOpen}
+          onClose={imageModal.closeModal}
+          images={[userInfo.profile.profileImageUrl]}
+          currentIndex={imageModal.currentIndex}
+          showNavigation={false}
+        />
+      )}
     </PageContainer>
   );
 };
