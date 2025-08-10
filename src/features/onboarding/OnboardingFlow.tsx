@@ -205,7 +205,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     updateFormData({
       phoneNumber: user?.phoneNumber || "",
       nickname: user?.nickname || "",
-      birthYear: user?.birthYear || "",
+      birthYear: user?.birthYear?.toString() || "",
       gender: user?.gender || "",
       bio: user?.bio || "",
       profileImageUrl: user?.profile_image_url || "",

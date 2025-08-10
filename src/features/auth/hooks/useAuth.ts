@@ -50,7 +50,7 @@ export const useAuth = (): AuthContextType => {
 
     const checkAuthStatus = async () => {
       try {
-        console.log("🔍 인증 상태 확인 시작");
+        // console.log("인증 상태 확인 시작");
 
         const response = await fetch(apiUrl("/auth/me"), {
           credentials: "include",
@@ -58,15 +58,18 @@ export const useAuth = (): AuthContextType => {
 
         if (response.ok) {
           const userData = await response.json();
-          console.log("사용자 인증 성공:", userData.id);
-          console.log("/auth/me 응답 데이터:", userData);
+          // console.log("사용자 인증 성공:", userData.id);
+          // console.log("/auth/me 응답 데이터:", userData);
 
           // 온보딩 완료 여부 확인
           const hasCompletedOnboarding = !!userData.onboardingCompletedAt;
-          console.log("온보딩 완료 상태:", hasCompletedOnboarding);
-          console.log("onboardingCompletedAt:", userData.onboardingCompletedAt);
+          // console.log("온보딩 완료 상태:", hasCompletedOnboarding);
+          // console.log("onboardingCompletedAt:", userData.onboardingCompletedAt);
 
-          if (!hasCompletedOnboarding && window.location.pathname !== "/onboarding") {
+          if (
+            !hasCompletedOnboarding &&
+            window.location.pathname !== "/onboarding"
+          ) {
             window.location.href = "/onboarding";
             return;
           }
@@ -81,7 +84,7 @@ export const useAuth = (): AuthContextType => {
 
           // 개발/프로덕션 모두 일관된 로그인 처리
           if (import.meta.env.DEV) {
-            console.log("🔧 개발 환경: 로그인 페이지로 이동");
+            // console.log("개발 환경: 로그인 페이지로 이동");
           }
 
           // 현재 페이지가 로그인 페이지가 아닌 경우에만 리다이렉트
@@ -89,8 +92,8 @@ export const useAuth = (): AuthContextType => {
             window.location.href = "/login";
           }
         }
-      } catch (error) {
-        console.log("❌ 인증 상태 확인 에러:", error);
+      } catch (_err) {
+        // console.log("인증 상태 확인 에러:", err);
       }
     };
 

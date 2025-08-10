@@ -93,11 +93,11 @@ export async function cachedApiCall<T>(
   // 캐시에서 확인
   const cached = apiCache.get<T>(key);
   if (cached) {
-    console.log(`캐시 데이터 사용: ${key}`);
+    // console.log(`캐시 데이터 사용: ${key}`);
     return cached;
   }
 
-  console.log(`새로운 API 호출: ${key}`);
+  // console.log(`새로운 API 호출: ${key}`);
   // 캐시에 없으면 API 호출
   const data = await apiCall();
 

@@ -33,7 +33,7 @@ const ModalContent = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  background: ${({ theme }) => theme.colors.background};
+  background: #fff7f0;
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -65,23 +65,6 @@ const ModalBody = styled.div`
 const ModalFooter = styled.div`
   padding: 16px 20px;
   flex-shrink: 0;
-`;
-
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: none;
-  color: ${({ theme }) => theme.colors.text.primary};
-  cursor: pointer;
-  border-radius: 50%;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
-  }
 `;
 
 const ProgressContainer = styled.div`
@@ -238,11 +221,6 @@ const Label = styled.label<{ $isMobile?: boolean }>`
   font-weight: 600;
   color: ${({ theme }) => theme.colors.text.primary};
   margin-bottom: 8px;
-`;
-
-const RequiredAsterisk = styled.span`
-  color: ${({ theme }) => theme.colors.danger};
-  font-size: 13px;
 `;
 
 const Input = styled.input<{ $isMobile?: boolean }>`
@@ -672,22 +650,22 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     // 관심사 검증
     if (selectedCategories.length === 0) {
       errors.interests = "관심사를 최소 1개 선택해주세요.";
-    } else if (selectedCategories.length > 3) {
-      errors.interests = "관심사는 최대 3개까지 선택할 수 있습니다.";
+    } else if (selectedCategories.length > 6) {
+      errors.interests = "관심사는 최대 6개까지 선택할 수 있습니다.";
     }
 
     // 해시태그 검증 (선택사항이므로 최대 개수만 체크)
-    if (selectedHashtags.length > 3) {
-      errors.hashtags = "해시태그는 최대 3개까지 선택할 수 있습니다.";
+    if (selectedHashtags.length > 6) {
+      errors.hashtags = "해시태그는 최대 6개까지 선택할 수 있습니다.";
     }
 
     setValidationErrors(errors);
     return !errors.nickname && !errors.interests && !errors.hashtags;
   };
 
-  // 모달이 열릴 때마다 사용자 데이터로 폼 초기화
+  // 모달이 열릴 때마다 사용자 데이터로 폼 초기화 (스토어 데이터가 로드된 후에만)
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && storeCategories.length > 0 && storeHashtags.length > 0) {
       console.log("ProfileEditModal 초기화 -> 받은 user 데이터:", user);
 
       setFormData({
@@ -741,11 +719,15 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
         name: user.nickname,
         mbti: user.mbti,
         interests: user.interests,
+        hashtags: user.hashtags,
         selectedCategories: user.interests || [],
+        selectedHashtags: user.hashtags || [],
         bio: user.bio,
+        storeCategories: storeCategories.length,
+        storeHashtags: storeHashtags.length,
       });
     }
-  }, [isOpen, user, storeHashtags]);
+  }, [isOpen, user, storeHashtags, storeCategories]);
 
   // 카테고리 및 지역 데이터 로드
   React.useEffect(() => {
@@ -776,11 +758,11 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 
   // 디버깅용 로그
   React.useEffect(() => {
-    console.log("🔍 카테고리 데이터:", {
-      storeCategories,
-      availableCategories,
-      selectedCategories,
-    });
+    // console.log("카테고리 데이터:", {
+    //   storeCategories,
+    //   availableCategories,
+    //   selectedCategories,
+    // });
   }, [storeCategories, availableCategories, selectedCategories]);
 
   const mbtiOptions = [
@@ -889,11 +871,11 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       // 선택 해제
       newCategories = selectedCategories.filter((c) => c !== categoryId);
     } else {
-      // 선택 추가 - 최대 3개 제한
-      if (selectedCategories.length >= 3) {
+      // 선택 추가 - 최대 6개 제한
+      if (selectedCategories.length >= 6) {
         setValidationErrors((prev) => ({
           ...prev,
-          interests: "관심사는 최대 3개까지 선택할 수 있습니다.",
+          interests: "관심사는 최대 6개까지 선택할 수 있습니다.",
         }));
         return;
       }
@@ -959,11 +941,11 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       // 선택 해제
       newHashtags = selectedHashtags.filter((h) => h !== hashtagId);
     } else {
-      // 선택 추가 - 최대 3개 제한
-      if (selectedHashtags.length >= 3) {
+      // 선택 추가 - 최대 6개 제한
+      if (selectedHashtags.length >= 6) {
         setValidationErrors((prev) => ({
           ...prev,
-          hashtags: "해시태그는 최대 3개까지 선택할 수 있습니다.",
+          hashtags: "해시태그는 최대 6개까지 선택할 수 있습니다.",
         }));
         return;
       }

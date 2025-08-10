@@ -14,7 +14,7 @@ export const OnboardingPage: React.FC = () => {
     profile_image_url: "",
     interests: [],
     mbti: "",
-    birthYear: "",
+    birthYear: 0,
     gender: "" as "male" | "female",
     bio: "",
     phoneNumber: "",

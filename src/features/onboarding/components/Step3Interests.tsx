@@ -90,20 +90,6 @@ const SkeletonGrid = styled.div`
   gap: 10px;
 `;
 
-const INTERESTS_LIST = [
-  "맛집 투어",
-  "액티비티",
-  "여행",
-  "음악",
-  "패션",
-  "오락",
-  "전시/공연",
-  "봉사활동",
-  "반려동물",
-  "카페",
-  "사진",
-  "영화",
-];
 
 const MBTI_TYPES = [
   "ISTJ",
@@ -124,26 +110,16 @@ const MBTI_TYPES = [
   "ENTJ",
 ];
 
-const TAG_OPTIONS = [
-  "#웃음이넘치는",
-  "#열정적인",
-  "#차분한",
-  "#긍정적인",
-  "#활동적인",
-  "#자유로운",
-  "#진지한",
-  "#활발한",
-  "#창의적인",
-  "#수다를좋아하는",
-  "#점잖은",
-  "#현실적인",
-  "#공감능력",
-  "#도전적인",
-  "#섬세한",
-];
 
 export const Step3Interests: React.FC = () => {
-  const { formData, isLoading, updateFormData } = useOnboardingStore();
+  const { formData, isLoading, updateFormData, categories, hashtags, loadStaticData } = useOnboardingStore();
+
+  // 데이터 로드
+  React.useEffect(() => {
+    if (categories.length === 0 || hashtags.length === 0) {
+      loadStaticData();
+    }
+  }, [categories.length, hashtags.length, loadStaticData]);
 
   const handleInterestToggle = (interest: string) => {
     const currentInterests = formData.interests;
@@ -152,7 +128,8 @@ export const Step3Interests: React.FC = () => {
     if (currentInterests.includes(interest)) {
       newInterests = currentInterests.filter((i) => i !== interest);
     } else {
-      if (currentInterests.length >= 3) {
+      if (currentInterests.length >= 6) {
+        alert("최대 6개까지 선택할 수 있습니다.");
         return;
       }
       newInterests = [...currentInterests, interest];
@@ -166,18 +143,18 @@ export const Step3Interests: React.FC = () => {
     updateFormData({ mbti: newMbti });
   };
 
-  const handleMoodToggle = (mood: string) => {
+  const handleMoodToggle = (_hashtagId: number, hashtagName: string) => {
     const currentMoods = formData.moods || [];
     let newMoods: string[];
 
-    if (currentMoods.includes(mood)) {
-      newMoods = currentMoods.filter((m) => m !== mood);
+    if (currentMoods.includes(hashtagName)) {
+      newMoods = currentMoods.filter((m) => m !== hashtagName);
     } else {
-      if (currentMoods.length >= 3) {
-        alert("최대 3개까지 선택할 수 있습니다.");
+      if (currentMoods.length >= 6) {
+        alert("최대 6개까지 선택할 수 있습니다.");
         return;
       }
-      newMoods = [...currentMoods, mood];
+      newMoods = [...currentMoods, hashtagName];
     }
 
     updateFormData({ moods: newMoods });
@@ -211,16 +188,16 @@ export const Step3Interests: React.FC = () => {
         <Title>관심사를 선택해주세요</Title>
         <Subtitle>관심사를 기반으로 맞춤 미션을 추천해드려요.</Subtitle>
         <SectionTitle>나의 관심사</SectionTitle>
-        <SectionSubtitle>최대 3개까지 선택할 수 있어요</SectionSubtitle>
+        <SectionSubtitle>최대 6개까지 선택할 수 있어요</SectionSubtitle>
 
         <InterestsGrid>
-          {INTERESTS_LIST.map((interest) => (
+          {categories.map((category) => (
             <InterestButton
-              key={interest}
-              $selected={formData.interests.includes(interest)}
-              onClick={() => handleInterestToggle(interest)}
+              key={category.id}
+              $selected={formData.interests.includes(category.name)}
+              onClick={() => handleInterestToggle(category.name)}
             >
-              {interest}
+              {category.icon} {category.name}
             </InterestButton>
           ))}
         </InterestsGrid>
@@ -248,17 +225,17 @@ export const Step3Interests: React.FC = () => {
       <Section>
         <SectionTitle>나를 표현</SectionTitle>
         <SectionSubtitle>
-          자신을 잘 나타내는 해시태그를 최대 3개 선택해주세요.
+          자신을 잘 나타내는 해시태그를 최대 6개 선택해주세요.
         </SectionSubtitle>
 
         <InterestsGrid>
-          {TAG_OPTIONS.map((tag) => (
+          {hashtags.map((hashtag) => (
             <InterestButton
-              key={tag}
-              $selected={(formData.moods || []).includes(tag)}
-              onClick={() => handleMoodToggle(tag)}
+              key={hashtag.id}
+              $selected={(formData.moods || []).includes(hashtag.name)}
+              onClick={() => handleMoodToggle(hashtag.id, hashtag.name)}
             >
-              {tag}
+              {hashtag.name}
             </InterestButton>
           ))}
         </InterestsGrid>
