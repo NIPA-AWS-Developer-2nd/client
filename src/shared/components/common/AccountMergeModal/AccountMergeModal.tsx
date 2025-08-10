@@ -16,12 +16,12 @@ const ModalOverlay = styled.div<{ $show: boolean }>`
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 10000; /* 온보딩 모달(9999)과 AccountMergeModal(10001) 사이 */
+  z-index: 10000;
   display: ${({ $show }) => ($show ? "block" : "none")};
   pointer-events: ${({ $show }) => ($show ? "auto" : "none")};
 `;
 
-// 높은 z-index로 온보딩 모달보다 위에 표시
+// 온보딩 모달보다 위에 표시
 const HighZIndexModal = styled.div<{ $show: boolean }>`
   position: fixed;
   bottom: ${({ $show }) => ($show ? "0" : "-300px")};
