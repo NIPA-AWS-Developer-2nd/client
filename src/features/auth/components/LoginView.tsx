@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import styled from "styled-components";
+import { AlertTriangle, X } from "lucide-react";
 import { BrandingContent } from "../../../shared/components/common";
 import { SocialLoginButton } from "./SocialLoginButton";
+import { TestLoginButton } from "./TestLoginButton";
 import { useAuth } from "../hooks/useAuth";
 
 const LoginContainer = styled.div`
@@ -65,12 +68,75 @@ const TermsLink = styled.span`
   cursor: pointer;
 `;
 
+const ErrorMessage = styled.div`
+  position: relative;
+  width: 100%;
+  padding: 16px 40px 16px 16px;
+  margin-bottom: 24px;
+  background: ${({ theme }) => theme.colors.danger}15;
+  border: 1px solid ${({ theme }) => theme.colors.danger}30;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: 14px;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+`;
+
+const ErrorContent = styled.div`
+  flex: 1;
+  text-align: center;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.danger};
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 12px;
+  
+  &:hover {
+    opacity: 0.7;
+  }
+`;
+
 interface LoginViewProps {
   onLoginSuccess?: () => void;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
-  const { login, testLogin, isLoading, isAuthenticated, user } = useAuth();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  // URL 파라미터에서 OAuth 에러 확인
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        'google_auth_failed': '구글 로그인 인증에 실패했습니다.',
+        'google_login_failed': '구글 로그인 처리 중 오류가 발생했습니다.',
+        'kakao_auth_failed': '카카오 로그인 인증에 실패했습니다.',
+        'kakao_login_failed': '카카오 로그인 처리 중 오류가 발생했습니다.',
+        'naver_auth_failed': '네이버 로그인 인증에 실패했습니다.',
+        'naver_login_failed': '네이버 로그인 처리 중 오류가 발생했습니다.',
+      };
+      
+      setErrorMessage(errorMessages[error] || '로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+      
+      // URL에서 error 파라미터 제거
+      searchParams.delete('error');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleSocialLogin = async (provider: "kakao" | "google" | "naver") => {
     try {
@@ -86,15 +152,28 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
   const handleTestLogin = async () => {
     try {
-      console.log("Starting test login...");
-      await testLogin();
-      console.log("Test login completed");
-      onLoginSuccess?.();
+      // 백엔드에서 쿠키를 설정하고 리다이렉트하므로 fetch의 redirect를 수동으로 처리
+      const response = await fetch('/api/auth/dev-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nickname: '테스트계정' }),
+        redirect: 'manual', // 리다이렉트를 수동으로 처리
+      });
+
+      // 리다이렉트 응답(302)인 경우 Location 헤더의 URL로 이동
+      if (response.status === 302 || response.type === 'opaqueredirect') {
+        window.location.href = '/'; // 또는 리다이렉트된 URL로 이동
+      } else if (!response.ok) {
+        throw new Error('테스트 로그인 실패');
+      }
     } catch (error) {
-      console.error("Test login failed:", error);
-      // TODO: 에러 토스트 표시
+      console.error('Test login failed:', error);
+      setErrorMessage('테스트 로그인에 실패했습니다.');
     }
   };
+
 
   // 이미 로그인된 경우 홈으로 리다이렉트
   if (isAuthenticated && user) {
@@ -109,9 +188,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           <BrandingContent variant="splash" />
         </BrandingWrapper>
 
+        {/* 에러 메시지 표시 */}
+        {errorMessage && (
+          <ErrorMessage>
+            <AlertTriangle size={16} />
+            <ErrorContent>{errorMessage}</ErrorContent>
+            <CloseButton onClick={() => setErrorMessage("")}>
+              <X size={16} />
+            </CloseButton>
+          </ErrorMessage>
+        )}
+
         <LoginButtonsContainer>
-          <SocialLoginButton
-            provider="test"
+          <TestLoginButton
             onClick={handleTestLogin}
             disabled={isLoading}
           />
