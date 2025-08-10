@@ -1,51 +1,55 @@
-// Light Theme
 export const lightTheme = {
   colors: {
     // Primary
-    primary: "#6366F1",
-    secondary: "#8B5CF6",
-    accent: "#60A5FA",
+    primary: "#ff8b55",
+    primaryLight: "#ffaa7a",
+    secondary: "#ff9e6e",
+    secondaryLight: "#ffd4b8",
+    tertiary: "#FFE6A7",
+    accent: "#FFE0B2", // 카드, 뱃지 등 강조
 
     // Status colors
-    success: "#10B981",
-    danger: "#EF4444",
-    warning: "#F59E0B",
-    info: "#06B6D4",
+    success: "#23d17a",
+    danger: "#e53935",
+    warning: "#e53935",
+    info: "#3B82F6",
 
     // Grayscale
     white: "#FFFFFF",
-    gray50: "#F8FAFC",
-    gray100: "#F1F5F9",
-    gray200: "#E2E8F0",
-    gray300: "#CBD5E1",
-    gray400: "#94A3B8",
-    gray500: "#64748B",
-    gray600: "#475569",
-    gray700: "#334155",
-    gray800: "#1E293B",
-    gray900: "#0F172A",
+    gray50: "#FFF7F0", // 배경에 가까운 밝은 톤
+    gray100: "#F9F6F2", // 카드/입력창 배경
+    gray200: "#F3EEE7", // 카드/입력창 서브
+    gray300: "#E5E1DC", // 경계선, 비활성
+    gray400: "#CFC9C1",
+    gray500: "#A8A29E",
+    gray600: "#78716C",
+    gray700: "#57534E",
+    gray800: "#3B3732",
+    gray900: "#1C1917",
     black: "#000000",
 
     // Background
-    background: "#FFFFFF",
-    surface: "#F8FAFC",
-    card: "#FFFFFF",
+    background: "#FFF7F0", // 전체 배경
+    surface: "#FFFFFF", // 카드, 입력창 등
+    card: "#F9F6F2", // 카드 배경
+    input: "#FFFFFF", // 입력 필드 배경
 
     // Border
-    border: "#E2E8F0",
-    divider: "#F1F5F9",
+    border: "#E5E1DC",
+    divider: "#F3EEE7",
 
     // Text
     text: {
-      primary: "#1E293B",
-      secondary: "#64748B",
-      disabled: "#94A3B8",
-      inverse: "#FFFFFF",
+      primary: "#1C1917", //진한 컬러
+      secondary: "#78716C", // 설명, 서브텍스트
+      disabled: "#CFC9C1", // 비활성
+      inverse: "#FFFFFF", // 다크배경 위 텍스트
+      placeholder: "#A8A29E", // 입력창 플레이스홀더
     },
 
     // Legacy support
-    light: "#F8FAFC",
-    dark: "#1E293B",
+    light: "#FFF7F0",
+    dark: "#1C1917",
   },
   fonts: {
     primary: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -68,74 +72,78 @@ export const lightTheme = {
   },
   borderRadius: {
     none: "0",
-    sm: "2px",
-    md: "6px",
-    lg: "8px",
-    xl: "12px",
-    xxl: "16px",
+    sm: "6px",
+    md: "12px",
+    lg: "18px",
+    xl: "24px",
+    xxl: "32px",
     full: "50%",
   },
   shadows: {
     none: "none",
-    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-    md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-    xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    sm: "0 2px 8px 0 rgba(255, 122, 0, 0.06)",
+    md: "0 4px 16px 0 rgba(255, 122, 0, 0.10)",
+    lg: "0 8px 24px 0 rgba(255, 122, 0, 0.12)",
+    xl: "0 16px 32px 0 rgba(255, 122, 0, 0.14)",
   },
   transitions: {
-    fast: "150ms ease-in-out",
-    normal: "200ms ease-in-out",
-    slow: "300ms ease-in-out",
+    fast: "150ms cubic-bezier(0.4,0,0.2,1)",
+    normal: "200ms cubic-bezier(0.4,0,0.2,1)",
+    slow: "300ms cubic-bezier(0.4,0,0.2,1)",
   },
 };
 
-// Dark Theme
 export const darkTheme = {
   colors: {
     // Primary
-    primary: "#34D399",
-    secondary: "#9CA3AF",
-    accent: "#059669",
+    primary: "#ff8b55", // 버튼, 액티브 등
+    primaryLight: "#ffaa7a", // primary보다 밝은 톤
+    secondary: "#ffb899", // 서브 포인트 (기존보다 진한 톤)
+    secondaryLight: "#ffd4b8", // secondary보다 밝은 톤
+    tertiary: "#FFD580", // 기존 secondary 색상
+    accent: "#FFB86C", // 카드, 뱃지 등 강조
 
     // Status colors
-    success: "#34D399",
-    danger: "#F87171",
-    warning: "#FBBF24",
-    info: "#34D399",
+    success: "#10B981",
+    danger: "#EF4444",
+    warning: "#F59E0B",
+    info: "#60A5FA",
 
     // Grayscale
-    white: "#1F2937",
-    gray50: "#1F2937",
-    gray100: "#374151",
-    gray200: "#4B5563",
-    gray300: "#6B7280",
-    gray400: "#9CA3AF",
-    gray500: "#D1D5DB",
-    gray600: "#E5E7EB",
-    gray700: "#F3F4F6",
-    gray800: "#F9FAFB",
-    gray900: "#FFFFFF",
-    black: "#FFFFFF",
+    white: "#23242A", // 배경에 가까운 어두운 톤
+    gray50: "#18191D", // 전체 배경
+    gray100: "#23242A", // 카드/입력창 배경
+    gray200: "#2C2D33", // 카드/입력창 서브
+    gray300: "#35363C", // 경계선, 비활성
+    gray400: "#44454B",
+    gray500: "#5A5B60",
+    gray600: "#7A7B80",
+    gray700: "#A0A1A6",
+    gray800: "#CFCFD4",
+    gray900: "#F9FAFB",
+    black: "#000000",
 
     // Background
-    background: "#111827",
-    surface: "#1F2937",
-    card: "#1F2937",
+    background: "#18191D", // 전체 배경
+    surface: "#23242A", // 카드, 입력창 등
+    card: "#23242A", // 카드 배경
+    input: "#23242A", // 입력 필드 배경
 
     // Border
-    border: "#374151",
-    divider: "#374151",
+    border: "#35363C",
+    divider: "#2C2D33",
 
     // Text
     text: {
-      primary: "#F9FAFB",
-      secondary: "#D1D5DB",
-      disabled: "#6B7280",
-      inverse: "#111827",
+      primary: "#F9FAFB", // 진한 컬러
+      secondary: "#A0A1A6", // 설명, 서브텍스트
+      disabled: "#44454B", // 비활성
+      inverse: "#18191D", // 다크배경 위 텍스트
+      placeholder: "#5A5B60", // 입력창 플레이스홀더
     },
 
     // Legacy support
-    light: "#1F2937",
+    light: "#23242A",
     dark: "#F9FAFB",
   },
   fonts: {
@@ -159,24 +167,24 @@ export const darkTheme = {
   },
   borderRadius: {
     none: "0",
-    sm: "2px",
-    md: "6px",
-    lg: "8px",
-    xl: "12px",
-    xxl: "16px",
+    sm: "8px",
+    md: "14px",
+    lg: "20px",
+    xl: "28px",
+    xxl: "36px",
     full: "50%",
   },
   shadows: {
     none: "none",
-    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.3)",
-    md: "0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)",
-    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)",
-    xl: "0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3)",
+    sm: "0 2px 8px 0 rgba(0,0,0,0.18)",
+    md: "0 4px 16px 0 rgba(0,0,0,0.22)",
+    lg: "0 8px 24px 0 rgba(0,0,0,0.26)",
+    xl: "0 16px 32px 0 rgba(0,0,0,0.30)",
   },
   transitions: {
-    fast: "150ms ease-in-out",
-    normal: "200ms ease-in-out",
-    slow: "300ms ease-in-out",
+    fast: "150ms cubic-bezier(0.4,0,0.2,1)",
+    normal: "200ms cubic-bezier(0.4,0,0.2,1)",
+    slow: "300ms cubic-bezier(0.4,0,0.2,1)",
   },
 };
 
@@ -186,7 +194,7 @@ export type Theme = typeof lightTheme;
 // 테마 모드 타입
 export type ThemeMode = "system" | "light" | "dark";
 
-// 기본 테마 (하위 호환성)
+// 기본 테마
 export const theme = lightTheme;
 
 // 시스템 다크 모드 감지 함수

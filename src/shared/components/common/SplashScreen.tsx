@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styled, { keyframes, css } from "styled-components";
 import { BrandingContent } from "./BrandingContent";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../../features/auth/hooks/useAuth";
 import { SPLASH_CONFIG } from "../../constants";
 
 const fadeIn = keyframes`

@@ -69,8 +69,13 @@ export const GlobalStyle = createGlobalStyle`
 
   /* 텍스트 선택 스타일 */
   ::selection {
-    background-color: ${({ theme }) => theme.colors.accent};
-    color: ${({ theme }) => theme.colors.white};
+    background-color: ${({ theme }) => theme.colors.primaryLight};
+    color: #000000 !important;
+  }
+  
+  ::-moz-selection {
+    background-color: ${({ theme }) => theme.colors.primaryLight};
+    color: #000000 !important;
   }
 
   /* 버튼 기본 스타일 제거 */
