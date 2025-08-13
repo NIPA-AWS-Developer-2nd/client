@@ -229,8 +229,8 @@ const MeetingListPage: React.FC = () => {
 
       case "hostLevel": // 호스트 레벨순
         filtered.sort((a, b) => {
-          const aLevel = a.host?.level?.value || 0;
-          const bLevel = b.host?.level?.value || 0;
+          const aLevel = a.host?.level || 0;
+          const bLevel = b.host?.level || 0;
           const diff = bLevel - aLevel;
           return isDescending ? -diff : diff;
         });

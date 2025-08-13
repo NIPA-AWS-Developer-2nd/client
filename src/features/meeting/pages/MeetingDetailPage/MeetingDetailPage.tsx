@@ -227,7 +227,7 @@ const MeetingDetailPage: React.FC = () => {
 
   const isHost = meeting?.hostUserId === currentUserId;
   const isFull =
-    meeting && meeting.currentParticipants >= meeting.mission.maxParticipants;
+    meeting && (meeting.currentParticipants ?? 0) >= (meeting.mission?.maxParticipants ?? 0);
   const canJoin = meeting?.status === "recruiting" && !isParticipant && !isFull;
   const canLeave = meeting?.status === "recruiting" && isParticipant && !isHost;
 
@@ -274,7 +274,7 @@ const MeetingDetailPage: React.FC = () => {
                 </S.MetaItem>
                 <S.MetaItem>📅 {formatDate(meeting.scheduledAt)}</S.MetaItem>
                 <S.MetaItem>
-                  ⏰ 약 {Math.floor(meeting.mission?.estimatedDuration / 60)}
+                  ⏰ 약 {Math.floor((meeting.mission?.estimatedDuration ?? 60) / 60)}
                   시간
                 </S.MetaItem>
               </S.MetaInfo>
@@ -302,7 +302,7 @@ const MeetingDetailPage: React.FC = () => {
                 <S.InfoCard>
                   <S.InfoCardLabel>난이도</S.InfoCardLabel>
                   <S.InfoCardValue>
-                    {getDifficultyText(meeting.mission?.difficulty)}
+                    {getDifficultyText(meeting.mission?.difficulty || 'medium')}
                   </S.InfoCardValue>
                 </S.InfoCard>
                 <S.InfoCard>

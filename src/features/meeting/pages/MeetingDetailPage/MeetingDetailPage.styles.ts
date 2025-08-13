@@ -139,7 +139,7 @@ export const StatusBadge = styled.div<{ $status: 'recruiting' | 'active' | 'comp
         `;
       case 'cancelled':
         return css`
-          background-color: ${theme.colors.error}E6;
+          background-color: ${theme.colors.danger}E6;
           color: ${theme.colors.white};
         `;
     }
@@ -265,7 +265,7 @@ export const InfoCardLabel = styled.div`
 `;
 
 export const InfoCardValue = styled.div`
-  font-size: ${({ theme }) => theme.typography.h4.fontSize};
+  font-size: 20px;
   font-weight: 600;
   color: ${({ theme }) => theme.colors.text.primary};
 `;
@@ -463,7 +463,7 @@ export const PrimaryButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    background-color: ${({ theme }) => theme.colors.primaryDark};
+    background-color: ${({ theme }) => theme.colors.primary};
   }
 
   &:disabled {
