@@ -163,10 +163,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         credentials: 'include', // 쿠키 포함
       });
 
-      // 백엔드가 302 리다이렉트를 반환하면 브라우저가 자동으로 따라감
-      // 성공 시 홈페이지로 이동
-      if (response.ok || response.redirected) {
-        window.location.href = '/';
+      // JSON 응답 처리
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ 테스트 로그인 성공:', result);
+        
+        // 서버에서 받은 redirectUrl로 이동
+        window.location.href = result.redirectUrl || '/auth/success';
       } else {
         throw new Error('테스트 로그인 실패');
       }
