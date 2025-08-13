@@ -3,6 +3,8 @@ export type {
   MeetingWithDetails,
 } from "../shared/store/missionStore";
 
+export * from './meeting.types';
+
 // Additional types needed by components
 export interface CreateMeetingRequest {
   missionId: string;

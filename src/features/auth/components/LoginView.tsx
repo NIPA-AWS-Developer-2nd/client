@@ -152,20 +152,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
   const handleTestLogin = async () => {
     try {
-      // 백엔드에서 쿠키를 설정하고 리다이렉트하므로 fetch의 redirect를 수동으로 처리
-      const response = await fetch('/api/auth/dev-token', {
+      // 백엔드에서 쿠키를 설정하고 리다이렉트를 처리하므로 일반적인 POST 요청 사용
+      const response = await fetch('/auth/dev-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ nickname: '테스트계정' }),
-        redirect: 'manual', // 리다이렉트를 수동으로 처리
+        credentials: 'include', // 쿠키 포함
       });
 
-      // 리다이렉트 응답(302)인 경우 Location 헤더의 URL로 이동
-      if (response.status === 302 || response.type === 'opaqueredirect') {
-        window.location.href = '/'; // 또는 리다이렉트된 URL로 이동
-      } else if (!response.ok) {
+      // 백엔드가 302 리다이렉트를 반환하면 브라우저가 자동으로 따라감
+      // 성공 시 홈페이지로 이동
+      if (response.ok || response.redirected) {
+        window.location.href = '/';
+      } else {
         throw new Error('테스트 로그인 실패');
       }
     } catch (error) {

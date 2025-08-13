@@ -962,7 +962,11 @@ export const MyPage: React.FC = () => {
               <span>{userInfo.profile.bio}</span>
               <Quote
                 size={16}
-                style={{ opacity: 0.7, flexShrink: 0, marginTop: "2px" }}
+                style={{
+                  opacity: 0.7,
+                  flexShrink: 0,
+                  marginTop: "-4px",
+                }}
               />
             </BioSection>
           )}
