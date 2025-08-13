@@ -6,6 +6,7 @@ import { BrandingContent } from "../../../shared/components/common";
 import { SocialLoginButton } from "./SocialLoginButton";
 import { TestLoginButton } from "./TestLoginButton";
 import { useAuth } from "../hooks/useAuth";
+import { apiUrl } from "../../../shared/utils/api";
 
 const LoginContainer = styled.div`
   position: fixed;
@@ -153,7 +154,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   const handleTestLogin = async () => {
     try {
       // 백엔드에서 쿠키를 설정하고 리다이렉트를 처리하므로 일반적인 POST 요청 사용
-      const response = await fetch('/auth/dev-token', {
+      const response = await fetch(apiUrl('/auth/dev-token'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
