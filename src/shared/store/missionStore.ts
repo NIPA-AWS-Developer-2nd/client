@@ -256,7 +256,7 @@ export const useMissionStore = create<MissionStore>()(
           } else {
             // 프로덕션 환경에서는 실제 API 호출
             // TODO: 실제 API 연동 필요
-            // const response = await fetch(`/api/missions/${missionId}/meetings`);
+            // const response = await fetch(apiUrl(`/missions/${missionId}/meetings`));
             // const meetings = await response.json();
             set({ meetings: [], isLoading: false, error: "API 연동 필요" });
           }
