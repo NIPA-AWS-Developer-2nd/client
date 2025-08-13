@@ -414,6 +414,12 @@ const MeetingDetailPage: React.FC = () => {
               <>
                 <S.PrimaryButton disabled>내가 만든 모임</S.PrimaryButton>
                 <S.SecondaryButton>모임 관리</S.SecondaryButton>
+
+                {meeting.status === "recruiting" && (
+                  <S.PrimaryButton onClick={() => navigate(`/meetings/${id}/start`)}>
+                    시작하기
+                  </S.PrimaryButton>//시작하기 버튼 임의로 추가
+                )}
               </>
             ) : (
               <>

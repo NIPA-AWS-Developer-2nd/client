@@ -6,6 +6,7 @@ import {
   MeetingListPage,
   MeetingDetailPage,
   MeetingCreatePage,
+  MeetingStartPage,
   MissionsPage,
   MyPage,
   AppSettingsPage,
@@ -90,6 +91,19 @@ export const AppRoutes = () => {
             hideBottomNav={true}
           >
             <MeetingDetailPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/meetings/:id/start"
+        element={
+          <ResponsiveLayout
+            title="모임 시작 | Halsaram"
+            showBanner={true}
+            noPadding={true}
+            hideBottomNav={true}
+          >
+            <MeetingStartPage />
           </ResponsiveLayout>
         }
       />
