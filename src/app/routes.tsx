@@ -31,7 +31,7 @@ export const AppRoutes = () => {
         path="/"
         element={
           <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
+            title="Halsaram | 번개모임 커뮤니티"
             showBanner={true}
           >
             <HomePage />
@@ -41,10 +41,7 @@ export const AppRoutes = () => {
       <Route
         path="/missions"
         element={
-          <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
-            showBanner={true}
-          >
+          <ResponsiveLayout title="지역미션 | Halsaram" showBanner={true}>
             <MissionsPage />
           </ResponsiveLayout>
         }
@@ -53,7 +50,7 @@ export const AppRoutes = () => {
         path="/missions/:id"
         element={
           <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
+            title="지역미션 | Halsaram"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -65,11 +62,7 @@ export const AppRoutes = () => {
       <Route
         path="/meetings"
         element={
-          <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
-            showBanner={true}
-            noPadding={true}
-          >
+          <ResponsiveLayout title="번개모임 | Halsaram" showBanner={true}>
             <MeetingListPage />
           </ResponsiveLayout>
         }
@@ -78,7 +71,7 @@ export const AppRoutes = () => {
         path="/meetings/new"
         element={
           <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
+            title="번개모임 | Halsaram"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -91,7 +84,7 @@ export const AppRoutes = () => {
         path="/meetings/:id"
         element={
           <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
+            title="번개모임 | Halsaram"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -103,10 +96,7 @@ export const AppRoutes = () => {
       <Route
         path="/market"
         element={
-          <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
-            showBanner={true}
-          >
+          <ResponsiveLayout title="포인트마켓 | Halsaram" showBanner={true}>
             <MarketPage />
           </ResponsiveLayout>
         }
@@ -114,10 +104,7 @@ export const AppRoutes = () => {
       <Route
         path="/my"
         element={
-          <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
-            showBanner={true}
-          >
+          <ResponsiveLayout title="마이페이지 | Halsaram" showBanner={true}>
             <MyPage />
           </ResponsiveLayout>
         }
@@ -125,10 +112,7 @@ export const AppRoutes = () => {
       <Route
         path="/my/settings"
         element={
-          <ResponsiveLayout
-            title="Halsaram — 번개모임 커뮤니티"
-            showBanner={true}
-          >
+          <ResponsiveLayout title="앱 설정 | Halsaram" showBanner={true}>
             <AppSettingsPage />
           </ResponsiveLayout>
         }

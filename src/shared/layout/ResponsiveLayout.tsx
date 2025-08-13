@@ -13,6 +13,8 @@ import {
   HelpCircle,
   Settings,
   Share2,
+  ChevronDown,
+  Target,
 } from "lucide-react";
 import { InstallPrompt, BrandingContent } from "../components/common";
 import { HelpModal } from "../components/common/HelpModal";
@@ -176,7 +178,7 @@ const BackButton = styled.button<{ $show: boolean }>`
   &:active {
     transform: scale(0.95);
   }
-  
+
   /* 포커스 아웃라인 제거 */
   &:focus {
     outline: none;
@@ -184,12 +186,56 @@ const BackButton = styled.button<{ $show: boolean }>`
   }
 `;
 
-const PageTitle = styled.h1<{ $isMobile: boolean }>`
+const TitleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const PageName = styled.span<{ $isMobile: boolean }>`
   margin: 0;
   font-size: ${({ $isMobile }) => ($isMobile ? "18px" : "20px")};
   font-weight: 700;
   color: ${({ theme }) => theme.colors.text.primary};
   line-height: 1.2;
+`;
+
+const LocationButton = styled.button<{
+  $hasError?: boolean;
+  $isMobile: boolean;
+}>`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
+  font-weight: 500;
+  cursor: pointer;
+  padding: ${({ $isMobile }) => ($isMobile ? "2px 6px" : "4px 8px")};
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.text.primary};
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+`;
+
+const LocationText = styled.span`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 `;
 
 const HeaderRight = styled.div`
@@ -219,7 +265,7 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
   &:active {
     transform: scale(0.95);
   }
-  
+
   /* 포커스 아웃라인 제거 */
   &:focus {
     outline: none;
@@ -365,7 +411,8 @@ const TabItem = styled(Link)<{ $isActive: boolean }>`
   }
 
   &:hover {
-    color: ${({ theme }) => theme.colors.primary};
+    color: ${({ $isActive, theme }) =>
+      $isActive ? theme.colors.primary : theme.colors.gray500};
   }
 
   &:active {
@@ -425,7 +472,7 @@ const HelpButton = styled.button<{ $isMobile?: boolean }>`
   &:active {
     transform: scale(0.95);
   }
-  
+
   /* 포커스 아웃라인 제거 */
   &:focus {
     outline: none;
@@ -465,6 +512,10 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+  // Mock 지역 인증 상태 - 실제로는 auth store나 context에서 가져와야 함
+  const [isLocationVerified] = useState(true); // false로 변경하면 인증 안됨 상태
+  const [userLocation] = useState("송파구"); // 사용자 지역 정보
+
   const location = useLocation();
   const navigate = useNavigate();
   const scrollContainerRef = useRef<Element | null>(null);
@@ -475,17 +526,27 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     return {
       isHomePage: pathname === ROUTES.HOME,
       isMyPage: pathname === ROUTES.MY_PAGE,
-      isMySettingsPage: pathname === '/my/settings',
-      isMissionDetail: pathname.startsWith('/missions/'),
-      isMeetingDetail: pathname.startsWith('/meetings/'),
-      isMainTab: ([ROUTES.HOME, ROUTES.MISSIONS, ROUTES.MEETINGS, ROUTES.MARKET, ROUTES.MY_PAGE] as string[]).includes(pathname)
+      isMySettingsPage: pathname === "/my/settings",
+      isMissionDetail: pathname.startsWith("/missions/"),
+      isMeetingDetail: pathname.startsWith("/meetings/"),
+      isMainTab: (
+        [
+          ROUTES.HOME,
+          ROUTES.MISSIONS,
+          ROUTES.MEETINGS,
+          ROUTES.MARKET,
+          ROUTES.MY_PAGE,
+        ] as string[]
+      ).includes(pathname),
     };
   }, [location.pathname]);
 
   // DOM 쿼리를 초기화 시에만 실행하고 ref로 캐싱
   useEffect(() => {
     if (!scrollContainerRef.current) {
-      scrollContainerRef.current = document.querySelector("[data-scroll-container]");
+      scrollContainerRef.current = document.querySelector(
+        "[data-scroll-container]"
+      );
     }
   }, []);
 
@@ -643,31 +704,62 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   // 현재 페이지 정보 가져오기
   const getCurrentPageInfo = () => {
     const tabs = [
-      { path: "/", icon: Home, label: "홈", title: "홈" },
-      { path: "/missions", icon: Zap, label: "미션", title: "미션" },
-      { path: "/meetings", icon: Users, label: "모임", title: "모임" },
-      { path: "/market", icon: ShoppingBag, label: "마켓", title: "마켓" },
-      { path: "/my", icon: User, label: "마이", title: "마이페이지" },
+      { path: "/", icon: Home, label: "홈", title: "홈", showLocation: true },
+      {
+        path: "/missions",
+        icon: Zap,
+        label: "지역 미션",
+        title: "지역 미션",
+        showLocation: true,
+      },
+      {
+        path: "/meetings",
+        icon: Users,
+        label: "번개모임",
+        title: "번개모임",
+        showLocation: true,
+      },
+      {
+        path: "/market",
+        icon: ShoppingBag,
+        label: "포인트 마켓",
+        title: "포인트 마켓",
+        showLocation: false,
+      },
+      {
+        path: "/my",
+        icon: User,
+        label: "마이페이지",
+        title: "마이페이지",
+        showLocation: false,
+      },
       {
         path: "/my/settings",
         icon: Settings,
         label: "앱 설정",
         title: "앱 설정",
+        showLocation: false,
       },
     ];
 
     // 미션 상세페이지
     if (location.pathname.startsWith("/missions/")) {
-      return { title: "미션 상세", label: "" };
+      return { title: "미션 상세", label: "", showLocation: false };
     }
 
     // 모임 상세페이지
     if (location.pathname.startsWith("/meetings/")) {
-      return { title: "모임 정보", label: "" };
+      return { title: "번개모임 정보", label: "", showLocation: false };
     }
 
     const currentTab = tabs.find((tab) => tab.path === location.pathname);
-    return currentTab || { title: customHeaderTitle || "Not Found", label: "" };
+    return (
+      currentTab || {
+        title: customHeaderTitle || "Not Found",
+        label: "",
+        showLocation: false,
+      }
+    );
   };
 
   const currentPage = getCurrentPageInfo();
@@ -702,10 +794,15 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     setShowHelpModal(false);
   };
 
+  const handleLocationClick = () => {
+    console.log("Location setting clicked");
+    // 실제로는 지역 설정 모달을 열거나 페이지로 이동
+  };
+
   const tabs = [
     { path: "/", icon: Home, label: "홈" },
-    { path: "/missions", icon: Zap, label: "미션" },
-    { path: "/meetings", icon: Users, label: "모임" },
+    { path: "/missions", icon: Target, label: "미션" },
+    { path: "/meetings", icon: Zap, label: "번개" },
     { path: "/market", icon: ShoppingBag, label: "마켓" },
     { path: "/my", icon: User, label: "마이" },
   ];
@@ -729,7 +826,21 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
               <BackButton $show={!routeInfo.isMainTab} onClick={handleBack}>
                 <ArrowLeft size={18} />
               </BackButton>
-              <PageTitle $isMobile={isMobile}>{currentPage.title}</PageTitle>
+              <TitleContainer>
+                <PageName $isMobile={isMobile}>{currentPage.title}</PageName>
+                {currentPage.showLocation && (
+                  <LocationButton
+                    $hasError={!isLocationVerified}
+                    $isMobile={isMobile}
+                    onClick={handleLocationClick}
+                  >
+                    <LocationText>
+                      {isLocationVerified ? userLocation : "지역 인증 필요"}
+                    </LocationText>
+                    <ChevronDown size={14} />
+                  </LocationButton>
+                )}
+              </TitleContainer>
               {routeInfo.isHomePage && (
                 <HelpButton $isMobile={isMobile} onClick={handleHelpClick}>
                   <HelpCircle size={isMobile ? 16 : 18} />
@@ -752,15 +863,14 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                             <Search size={isMobile ? 18 : 20} />
                           </HeaderIconButton>
                         )}
-                      {!routeInfo.isMyPage &&
-                        !routeInfo.isMySettingsPage && (
-                          <HeaderIconButton
-                            $isMobile={isMobile}
-                            onClick={handleNotifications}
-                          >
-                            <Bell size={isMobile ? 18 : 20} />
-                          </HeaderIconButton>
-                        )}
+                      {!routeInfo.isMyPage && !routeInfo.isMySettingsPage && (
+                        <HeaderIconButton
+                          $isMobile={isMobile}
+                          onClick={handleNotifications}
+                        >
+                          <Bell size={isMobile ? 18 : 20} />
+                        </HeaderIconButton>
+                      )}
                       {routeInfo.isMissionDetail && (
                         <HeaderIconButton
                           $isMobile={isMobile}

@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
 
   // API URL에서 베이스 URL 추출
-  const apiUrl = env.VITE_API_URL || "http://localhost:3000/api";
+  const apiUrl = env.VITE_API_URL || "http://localhost:3000";
   const apiBaseUrl = apiUrl.replace(/\/api$/, "");
 
   return {

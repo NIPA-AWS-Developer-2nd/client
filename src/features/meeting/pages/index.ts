@@ -1,4 +1,4 @@
 export { MeetingsPage } from './MeetingsPage';
-export { MeetingListPage } from './MeetingListPage';
-export { MeetingDetailPage } from './MeetingDetailPage';
+export { default as MeetingListPage } from './MeetingListPage';
+export { default as MeetingDetailPage } from './MeetingDetailPage';
 export { MeetingCreatePage } from './MeetingCreatePage';

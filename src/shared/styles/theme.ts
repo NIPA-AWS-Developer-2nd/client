@@ -14,6 +14,14 @@ export const lightTheme = {
     warning: "#e53935",
     info: "#3B82F6",
 
+    // Verification colors (from MyPage VerificationBadge)
+    phoneVerified: "#1E40AF", // 번호 인증 - 파란색
+    phoneVerifiedBg: "#DBEAFE",
+    locationVerified: "#059669", // 지역 인증 - 초록색
+    locationVerifiedBg: "#D1FAE5",
+    verificationPending: "#6B7280", // 인증 필요 - 회색
+    verificationPendingBg: "#F3F4F6",
+
     // Grayscale
     white: "#FFFFFF",
     gray50: "#FFF7F0", // 배경에 가까운 밝은 톤
@@ -108,6 +116,14 @@ export const darkTheme = {
     danger: "#EF4444",
     warning: "#F59E0B",
     info: "#60A5FA",
+
+    // Verification colors (from MyPage VerificationBadge)
+    phoneVerified: "#60A5FA", // 번호 인증 - 파란색 (다크모드)
+    phoneVerifiedBg: "#1E3A8A",
+    locationVerified: "#34D399", // 지역 인증 - 초록색 (다크모드)
+    locationVerifiedBg: "#064E3B",
+    verificationPending: "#9CA3AF", // 인증 필요 - 회색 (다크모드)
+    verificationPendingBg: "#374151",
 
     // Grayscale
     white: "#23242A", // 배경에 가까운 어두운 톤

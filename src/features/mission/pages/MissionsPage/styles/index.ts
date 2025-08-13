@@ -242,12 +242,13 @@ export const CategoryTags = styled.div`
 `;
 
 export const CategoryTag = styled.span<{ $isMobile?: boolean }>`
-  padding: ${({ $isMobile }) => ($isMobile ? "2px 6px" : "4px 8px")};
-  background: ${({ theme }) => theme.colors.primary}15;
-  color: ${({ theme }) => theme.colors.primary};
+  padding: ${({ $isMobile }) => ($isMobile ? "2px 5px" : "3px 6px")};
+  background: ${({ theme }) => theme.colors.gray100};
+  color: ${({ theme }) => theme.colors.text.secondary};
   border-radius: ${({ theme }) => theme.borderRadius.sm};
-  font-size: ${({ $isMobile }) => ($isMobile ? "10px" : "11px")};
+  font-size: ${({ $isMobile }) => ($isMobile ? "9px" : "10px")};
   font-weight: 500;
+  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 export const MissionTitle = styled.h3<{ $isMobile?: boolean }>`
@@ -306,24 +307,28 @@ export const PaginationContainer = styled.div<{ $isMobile?: boolean }>`
 export const PaginationButton = styled.button<{
   $isActive?: boolean;
   $isMobile?: boolean;
+  $disabled?: boolean;
 }>`
-  padding: ${({ $isMobile }) => ($isMobile ? "8px 12px" : "10px 14px")};
-  border: 1px solid
-    ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.border};
-  background: ${({ $isActive, theme }) =>
-    $isActive ? theme.colors.primary : theme.colors.white};
-  color: ${({ $isActive, theme }) =>
-    $isActive ? theme.colors.white : theme.colors.text.primary};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
-  font-weight: ${({ $isActive }) => ($isActive ? 600 : 500)};
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: ${({ $isMobile }) => ($isMobile ? "36px" : "40px")};
+  height: ${({ $isMobile }) => ($isMobile ? "36px" : "40px")};
+  padding: ${({ $isMobile }) => ($isMobile ? "8px" : "10px 12px")};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  background: ${({ $isActive, theme }) =>
+    $isActive ? theme.colors.primary : theme.colors.white};
+  color: ${({ $isActive, $disabled, theme }) =>
+    $disabled
+      ? theme.colors.text.disabled
+      : $isActive
+      ? theme.colors.white
+      : theme.colors.text.primary};
+  font-size: ${({ $isMobile }) => ($isMobile ? "11px" : "12px")};
+  font-weight: ${({ $isActive }) => ($isActive ? "600" : "500")};
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
+  transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover:not(:disabled) {
     background: ${({ $isActive, theme }) =>

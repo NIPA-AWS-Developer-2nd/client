@@ -5,8 +5,6 @@ import {
   Users,
   BarChart3,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Utensils,
   Palette,
   Coffee,
@@ -117,11 +115,11 @@ const FilterTab = styled.button<{ $isActive: boolean; $isMobile?: boolean }>`
 
   &:hover {
     border-color: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.primary + "30"};
+      $isActive ? theme.colors.primary + "30" : theme.colors.border};
     background: linear-gradient(
       135deg,
       ${({ $isActive, theme }) =>
-        $isActive ? theme.colors.primary : theme.colors.primary + "05"},
+        $isActive ? theme.colors.primary : theme.colors.gray50},
       ${({ $isActive, theme }) =>
         $isActive ? theme.colors.primary : theme.colors.white}
     );
@@ -345,26 +343,26 @@ const CategoryTag = styled.span<{ $isMobile?: boolean }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: ${({ $isMobile }) => ($isMobile ? "10px 16px" : "12px 20px")};
+  padding: ${({ $isMobile }) => ($isMobile ? "6px 10px" : "8px 12px")};
   background: linear-gradient(
     135deg,
     ${({ theme }) => theme.colors.gray50},
     ${({ theme }) => theme.colors.white}
   );
   border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   color: ${({ theme }) => theme.colors.text.primary};
-  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
-  font-weight: 600;
+  font-size: ${({ $isMobile }) => ($isMobile ? "11px" : "12px")};
+  font-weight: 500;
   transition: all 0.2s ease;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary}30;
+    border-color: ${({ theme }) => theme.colors.border};
     background: linear-gradient(
       135deg,
-      ${({ theme }) => theme.colors.primary}05,
+      ${({ theme }) => theme.colors.gray50},
       ${({ theme }) => theme.colors.white}
     );
   }
@@ -468,15 +466,10 @@ const PaginationButton = styled.button<{
       : $isActive
       ? theme.colors.white
       : theme.colors.text.primary};
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "15px")};
+  font-size: ${({ $isMobile }) => ($isMobile ? "11px" : "12px")};
   font-weight: ${({ $isActive }) => ($isActive ? "600" : "500")};
   cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   transition: ${({ theme }) => theme.transitions.fast};
-
-  &:hover:not(:disabled) {
-    background: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray100};
-  }
 
   &:disabled {
     opacity: 0.5;
@@ -1002,7 +995,7 @@ export const MissionsPage: React.FC = () => {
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
-                <ChevronLeft size={isMobile ? 16 : 18} />
+                이전
               </PaginationButton>
 
               {getPaginationButtons().map((pageNum) => (
@@ -1022,7 +1015,7 @@ export const MissionsPage: React.FC = () => {
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
-                <ChevronRight size={isMobile ? 16 : 18} />
+                다음
               </PaginationButton>
             </PaginationContainer>
           )}
