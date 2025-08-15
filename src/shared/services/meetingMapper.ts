@@ -1,5 +1,5 @@
-import type { MeetingDto, MeetingMissionDto, MeetingHostDto } from './meetingApi';
-import type { Meeting, Mission, User } from '../../types/meeting.types';
+import type { MeetingDto, MeetingMissionDto, MeetingHostDto, ParticipantProfileDto } from './meetingApi';
+import type { Meeting, Mission, User, ParticipantProfile } from '../../types/meeting.types';
 
 /**
  * 백엔드 API 응답을 프론트엔드 타입으로 변환
@@ -21,8 +21,10 @@ export class MeetingMapper {
       createdAt: dto.createdAt,
       updatedAt: dto.updatedAt,
       currentParticipants: dto.currentParticipants,
+      likesCount: dto.likesCount || 0,
       mission: dto.mission ? this.toMission(dto.mission) : undefined,
       host: dto.host ? this.toUser(dto.host) : undefined,
+      participantProfiles: dto.participantProfiles ? this.toParticipantProfiles(dto.participantProfiles) : undefined,
     };
   }
 
@@ -34,8 +36,7 @@ export class MeetingMapper {
       id: dto.id,
       title: dto.title,
       description: dto.description,
-      minParticipants: dto.minParticipants,
-      maxParticipants: dto.maxParticipants,
+      participants: dto.participants,
       estimatedDuration: dto.estimatedDuration,
       minimumDuration: dto.minimumDuration,
       basePoints: dto.basePoints,
@@ -77,7 +78,28 @@ export class MeetingMapper {
       profileImageUrl: dto.profileImageUrl,
       points: dto.points,
       level: dto.level,
+      mbti: dto.mbti,
     };
+  }
+
+  /**
+   * ParticipantProfileDto -> ParticipantProfile 변환
+   */
+  static toParticipantProfile(dto: ParticipantProfileDto): ParticipantProfile {
+    return {
+      id: dto.id,
+      nickname: dto.nickname,
+      profileImageUrl: dto.profileImageUrl,
+      level: dto.level,
+      isHost: dto.isHost,
+    };
+  }
+
+  /**
+   * ParticipantProfileDto 배열 변환
+   */
+  static toParticipantProfiles(dtos: ParticipantProfileDto[]): ParticipantProfile[] {
+    return dtos.map(dto => this.toParticipantProfile(dto));
   }
 
   /**

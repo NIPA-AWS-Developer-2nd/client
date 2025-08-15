@@ -6,8 +6,48 @@ export const Container = styled.div<{ $isMobile?: boolean }>`
 `;
 
 export const HeaderSection = styled.div<{ $isMobile?: boolean }>`
-  padding: ${({ $isMobile }) => $isMobile ? '20px 16px' : '32px 24px'};
-  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: ${({ $isMobile }) => ($isMobile ? "16px" : "20px 24px")};
+  background: ${({ theme }) => theme.colors.white};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.gray100};
+  margin-bottom: 16px;
+`;
+
+export const PageTitle = styled.h1`
+  font-size: 24px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text.primary};
+  margin: 0;
+`;
+
+export const LocationBadge = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  svg {
+    color: white;
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 export const HeaderContent = styled.div`
@@ -370,23 +410,18 @@ export const SortDirectionButton = styled.button<{ $isDescending: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  gap: 4px;
+  padding: 8px 12px;
   border: none;
   background: transparent;
-  color: ${({ theme, $isDescending }) => $isDescending ? theme.colors.primary : theme.colors.text.secondary};
-  font-size: 16px;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: 14px;
   cursor: pointer;
-  border-radius: 6px;
   transition: all 0.2s ease;
-  
-  &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
-    color: ${({ theme }) => theme.colors.text.primary};
-  }
+  white-space: nowrap;
   
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
 `;
 

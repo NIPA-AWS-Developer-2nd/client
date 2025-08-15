@@ -1,60 +1,109 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Crown, Calendar, MapPin, Clock } from "lucide-react";
+import { Crown, Calendar, MapPin, Clock, Heart } from "lucide-react";
 import type { Meeting } from "../../../../types";
+import { meetingApiService } from "../../../../shared/services/meetingApi";
+import { AlertModal } from "../../../../shared/components/common";
 import * as S from "./MeetingCard.styles";
 
 interface MeetingCardProps {
   meeting: Meeting;
+  onLikeUpdate?: (meetingId: string, newLikesCount: number, isLiked: boolean) => void;
 }
 
-// Mock 데이터
+// Mock 데이터 - 선호 특성 (추후 API에서 가져올 예정)
 // TODO: API 연결
 const mockMeetingData = {
   preferredTraits: ["적극적인", "유머러스한"],
   neutralTraits: ["조용한", "신중한"],
-  participants: [
-    {
-      id: "1",
-      nickname: "러닝마니아",
-      level: 3,
-      profileImageUrl:
-        "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    },
-    {
-      id: "2",
-      nickname: "건강지킴이",
-      level: 2,
-      profileImageUrl:
-        "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    },
-    {
-      id: "3",
-      nickname: "운동러버",
-      level: 4,
-      profileImageUrl:
-        "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    },
-  ],
 };
 
-const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
+const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
   const navigate = useNavigate();
+  const [likesCount, setLikesCount] = useState(meeting.likesCount || 0);
+  const [isLiked, setIsLiked] = useState(meeting.isLiked || false);
+  const [isLiking, setIsLiking] = useState(false);
+  const [showAlreadyLikedModal, setShowAlreadyLikedModal] = useState(false);
 
   const handleClick = () => {
-    navigate(`/meetings/${meeting.id}`);
+    // URL에서 현재 위치가 미션 상세페이지인지 확인
+    const currentPath = window.location.pathname;
+    const isFromMission = currentPath.includes('/missions/');
+    
+    if (isFromMission) {
+      navigate(`/meetings/${meeting.id}?from=mission`);
+    } else {
+      navigate(`/meetings/${meeting.id}`);
+    }
+  };
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    
+    if (isLiking) return;
+
+    // 이미 좋아요를 눌렀다면 모달 표시
+    if (isLiked) {
+      setShowAlreadyLikedModal(true);
+      return;
+    }
+
+    try {
+      setIsLiking(true);
+      const result = await meetingApiService.toggleLike(meeting.id);
+      
+      setLikesCount(result.likesCount);
+      setIsLiked(result.isLiked);
+      
+      // 부모 컴포넌트에 업데이트 알림
+      onLikeUpdate?.(meeting.id, result.likesCount, result.isLiked);
+    } catch (error) {
+      console.error('좋아요 처리 실패:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  const handleHostClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    if (meeting.host?.userId) {
+      navigate(`/user/${meeting.host.userId}`);
+    }
+  };
+
+  const handleParticipantClick = (e: React.MouseEvent, participantId: string) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    if (participantId) {
+      navigate(`/user/${participantId}`);
+    }
   };
 
   const getDifficultyText = (difficulty: string) => {
-    switch (difficulty) {
+    switch (difficulty?.toLowerCase()) {
+      case "very_easy":
+        return "매우 쉬움";
       case "easy":
         return "쉬움";
       case "medium":
         return "보통";
       case "hard":
         return "어려움";
+      case "very_hard":
+        return "매우 어려움";
+      // 백엔드 enum 대응
+      case "매우 쉬움":
+        return "매우 쉬움";
+      case "쉬움":
+        return "쉬움";
+      case "보통":
+        return "보통";
+      case "어려움":
+        return "어려움";
+      case "매우 어려움":
+        return "매우 어려움";
       default:
-        return difficulty;
+        console.warn('Unknown difficulty value:', difficulty);
+        return difficulty || "보통";
     }
   };
 
@@ -118,7 +167,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
   };
 
   return (
-    <S.NewCard onClick={handleClick}>
+    <S.NewCard onClick={handleClick} $status={meeting.status}>
       {/* 첫 번째 블록: 미션 정보와 일정 정보 */}
       <S.PrimaryBlock $backgroundImage={meeting.mission?.thumbnailUrl}>
         <S.MissionHeader>
@@ -165,15 +214,28 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
             </S.DeadlineContainer>
           </S.MeetingInfoItem>
         </S.MeetingInfoSection>
+
+        {/* 좋아요 버튼 - 썸네일 오른쪽 하단 */}
+        <S.LikesOverlay onClick={handleLikeClick} style={{ cursor: 'pointer' }}>
+          <Heart 
+            size={16} 
+            fill={isLiked ? "#ff8b55" : "#ffffff"} 
+            color={isLiked ? "#ff8b55" : "#ffffff"} 
+          />
+          <S.LikesCountOverlay>{likesCount}</S.LikesCountOverlay>
+        </S.LikesOverlay>
       </S.PrimaryBlock>
 
       {/* 두 번째 블록: 호스트 정보 */}
       <S.HostBlock>
         <S.HostTitle>호스트 정보</S.HostTitle>
         <S.HostSection>
-          <S.HostAvatarWrapper>
+          <S.HostAvatarWrapper 
+            onClick={handleHostClick}
+            style={{ cursor: meeting.host?.userId ? 'pointer' : 'default' }}
+          >
             <S.HostAvatar
-              src="https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"
+              src={meeting.host?.profileImageUrl || "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"}
               alt={meeting.host?.nickname}
             />
             <S.CrownIcon>
@@ -181,8 +243,18 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
             </S.CrownIcon>
           </S.HostAvatarWrapper>
           <S.HostInfo>
-            <S.HostName>{meeting.host?.nickname || "호스트"}</S.HostName>
-            <S.HostLevel>Lv.{meeting.host?.level || 1}</S.HostLevel>
+            <div>
+              <S.HostName 
+                onClick={handleHostClick}
+                style={{ cursor: meeting.host?.userId ? 'pointer' : 'default' }}
+              >
+                {meeting.host?.nickname || "호스트"}
+              </S.HostName>
+              <S.HostLevel>Lv.{meeting.host?.level || 1}</S.HostLevel>
+            </div>
+            {meeting.host?.mbti && (
+              <S.HostMbti>{meeting.host.mbti}</S.HostMbti>
+            )}
           </S.HostInfo>
         </S.HostSection>
       </S.HostBlock>
@@ -211,24 +283,47 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting }) => {
       {/* 네 번째 블록: 참가자 리스트 */}
       <S.ParticipantsBlock>
         <S.ParticipantsTitle>
-          현재 참가자 ({mockMeetingData.participants.length}/8명)
+          현재 참가자 ({meeting.currentParticipants || 0}/{meeting.mission?.participants || 0}명)
         </S.ParticipantsTitle>
+        
+        {/* 참가자 아바타 표시 */}
         <S.ParticipantAvatars>
-          {mockMeetingData.participants.slice(0, 4).map((participant) => (
-            <S.ParticipantAvatar
-              key={participant.id}
-              src={participant.profileImageUrl}
-              alt={participant.nickname}
-              title={`${participant.nickname} (Lv.${participant.level})`}
-            />
-          ))}
-          {(meeting.currentParticipants || 0) > 4 && (
-            <S.MoreParticipants>
-              +{(meeting.currentParticipants || 0) - 4}
-            </S.MoreParticipants>
+          {meeting.participantProfiles && meeting.participantProfiles.length > 0 ? (
+            <>
+              {meeting.participantProfiles.slice(0, 4).map((participant) => (
+                <S.ParticipantAvatar
+                  key={participant.id}
+                  src={participant.profileImageUrl || "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"}
+                  alt={participant.nickname}
+                  title={participant.nickname}
+                  onClick={(e) => handleParticipantClick(e, participant.id)}
+                  style={{ cursor: participant.id ? 'pointer' : 'default' }}
+                />
+              ))}
+              {meeting.currentParticipants && meeting.currentParticipants > 4 && (
+                <S.MoreParticipants>
+                  +{meeting.currentParticipants - 4}
+                </S.MoreParticipants>
+              )}
+            </>
+          ) : (
+            /* 참가자가 없을 때 빈 상태 */
+            <span style={{ fontSize: '13px', color: '#6b7280' }}>
+              첫 번째 참가자가 되어보세요!
+            </span>
           )}
         </S.ParticipantAvatars>
       </S.ParticipantsBlock>
+
+      {/* 이미 좋아요를 눌렀을 때 표시되는 모달 */}
+      <AlertModal
+        isOpen={showAlreadyLikedModal}
+        onClose={() => setShowAlreadyLikedModal(false)}
+        type="info"
+        title="좋아요 알림"
+        message="이미 좋아요를 눌렀습니다."
+        confirmText="확인"
+      />
     </S.NewCard>
   );
 };

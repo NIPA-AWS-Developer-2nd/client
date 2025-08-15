@@ -3,12 +3,16 @@ import { ResponsiveLayout } from "../shared/layout/ResponsiveLayout";
 import {
   HomePage,
   MarketPage,
+  DonationPage,
   MeetingListPage,
   MeetingDetailPage,
   MeetingCreatePage,
+  MeetingEditPage,
+  MeetingChannelPage,
   MissionsPage,
   MyPage,
   AppSettingsPage,
+  UserProfilePage,
   AuthCallbackPage,
   LoginPage,
   MissionDetailPage,
@@ -16,6 +20,7 @@ import {
   NotFoundPage,
   OnboardingPage,
 } from "../features";
+import { PointHistoryPage } from "../features/point";
 
 export const AppRoutes = () => {
   return (
@@ -71,12 +76,25 @@ export const AppRoutes = () => {
         path="/meetings/new"
         element={
           <ResponsiveLayout
-            title="번개모임 | Halsaram"
+            title="모임 만들기 | Halsaram"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
           >
             <MeetingCreatePage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/meetings/edit/:id"
+        element={
+          <ResponsiveLayout
+            title="모임 정보 수정 | Halsaram"
+            showBanner={true}
+            noPadding={true}
+            hideBottomNav={true}
+          >
+            <MeetingEditPage />
           </ResponsiveLayout>
         }
       />
@@ -94,10 +112,31 @@ export const AppRoutes = () => {
         }
       />
       <Route
+        path="/meetings/:id/channel"
+        element={
+          <ResponsiveLayout
+            title="모임 채널 | Halsaram"
+            showBanner={true}
+            noPadding={true}
+            hideBottomNav={true}
+          >
+            <MeetingChannelPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
         path="/market"
         element={
           <ResponsiveLayout title="포인트마켓 | Halsaram" showBanner={true}>
             <MarketPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/donation"
+        element={
+          <ResponsiveLayout title="기부하기 | Halsaram" showBanner={true}>
+            <DonationPage />
           </ResponsiveLayout>
         }
       />
@@ -112,13 +151,35 @@ export const AppRoutes = () => {
       <Route
         path="/my/settings"
         element={
-          <ResponsiveLayout title="앱 설정 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="앱 설정 | Halsaram" showBanner={true} hideBottomNav={true}>
             <AppSettingsPage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/user/:userId?"
+        element={
+          <ResponsiveLayout title="사용자 프로필 | Halsaram" showBanner={true}>
+            <UserProfilePage />
+          </ResponsiveLayout>
+        }
+      />
+      <Route
+        path="/points/history"
+        element={
+          <ResponsiveLayout 
+            title="포인트 내역 | Halsaram" 
+            showBanner={true} 
+            hideBottomNav={true}
+            noPadding={true}
+          >
+            <PointHistoryPage />
           </ResponsiveLayout>
         }
       />
 
       {/* 404 페이지 */}
+      <Route path="/404" element={<NotFoundPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

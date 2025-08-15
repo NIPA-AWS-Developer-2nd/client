@@ -1,17 +1,17 @@
-export type MeetingStatus = 'recruiting' | 'active' | 'completed' | 'cancelled';
-export type ParticipantStatus = 'joined' | 'completed' | 'dropped';
-export type VerificationStatus = 'pending' | 'approved' | 'rejected';
-export type MissionDifficulty = 'easy' | 'medium' | 'hard';
+export type MeetingStatus = "recruiting" | "ready" | "active" | "completed" | "canceled";
+export type ParticipantStatus = "joined" | "completed" | "dropped";
+export type VerificationStatus = "pending" | "approved" | "rejected";
+export type MissionDifficulty = "very_easy" | "easy" | "medium" | "hard" | "very_hard";
 
 export interface Mission {
   id: string;
   title: string;
   description: string;
-  minParticipants: number;
-  maxParticipants: number;
+  participants: number;
   estimatedDuration: number;
   minimumDuration: number;
   basePoints: number;
+  points?: number;
   photoVerificationGuide: string;
   sampleImageUrls: string[];
   categoryId: number;
@@ -28,6 +28,14 @@ export interface Mission {
   district?: District;
 }
 
+export interface ParticipantProfile {
+  id: string;
+  nickname: string;
+  profileImageUrl: string;
+  level: number;
+  isHost: boolean;
+}
+
 export interface Meeting {
   id: string;
   missionId: string;
@@ -42,7 +50,9 @@ export interface Meeting {
   mission?: Mission;
   host?: User;
   participants?: MissionParticipant[];
+  participantProfiles?: ParticipantProfile[];
   currentParticipants?: number;
+  likesCount?: number;
 }
 
 export interface MissionParticipant {
@@ -90,7 +100,7 @@ export interface User {
   districtId?: string;
   bio?: string;
   birthYear?: number;
-  gender?: 'male' | 'female';
+  gender?: "male" | "female";
   points: number;
   level: number;
 }
@@ -116,7 +126,7 @@ export interface MeetingListFilters {
   districtId?: string;
   difficulty?: MissionDifficulty;
   searchKeyword?: string;
-  sortBy?: 'latest' | 'deadline' | 'popular' | 'newest' | 'hostLevel';
+  sortBy?: "latest" | "deadline" | "popular" | "newest" | "points";
 }
 
 export interface CreateMeetingRequest {

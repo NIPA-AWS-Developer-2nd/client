@@ -90,7 +90,7 @@ interface MeetingDetailData {
   description: string;
   hostName: string;
   currentParticipants: number;
-  maxParticipants: number;
+  participants: number;
   minParticipants: number;
   meetingDate: string;
   meetingTime: string;
@@ -121,7 +121,7 @@ interface MeetingDetailData {
     residenceArea?: string;
     otherConditions?: string[];
   };
-  participants: Array<{
+  participantList: Array<{
     id: number;
     name: string;
     isHost: boolean;
@@ -240,7 +240,7 @@ export const MeetingDetailPage: React.FC = () => {
       "송파구 유명 맛집 3곳을 함께 방문하며 미션을 수행해요. 새로운 사람들과 맛있는 음식을 즐기며 좋은 추억을 만들어보세요!",
     hostName: "김모임",
     currentParticipants: 3,
-    maxParticipants: 6,
+    participants: 6,
     minParticipants: 2,
     meetingDate: "2024-12-01",
     meetingTime: "14:00",
@@ -285,7 +285,7 @@ export const MeetingDetailPage: React.FC = () => {
         "사진 촬영에 적극적인 분",
       ],
     },
-    participants: [
+    participantList: [
       { id: 1, name: "김모임", isHost: true },
       { id: 2, name: "이참여", isHost: false },
       { id: 3, name: "박함께", isHost: false },
@@ -365,7 +365,7 @@ export const MeetingDetailPage: React.FC = () => {
               <InfoContent>
                 <InfoValue $isMobile={isMobile}>
                   {meetingData.currentParticipants}/
-                  {meetingData.maxParticipants}명
+                  {meetingData.participants}명
                 </InfoValue>
                 <InfoLabel $isMobile={isMobile}>참여 인원</InfoLabel>
               </InfoContent>
@@ -444,10 +444,10 @@ export const MeetingDetailPage: React.FC = () => {
         <ParticipantsSection $isMobile={isMobile}>
           <SectionTitle isMobile={isMobile}>
             참여자 ({meetingData.currentParticipants}/
-            {meetingData.maxParticipants}명)
+            {meetingData.participants}명)
           </SectionTitle>
           <ParticipantsList>
-            {meetingData.participants.map((participant) => (
+            {meetingData.participantList.map((participant) => (
               <ParticipantItem key={participant.id} $isMobile={isMobile}>
                 <ParticipantAvatar $isMobile={isMobile}>
                   <UserIcon size={isMobile ? 12 : 14} />
@@ -517,7 +517,7 @@ export const MeetingDetailPage: React.FC = () => {
             >
               {isLoading
                 ? "처리 중"
-                : meetingData.currentParticipants >= meetingData.maxParticipants
+                : meetingData.currentParticipants >= meetingData.participants
                 ? "대기자로 참여하기"
                 : "모임 참여하기"}
             </Button>

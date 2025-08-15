@@ -11,11 +11,11 @@ export interface Meeting {
   address: string;
   distance?: string;
   currentParticipants: number;
-  maxParticipants: number;
+  participants: number;
   tags: string[];
   hostName: string;
   hostId: string;
-  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'very_hard';
   requirements: string[];
   isParticipating: boolean;
   canParticipate: boolean;
@@ -28,7 +28,7 @@ export interface MeetingDetail extends Meeting {
     avatar?: string;
     trustScore: number;
   };
-  participants: Array<{
+  participantList: Array<{
     id: string;
     name: string;
     avatar?: string;
@@ -49,11 +49,11 @@ export const mockMeetings: Meeting[] = [
     address: "서울시 송파구 올림픽로 240",
     distance: "1.2km",
     currentParticipants: 3,
-    maxParticipants: 6,
+    participants: 6,
     tags: ["놀이공원", "즐거움"],
     hostName: "김모임장",
     hostId: "host1",
-    difficulty: "MEDIUM",
+    difficulty: "medium",
     requirements: [
       "롯데월드 자유이용권 구매 필수",
       "편한 운동화 착용 권장",
@@ -74,11 +74,11 @@ export const mockMeetings: Meeting[] = [
     address: "서울시 송파구 올림픽로 240",
     distance: "0.8km",
     currentParticipants: 2,
-    maxParticipants: 4,
+    participants: 4,
     tags: ["놀이공원", "스릴"],
     hostName: "박모험가",
     hostId: "host2",
-    difficulty: "HARD",
+    difficulty: "hard",
     requirements: [
       "롯데월드 자유이용권 구매 필수",
       "심장이 약한 분은 참여 자제",
@@ -99,11 +99,11 @@ export const mockMeetings: Meeting[] = [
     address: "서울시 영등포구 여의동로 330",
     distance: "2.1km",
     currentParticipants: 1,
-    maxParticipants: 8,
+    participants: 8,
     tags: ["피크닉", "자연", "휴식"],
     hostName: "이자연",
     hostId: "host3",
-    difficulty: "EASY",
+    difficulty: "easy",
     requirements: [
       "돗자리 개인 지참",
       "간단한 간식 준비",
@@ -124,7 +124,7 @@ export const mockMeetingDetails: Record<string, MeetingDetail> = {
       name: "김모임장",
       trustScore: 4.8
     },
-    participants: [
+    participantList: [
       { id: "host1", name: "김모임장" },
       { id: "p2", name: "박참여자" },
       { id: "p3", name: "이동반" }
@@ -138,7 +138,7 @@ export const mockMeetingDetails: Record<string, MeetingDetail> = {
       name: "박모험가",
       trustScore: 4.9
     },
-    participants: [
+    participantList: [
       { id: "host2", name: "박모험가" },
       { id: "p4", name: "최용감" }
     ]
@@ -151,7 +151,7 @@ export const mockMeetingDetails: Record<string, MeetingDetail> = {
       name: "이자연",
       trustScore: 4.7
     },
-    participants: [
+    participantList: [
       { id: "host3", name: "이자연" }
     ]
   }

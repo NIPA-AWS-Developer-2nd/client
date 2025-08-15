@@ -303,7 +303,6 @@ const HostName = styled.span<{ $isMobile?: boolean }>`
   color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
-
 // 플로팅 새로고침 버튼
 const FloatingRefreshButton = styled.button<{
   $isMobile?: boolean;
@@ -413,6 +412,14 @@ export const MeetingsPage: React.FC = () => {
     navigate(`/meetings/${meetingId}`);
   };
 
+  // 호스트 클릭 핸들러 (Mock 데이터이므로 임시로 비활성화)
+  const handleHostClick = (e: React.MouseEvent, hostName: string) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    // TODO: 실제 API 연결 시 userId로 변경
+    console.log('호스트 클릭:', hostName);
+    // navigate(`/user/${userId}`);
+  };
+
   React.useEffect(() => {
     const handleResize = () => {
       setIsMobile(deviceDetection.isMobile());
@@ -452,23 +459,18 @@ export const MeetingsPage: React.FC = () => {
             <Rocket size={isMobile ? 32 : 40} />
           </StatusIcon>
           <StatusTitle $isMobile={isMobile}>
-            {activeMeetingsCount > 0 
+            {activeMeetingsCount > 0
               ? `현재 ${activeMeetingsCount}개의 모임이 모집 중입니다`
-              : "새로운 모임을 만들어보세요!"
-            }
+              : "새로운 모임을 만들어보세요!"}
           </StatusTitle>
           <StatusDescription $isMobile={isMobile}>
-            {activeMeetingsCount > 0 
+            {activeMeetingsCount > 0
               ? "지금 바로 참여하여 새로운 사람들과 함께 미션을 수행해보세요!"
-              : "원하는 미션의 첫 모임을 만들고 다른 사람들과 함께 즐겨보세요."
-            }
+              : "원하는 미션의 첫 모임을 만들고 다른 사람들과 함께 즐겨보세요."}
           </StatusDescription>
           {activeMeetingsCount === 0 && (
-            <Button
-              variant="primary"
-              size="large"
-            >
-              새 모임 만들기
+            <Button variant="primary" size="large">
+              호스트로 참여하기
             </Button>
           )}
         </StatusCard>
@@ -490,8 +492,8 @@ export const MeetingsPage: React.FC = () => {
 
         {filteredMeetings.length > 0 ? (
           filteredMeetings.map((meeting) => (
-            <MeetingCard 
-              key={meeting.id} 
+            <MeetingCard
+              key={meeting.id}
               $isMobile={isMobile}
               onClick={() => handleMeetingClick(meeting.id)}
             >
@@ -518,7 +520,10 @@ export const MeetingsPage: React.FC = () => {
                 </MetaItem>
                 <MetaItem $isMobile={isMobile}>
                   <Clock size={14} />
-                  {new Date(meeting.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(meeting.scheduledAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </MetaItem>
                 <MetaItem $isMobile={isMobile}>
                   <MapPin size={14} />
@@ -526,7 +531,8 @@ export const MeetingsPage: React.FC = () => {
                 </MetaItem>
                 <MetaItem $isMobile={isMobile}>
                   <Users size={14} />
-                  {meeting.participants?.length || 0}/{meeting.mission?.maxParticipants}명
+                  {meeting.participants?.length || 0}/
+                  {meeting.mission?.participants}명
                 </MetaItem>
                 <MetaItem $isMobile={isMobile}>
                   <DollarSign size={14} />
@@ -536,10 +542,7 @@ export const MeetingsPage: React.FC = () => {
 
               {/* 참여자 성향 표시 */}
               {meeting.traitDetails && meeting.traitDetails.length > 0 && (
-                <TraitDisplay 
-                  traits={meeting.traitDetails} 
-                  maxDisplay={2}
-                />
+                <TraitDisplay traits={meeting.traitDetails} maxDisplay={2} />
               )}
 
               <HostInfo $isMobile={isMobile}>
@@ -561,8 +564,10 @@ export const MeetingsPage: React.FC = () => {
                       // 참여하기 기능 추후 구현
                     }}
                   >
-                    {(meeting.participants?.length || 0) >= (meeting.mission?.maxParticipants || 0) 
-                      ? "대기자 등록" : "바로 참여"}
+                    {(meeting.participants?.length || 0) >=
+                    (meeting.mission?.participants || 0)
+                      ? "대기자 등록"
+                      : "바로 참여"}
                   </Button>
                 )}
                 {meeting.status === "COMPLETED" && (

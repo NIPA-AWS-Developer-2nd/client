@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   Calendar,
@@ -390,6 +391,7 @@ const getTimeRemaining = (dateStr: string, timeStr: string) => {
 };
 
 export const MeetingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [activeFilter, setActiveFilter] = React.useState("recruiting");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -400,6 +402,14 @@ export const MeetingsPage: React.FC = () => {
     // API 호출이나 데이터 새로고침 로직
     await new Promise((resolve) => setTimeout(resolve, 1500)); // 시뮬레이션
     setIsRefreshing(false);
+  };
+
+  // 호스트 클릭 핸들러 (Mock 데이터이므로 임시로 비활성화)
+  const handleHostClick = (e: React.MouseEvent, hostName: string) => {
+    e.stopPropagation(); // 카드 클릭 이벤트 방지
+    // TODO: 실제 API 연결 시 userId로 변경
+    console.log('호스트 클릭:', hostName);
+    // navigate(`/user/${userId}`);
   };
 
   React.useEffect(() => {
@@ -567,13 +577,23 @@ export const MeetingsPage: React.FC = () => {
 
               <HostInfo $isMobile={isMobile}>
                 <HostSection>
-                  <HostAvatar $isMobile={isMobile}>
+                  <HostAvatar 
+                    $isMobile={isMobile}
+                    onClick={(e) => handleHostClick(e, meeting.host)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <UserIcon size={isMobile ? 12 : 14} />
                     <CrownIcon $isMobile={isMobile}>
                       <Crown size={isMobile ? 6 : 7} />
                     </CrownIcon>
                   </HostAvatar>
-                  <HostName $isMobile={isMobile}>{meeting.host}</HostName>
+                  <HostName 
+                    $isMobile={isMobile}
+                    onClick={(e) => handleHostClick(e, meeting.host)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {meeting.host}
+                  </HostName>
                 </HostSection>
                 {meeting.status === "recruiting" && (
                   <JoinButton $isMobile={isMobile}>참여하기</JoinButton>
