@@ -7,3 +7,5 @@ export * from "./FeedbackModal";
 export * from "./AppInfoModal";
 export * from "./SimpleFeedbackModal";
 export * from "./ThemeProvider";
+export * from "./AlertModal";
+export * from "./AlertProvider";
