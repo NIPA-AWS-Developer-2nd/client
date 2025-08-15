@@ -379,40 +379,40 @@ export const getPointBadgeColor = (
   point: number,
   isDark: boolean = false
 ): { background: string; shadow: string } => {
-  if (point < 300) {
+  if (point < 500) {
     return {
       background: isDark
         ? "linear-gradient(135deg, #E5E7EB, #D1D5DB)"
         : "linear-gradient(135deg, #F3F4F6, #E5E7EB)",
       shadow: "rgba(156, 163, 175, 0.3)",
     };
-  } else if (point < 600) {
-    return {
-      background: isDark
-        ? "linear-gradient(135deg, #3B82F6, #1D4ED8, #1E40AF)"
-        : "linear-gradient(135deg, #60A5FA, #3B82F6, #2563EB)",
-      shadow: "rgba(59, 130, 246, 0.4)",
-    };
   } else if (point < 1000) {
     return {
       background: isDark
-        ? "linear-gradient(135deg, #10B981, #047857, #065F46)"
-        : "linear-gradient(135deg, #34D399, #10B981, #059669)",
-      shadow: "rgba(34, 197, 94, 0.4)",
+        ? "linear-gradient(135deg, #93C5FD, #60A5FA, #3B82F6)"
+        : "linear-gradient(135deg, #DBEAFE, #93C5FD, #60A5FA)",
+      shadow: "rgba(147, 197, 253, 0.4)",
     };
   } else if (point < 1500) {
     return {
       background: isDark
-        ? "linear-gradient(135deg, #8B5CF6, #7C3AED, #6D28D9)"
-        : "linear-gradient(135deg, #A78BFA, #8B5CF6, #7C3AED)",
-      shadow: "rgba(139, 92, 246, 0.4)",
+        ? "linear-gradient(135deg, #86EFAC, #4ADE80, #22C55E)"
+        : "linear-gradient(135deg, #DCFCE7, #86EFAC, #4ADE80)",
+      shadow: "rgba(134, 239, 172, 0.4)",
+    };
+  } else if (point < 2000) {
+    return {
+      background: isDark
+        ? "linear-gradient(135deg, #C4B5FD, #A78BFA, #8B5CF6)"
+        : "linear-gradient(135deg, #F3E8FF, #C4B5FD, #A78BFA)",
+      shadow: "rgba(196, 181, 253, 0.4)",
     };
   } else {
     return {
       background: isDark
-        ? "linear-gradient(135deg, #F59E0B, #D97706, #B45309)"
-        : "linear-gradient(135deg, #FBB040, #F59E0B, #EF8A0D)",
-      shadow: "rgba(251, 146, 60, 0.4)",
+        ? "linear-gradient(135deg, #FDBA74, #FB923C, #F97316)"
+        : "linear-gradient(135deg, #FED7AA, #FDBA74, #FB923C)",
+      shadow: "rgba(253, 186, 116, 0.4)",
     };
   }
 };

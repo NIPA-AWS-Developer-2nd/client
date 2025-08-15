@@ -16,6 +16,7 @@ import {
   Heart,
   Plane,
   Cat,
+  // CheckCircle,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -221,11 +222,42 @@ const ResetFiltersButton = styled.button<{ $isMobile?: boolean }>`
   }
 `;
 
-const MissionCard = styled.div<{ $isMobile?: boolean }>`
+const ClearOverlay = styled.div<{ $isMobile?: boolean }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+`;
+
+const ClearText = styled.div<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "32px" : "36px")};
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.primary};
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 3px;
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  text-transform: uppercase;
+  line-height: 1;
+`;
+
+const MissionCard = styled.div<{ $isMobile?: boolean; $isCompleted?: boolean }>`
   background: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "16px")};
   overflow: hidden;
+  position: relative;
+  ${({ $isCompleted, theme }) => 
+    $isCompleted && `
+      border: 2px solid ${theme.colors.primary};
+    `}
   transition: ${({ theme }) => theme.transitions.fast};
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -259,45 +291,45 @@ const getPointBadgeColor = (
   point: number,
   isDark: boolean = false
 ): { background: string; shadow: string } => {
-  if (point < 300) {
-    // 가장 쉬운 미션
+  if (point < 500) {
+    // 500P 미만: 회색
     return {
       background: isDark
         ? "linear-gradient(135deg, #E5E7EB, #D1D5DB)"
         : "linear-gradient(135deg, #F3F4F6, #E5E7EB)",
       shadow: "rgba(156, 163, 175, 0.3)",
     };
-  } else if (point < 600) {
-    return {
-      // 쉬운 미션
-      background: isDark
-        ? "linear-gradient(135deg, #3B82F6, #1D4ED8, #1E40AF)"
-        : "linear-gradient(135deg, #60A5FA, #3B82F6, #2563EB)",
-      shadow: "rgba(59, 130, 246, 0.4)",
-    };
   } else if (point < 1000) {
-    // 보통 미션
+    // 1000P 미만: 파스텔 블루
     return {
       background: isDark
-        ? "linear-gradient(135deg, #10B981, #047857, #065F46)"
-        : "linear-gradient(135deg, #34D399, #10B981, #059669)",
-      shadow: "rgba(34, 197, 94, 0.4)",
+        ? "linear-gradient(135deg, #93C5FD, #60A5FA, #3B82F6)"
+        : "linear-gradient(135deg, #DBEAFE, #93C5FD, #60A5FA)",
+      shadow: "rgba(147, 197, 253, 0.4)",
     };
   } else if (point < 1500) {
-    // 어려운 미션
+    // 1500P 미만: 파스텔 그린
     return {
       background: isDark
-        ? "linear-gradient(135deg, #8B5CF6, #7C3AED, #6D28D9)"
-        : "linear-gradient(135deg, #A78BFA, #8B5CF6, #7C3AED)",
-      shadow: "rgba(139, 92, 246, 0.4)",
+        ? "linear-gradient(135deg, #86EFAC, #4ADE80, #22C55E)"
+        : "linear-gradient(135deg, #DCFCE7, #86EFAC, #4ADE80)",
+      shadow: "rgba(134, 239, 172, 0.4)",
+    };
+  } else if (point < 2000) {
+    // 2000P 미만: 파스텔 퍼플
+    return {
+      background: isDark
+        ? "linear-gradient(135deg, #C4B5FD, #A78BFA, #8B5CF6)"
+        : "linear-gradient(135deg, #F3E8FF, #C4B5FD, #A78BFA)",
+      shadow: "rgba(196, 181, 253, 0.4)",
     };
   } else {
-    // 가장 어려운 미션
+    // 2500P 이상: 파스텔 오렌지
     return {
       background: isDark
-        ? "linear-gradient(135deg, #F59E0B, #D97706, #B45309)"
-        : "linear-gradient(135deg, #FBB040, #F59E0B, #EF8A0D)",
-      shadow: "rgba(251, 146, 60, 0.4)",
+        ? "linear-gradient(135deg, #FDBA74, #FB923C, #F97316)"
+        : "linear-gradient(135deg, #FED7AA, #FDBA74, #FB923C)",
+      shadow: "rgba(253, 186, 116, 0.4)",
     };
   }
 };
@@ -676,27 +708,58 @@ export const MissionsPage: React.FC = () => {
     return buttons;
   };
 
-  const getDifficultyText = (difficulty: Difficulty) => {
-    switch (difficulty) {
-      case "EASY":
+  const getDifficultyText = (difficulty: Difficulty | string) => {
+    const diffStr = typeof difficulty === 'string' ? difficulty : difficulty;
+    switch (diffStr?.toLowerCase()) {
+      case "very_easy":
+        return "매우 쉬움";
+      case "easy":
         return "쉬움";
-      case "MEDIUM":
+      case "medium":
         return "보통";
-      case "HARD":
+      case "hard":
         return "어려움";
+      case "very_hard":
+        return "매우 어려움";
+      // 백엔드 enum 대응
+      case "매우 쉬움":
+        return "매우 쉬움";
+      case "쉬움":
+        return "쉬움";
+      case "보통":
+        return "보통";
+      case "어려움":
+        return "어려움";
+      case "매우 어려움":
+        return "매우 어려움";
       default:
+        console.warn('Unknown difficulty value in MissionsPage:', {
+          difficulty,
+          type: typeof difficulty,
+          toLowerCase: diffStr?.toLowerCase()
+        });
         return "보통";
     }
   };
 
-  const getDifficultyColor = (difficulty: Difficulty) => {
-    switch (difficulty) {
-      case "EASY":
-        return "#10B981";
-      case "MEDIUM":
-        return "#F59E0B";
-      case "HARD":
-        return "#EF4444";
+  const getDifficultyColor = (difficulty: Difficulty | string) => {
+    const diffStr = typeof difficulty === 'string' ? difficulty : difficulty;
+    switch (diffStr?.toLowerCase()) {
+      case "very_easy":
+      case "매우 쉬움":
+        return "#22C55E"; // 녹색 - 매우 쉬움
+      case "easy":
+      case "쉬움":
+        return "#10B981"; // 청녹색 - 쉬움
+      case "medium":
+      case "보통":
+        return "#F59E0B"; // 노란색 - 보통
+      case "hard":
+      case "어려움":
+        return "#EF4444"; // 빨간색 - 어려움
+      case "very_hard":
+      case "매우 어려움":
+        return "#B91C1C"; // 진한 빨간색 - 매우 어려움
       default:
         return "#6B7280";
     }
@@ -756,9 +819,11 @@ export const MissionsPage: React.FC = () => {
               }}
             >
               <option value="all">전체</option>
-              <option value="EASY">쉬움</option>
-              <option value="MEDIUM">보통</option>
-              <option value="HARD">어려움</option>
+              <option value="very_easy">매우 쉬움</option>
+              <option value="easy">쉬움</option>
+              <option value="medium">보통</option>
+              <option value="hard">어려움</option>
+              <option value="very_hard">매우 어려움</option>
             </FilterSelect>
           </FilterGroup>
 
@@ -917,6 +982,7 @@ export const MissionsPage: React.FC = () => {
             <MissionCard
               key={mission.id}
               $isMobile={isMobile}
+              $isCompleted={mission.isCompleted}
               onClick={() => handleCardClick(mission.id)}
             >
               <MissionThumbnail $isMobile={isMobile}>
@@ -966,7 +1032,7 @@ export const MissionsPage: React.FC = () => {
                       <Users size={isMobile ? 14 : 16} />
                     </MetaIcon>
                     <MetaValue $isMobile={isMobile}>
-                      {mission.minParticipants}-{mission.maxParticipants}명
+                      {mission.participants}명
                     </MetaValue>
                     <MetaLabel $isMobile={isMobile}>참여 인원</MetaLabel>
                   </MetaItem>
@@ -983,6 +1049,12 @@ export const MissionsPage: React.FC = () => {
                   </MetaItem>
                 </MissionMeta>
               </MissionContent>
+              
+              {mission.isCompleted && (
+                <ClearOverlay $isMobile={isMobile}>
+                  <ClearText $isMobile={isMobile}>CLEAR!</ClearText>
+                </ClearOverlay>
+              )}
             </MissionCard>
           ))}
 

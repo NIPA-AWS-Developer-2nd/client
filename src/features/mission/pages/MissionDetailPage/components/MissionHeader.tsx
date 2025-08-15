@@ -15,9 +15,10 @@ const HeroImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: ${({ theme }) => 
-    theme.colors.background === '#2D3748' ? 'brightness(0.8) blur(0.5px)' : 'none'
-  };
+  filter: ${({ theme }) =>
+    theme.colors.background === "#2D3748"
+      ? "brightness(0.8) blur(0.5px)"
+      : "none"};
   transition: filter 0.2s ease;
 `;
 
@@ -70,25 +71,58 @@ const MetaItem = styled.div`
   font-weight: 500;
 `;
 
+const ClearOverlay = styled.div<{ $isMobile?: boolean }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+`;
+
+const ClearText = styled.div<{ $isMobile?: boolean }>`
+  font-size: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.primary};
+  text-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.25);
+  letter-spacing: 4px;
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  text-transform: uppercase;
+  line-height: 1;
+`;
+
 export const MissionHeader: React.FC<MissionHeaderProps> = ({
   mission,
   isMobile,
 }) => {
   return (
     <HeaderSection $isMobile={isMobile}>
-      <HeroImage 
-        src={mission.thumbnailUrl} 
+      <HeroImage
+        src={mission.thumbnailUrl}
         alt={mission.title}
         loading="eager"
         onError={(e) => {
-          console.log('Hero image failed to load:', mission.thumbnailUrl);
-          e.currentTarget.style.background = 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)';
+          console.log("Hero image failed to load:", mission.thumbnailUrl);
+          e.currentTarget.style.background =
+            "linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)";
         }}
       />
       <HeaderOverlay />
+      
+      {mission.isCompleted && (
+        <ClearOverlay $isMobile={isMobile}>
+          <ClearText $isMobile={isMobile}>CLEAR!</ClearText>
+        </ClearOverlay>
+      )}
 
       <HeaderContent $isMobile={isMobile}>
-        <MissionBadges 
+        <MissionBadges
           difficulty={mission.difficulty}
           categories={mission.category}
         />
@@ -106,7 +140,7 @@ export const MissionHeader: React.FC<MissionHeaderProps> = ({
           </MetaItem>
           <MetaItem>
             <Users size={16} />
-            {mission.minParticipants}-{mission.maxParticipants}명
+            {mission.participants}명
           </MetaItem>
         </MissionMeta>
       </HeaderContent>

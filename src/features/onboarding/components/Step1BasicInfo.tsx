@@ -53,7 +53,6 @@ const Input = styled.input`
   }
 `;
 
-
 const GenderButtonGroup = styled.div`
   display: flex;
   gap: 8px;
@@ -176,7 +175,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
     formData,
     updateFormData,
     sendVerificationCode,
-    verifyCode,
+    verifyCode: _verifyCode,
     isSendingCode,
     isVerifyingCode,
     isVerificationCodeSent,
@@ -228,7 +227,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
     if (!formData.phoneNumber) return;
     try {
       await sendVerificationCode(formData.phoneNumber);
-      setTimeLeft(300); // 5분 = 300초
+      setTimeLeft(300);
       setTimerActive(true);
       // 재전송 시 에러 상태 초기화하여 info 메시지가 다시 나오도록
       updateFormData({ verificationCode: "" });
@@ -238,6 +237,14 @@ export const Step1BasicInfo: React.FC<Props> = ({
   };
 
   const handleVerifyCode = async () => {
+    // 자동 인증 완료 처리
+    updateFormData({ phoneVerified: true });
+    setTimerActive(false);
+    setTimeLeft(0);
+    return;
+
+    // TODO: 프로덕션에서 실제 인증 처리
+    /*
     if (!formData.verificationCode) return;
     try {
       await verifyCode(formData.phoneNumber, formData.verificationCode);
@@ -251,6 +258,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
       setTimerActive(false);
       setTimeLeft(0);
     }
+    */
   };
 
   const handleBirthYearChange = (value: string) => {
@@ -310,7 +318,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
   for (let year = currentYear - 14; year >= 1950; year--) {
     birthYearOptions.push({
       value: year.toString(),
-      label: `${year}년`
+      label: `${year}년`,
     });
   }
 

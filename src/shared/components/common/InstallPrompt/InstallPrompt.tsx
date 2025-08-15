@@ -5,6 +5,7 @@ import { WindowsDesktopPrompt } from "./components/WindowsDesktopPrompt";
 import { MacOSDesktopPrompt } from "./components/MacOSDesktopPrompt";
 import { AndroidPrompt } from "./components/AndroidPrompt";
 import { IOSPrompt } from "./components/IOSPrompt";
+import { useAlert } from "../AlertProvider";
 
 interface InstallPromptProps {
   onDismiss?: () => void;
@@ -12,6 +13,7 @@ interface InstallPromptProps {
 
 export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
   const { isInstallable, installApp } = usePWA();
+  const { info } = useAlert();
   const [isDismissed, setIsDismissed] = React.useState(false);
   const [showGuideModal, setShowGuideModal] = React.useState(false);
 
@@ -45,7 +47,7 @@ export const InstallPrompt: React.FC<InstallPromptProps> = ({ onDismiss }) => {
   const handleLater = () => {
     if (platform === "windows-desktop") {
       // Windows에서 나중에 버튼 클릭 시 알림 표시
-      alert("마이페이지 설정에서 언제든지 앱 설치를 할 수 있습니다!");
+      info("마이페이지 설정에서 언제든지 앱 설치를 할 수 있습니다!");
     }
     handleDismiss();
   };

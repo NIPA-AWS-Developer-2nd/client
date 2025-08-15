@@ -20,7 +20,7 @@ const ModalOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: 20px 40px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -45,7 +45,7 @@ const ModalContent = styled.div<{ $isMobile?: boolean }>`
 
   @media (max-width: 768px) {
     max-width: 95vw;
-    max-height: 85vh;
+    max-height: 75vh;
   }
 `;
 
@@ -426,7 +426,6 @@ const CharacterCount = styled.div`
   text-align: right;
   margin-top: 4px;
 `;
-
 
 const GenderButtonGroup = styled.div`
   display: flex;
@@ -1022,7 +1021,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   for (let year = currentYear - 14; year >= 1950; year--) {
                     options.push({
                       value: year.toString(),
-                      label: `${year}년`
+                      label: `${year}년`,
                     });
                   }
                   return options;
@@ -1166,7 +1165,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 $isMobile={isMobile}
                 value={formData.bio}
                 onChange={(e) => handleInputChange("bio", e.target.value)}
-                placeholder="50자 내외로 자신을 표현해주세요"
+                placeholder="직업, 취미, 관심사 등 무엇이든 좋아요"
                 maxLength={50}
               />
               <CharacterCount>{formData.bio?.length || 0}/50</CharacterCount>

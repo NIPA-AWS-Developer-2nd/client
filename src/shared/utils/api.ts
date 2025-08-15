@@ -89,4 +89,70 @@ export const apiUrl = (path: string): string => {
   return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 };
 
+// API 객체 생성
+export const api = {
+  get: async (path: string) => {
+    const response = await authFetch(apiUrl(path), {
+      method: 'GET',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  post: async (path: string, data?: unknown) => {
+    console.log('🚀 POST API 호출:', apiUrl(path), data);
+    const response = await authFetch(apiUrl(path), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    
+    console.log('📝 POST 응답 상태:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ POST 에러:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✅ POST 응답 데이터:', result);
+    return result;
+  },
+
+  put: async (path: string, data?: unknown) => {
+    const response = await authFetch(apiUrl(path), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  delete: async (path: string) => {
+    const response = await authFetch(apiUrl(path), {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+};
+
 export { API_BASE_URL };

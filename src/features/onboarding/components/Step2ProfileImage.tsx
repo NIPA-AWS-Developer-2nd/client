@@ -5,6 +5,7 @@ import { useOnboardingStore } from "../../../shared/store";
 import { uploadToS3 } from "../../../shared/utils/s3Upload";
 import { getOptimizedImageUrl } from "../../../shared/utils/imageOptimization";
 import { generateNickname } from "starving-orange";
+import { useAlert } from "../../../shared/components/common";
 
 const Container = styled.div`
   display: flex;
@@ -208,6 +209,7 @@ export const Step2ProfileImage: React.FC<Props> = ({
   showValidationErrors = false,
 }) => {
   const { formData, updateFormData } = useOnboardingStore();
+  const { error } = useAlert();
   const [isUploading, setIsUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
@@ -230,7 +232,7 @@ export const Step2ProfileImage: React.FC<Props> = ({
     // }
 
     if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 업로드할 수 있습니다.");
+      error("이미지 파일만 업로드할 수 있습니다.");
       return;
     }
 
@@ -246,9 +248,9 @@ export const Step2ProfileImage: React.FC<Props> = ({
       // profiles 폴더에 업로드 (백엔드에서 original/profiles/로 저장됨)
       const imageUrl = await uploadToS3(file, "profiles");
       updateFormData({ profileImageUrl: imageUrl });
-    } catch (error) {
-      console.error("이미지 업로드 실패:", error);
-      alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+    } catch (uploadError) {
+      console.error("이미지 업로드 실패:", uploadError);
+      error("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
       // 실패 시 미리보기 제거
       setPreviewImage(null);
     } finally {

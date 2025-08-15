@@ -3,9 +3,11 @@ export const MISSIONS_PER_PAGE = 5;
 export const FILTER_OPTIONS = {
   difficulty: {
     all: "전체",
-    EASY: "쉬움",
-    MEDIUM: "보통",
-    HARD: "어려움",
+    very_easy: "매우 쉬움",
+    easy: "쉬움",
+    medium: "보통",
+    hard: "어려움",
+    very_hard: "매우 어려움",
   },
   participants: {
     all: "전체",
@@ -27,7 +29,9 @@ export const FILTER_OPTIONS = {
 } as const;
 
 export const DIFFICULTY_MAP = {
-  EASY: "쉬움",
-  MEDIUM: "보통",
-  HARD: "어려움",
+  very_easy: "매우 쉬움",
+  easy: "쉬움",
+  medium: "보통",
+  hard: "어려움",
+  very_hard: "매우 어려움",
 } as const;

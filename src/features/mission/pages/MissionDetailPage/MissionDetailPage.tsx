@@ -6,6 +6,7 @@ import { useMissionStore } from "../../../../shared/store";
 import {
   MissionHeader,
   MissionContent,
+  MissionLocation,
   MissionInfo,
   MissionActions,
 } from "./components";
@@ -93,8 +94,10 @@ export const MissionDetailPage: React.FC = () => {
       
       <ContentSection $isMobile={isMobile}>
         <MissionContent mission={currentMission} isMobile={isMobile} />
+        <MissionLocation mission={currentMission} isMobile={isMobile} />
         <MissionInfo mission={currentMission} isMobile={isMobile} />
         <MissionActions
+          mission={currentMission}
           isMobile={isMobile}
           onCreateMeeting={handleCreateMeeting}
           onSearchMeetings={handleSearchMeetings}

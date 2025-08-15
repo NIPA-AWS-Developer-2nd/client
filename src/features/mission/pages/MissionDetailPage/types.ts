@@ -10,7 +10,7 @@ export interface MissionHeaderProps {
 }
 
 export interface MissionBadgesProps {
-  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  difficulty: 'very_easy' | 'easy' | 'medium' | 'hard' | 'very_hard';
   categories: string[];
   isMobile?: boolean;
 }
@@ -26,6 +26,7 @@ export interface MissionInfoProps {
 }
 
 export interface MissionActionsProps {
+  mission: MissionWithDetails;
   isMobile: boolean;
   onCreateMeeting: () => void;
   onSearchMeetings: () => void;

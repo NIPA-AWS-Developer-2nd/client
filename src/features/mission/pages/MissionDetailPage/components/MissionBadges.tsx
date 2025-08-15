@@ -15,13 +15,22 @@ const DifficultyBadge = styled.div<{ $difficulty: string }>`
   font-size: 12px;
   font-weight: 600;
   background: ${({ $difficulty }) => {
-    switch ($difficulty) {
-      case "EASY":
-        return "#10B981";
-      case "MEDIUM":
-        return "#F59E0B";
-      case "HARD":
-        return "#EF4444";
+    switch ($difficulty?.toLowerCase()) {
+      case "very_easy":
+      case "매우 쉬움":
+        return "#22C55E"; // 녹색 - 매우 쉬움
+      case "easy":
+      case "쉬움":
+        return "#10B981"; // 청녹색 - 쉬움
+      case "medium":
+      case "보통":
+        return "#F59E0B"; // 노란색 - 보통
+      case "hard":
+      case "어려움":
+        return "#EF4444"; // 빨간색 - 어려움
+      case "very_hard":
+      case "매우 어려움":
+        return "#B91C1C"; // 진한 빨간색 - 매우 어려움
       default:
         return "#6B7280";
     }
@@ -40,11 +49,21 @@ const CategoryBadge = styled.div`
 `;
 
 const getDifficultyText = (difficulty: string) => {
-  switch (difficulty) {
-    case "EASY": return "쉬움";
-    case "MEDIUM": return "보통";
-    case "HARD": return "어려움";
-    default: return "보통";
+  switch (difficulty?.toLowerCase()) {
+    case "very_easy": return "매우 쉬움";
+    case "easy": return "쉬움";
+    case "medium": return "보통";
+    case "hard": return "어려움";
+    case "very_hard": return "매우 어려움";
+    // 백엔드 enum 대응
+    case "매우 쉬움": return "매우 쉬움";
+    case "쉬움": return "쉬움";
+    case "보통": return "보통";
+    case "어려움": return "어려움";
+    case "매우 어려움": return "매우 어려움";
+    default: 
+      console.warn('Unknown difficulty value:', difficulty);
+      return difficulty || "보통";
   }
 };
 

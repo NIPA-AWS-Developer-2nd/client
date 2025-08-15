@@ -27,13 +27,12 @@ export const filterMissions = (
 
     // 참여인원 필터
     if (filters.participants !== "all") {
-      const minParticipants = mission.minParticipants || 1;
-      const maxParticipants = mission.maxParticipants || 99;
+      const participants = mission.participants || 99;
 
       if (filters.participants === "medium") {
-        if (minParticipants > 6 || maxParticipants < 4) return false;
+        if (participants < 4 || participants > 6) return false;
       } else if (filters.participants === "large") {
-        if (maxParticipants < 7) return false;
+        if (participants < 7) return false;
       }
     }
 
@@ -77,9 +76,11 @@ export const paginateMissions = (
 
 export const getDifficultyLabel = (difficulty: Difficulty): string => {
   const labels: Record<Difficulty, string> = {
-    EASY: "쉬움",
-    MEDIUM: "보통",
-    HARD: "어려움",
+    very_easy: "매우 쉬움",
+    easy: "쉬움",
+    medium: "보통",
+    hard: "어려움",
+    very_hard: "매우 어려움",
   };
   return labels[difficulty];
 };

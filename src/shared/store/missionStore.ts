@@ -8,11 +8,10 @@ export interface MissionWithDetails {
   description: string;
   point: number;
   duration: number;
-  minParticipants: number;
-  maxParticipants: number;
+  participants: number;
   minDuration: number;
   minPhotoCount: number;
-  difficulty: "EASY" | "MEDIUM" | "HARD";
+  difficulty: "very_easy" | "easy" | "medium" | "hard" | "very_hard";
   region_code: string;
   thumbnailUrl: string;
   category: string[];
@@ -20,6 +19,14 @@ export interface MissionWithDetails {
   createdAt: string;
   updatedAt: string;
   status: "ACTIVE" | "INACTIVE";
+  isCompleted: boolean; // 사용자가 이 미션을 완료했는지 여부
+  location?: string | null; // 구체적인 장소명
+  district?: {
+    districtId: string;
+    districtName: string;
+    city: string;
+    isActive: boolean;
+  };
   context?: {
     id: string;
     missionId: string;
@@ -111,7 +118,7 @@ interface MissionStore {
   // Async actions
   fetchMissionDetails: (id: string) => Promise<void>;
   fetchMeetings: (missionId: string) => Promise<void>;
-  fetchMissions: () => Promise<void>;
+  fetchMissions: (forceRefresh?: boolean) => Promise<void>;
   fetchCategories: () => Promise<void>;
   createMeeting: (meetingData: Partial<MeetingWithDetails>) => Promise<void>;
   joinMeeting: (meetingId: string) => Promise<void>;
@@ -165,6 +172,11 @@ export const useMissionStore = create<MissionStore>()(
           const mission = result.data || result;
 
           set({ currentMission: mission, isLoading: false });
+          
+          // 미션 상세를 로드한 후 리스트 캐시를 강제 새로고침하여 동기화
+          setTimeout(() => {
+            _get().fetchMissions(true);
+          }, 100);
         } catch (error) {
           set({
             error: error instanceof Error ? error.message : "Unknown error",
@@ -321,14 +333,15 @@ export const useMissionStore = create<MissionStore>()(
       },
 
       // 캐시 지속 시간 5분
-      fetchMissions: async () => {
+      fetchMissions: async (forceRefresh = false) => {
         const { lastFetched, isLoadingMissions } = _get();
         const CACHE_DURATION = 5 * 60 * 1000;
 
-        // 캐시가 유효하거나 이미 로딩 중이면 스킵
+        // 강제 새로고침이 아니고, 캐시가 유효하거나 이미 로딩 중이면 스킵
         if (
-          (lastFetched && Date.now() - lastFetched < CACHE_DURATION) ||
-          isLoadingMissions
+          !forceRefresh &&
+          ((lastFetched && Date.now() - lastFetched < CACHE_DURATION) ||
+          isLoadingMissions)
         ) {
           return;
         }
@@ -342,6 +355,7 @@ export const useMissionStore = create<MissionStore>()(
           if (response.ok) {
             const result = await response.json();
             const data = result.data || result;
+
 
             set({
               missions: data.missions || [],
@@ -435,10 +449,10 @@ export const useMissionStore = create<MissionStore>()(
             switch (filters.participants) {
               case "medium":
                 return (
-                  mission.maxParticipants >= 4 && mission.maxParticipants <= 6
+                  mission.participants >= 4 && mission.participants <= 6
                 );
               case "large":
-                return mission.maxParticipants > 6;
+                return mission.participants > 6;
               default:
                 return true;
             }

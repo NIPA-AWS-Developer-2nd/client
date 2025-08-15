@@ -72,9 +72,9 @@ const GalleryContainer = styled.div<{ $isMobile?: boolean }>`
   &::before {
     left: 0;
     background: linear-gradient(to right, 
-      ${({ theme }) => theme.colors.background || '#ffffff'} 0%, 
-      ${({ theme }) => theme.colors.background || '#ffffff'}40 50%,
-      ${({ theme }) => theme.colors.background || '#ffffff'}10 85%,
+      #ffffff 0%, 
+      #ffffff40 50%,
+      #ffffff10 85%,
       transparent 100%
     );
   }
@@ -82,9 +82,9 @@ const GalleryContainer = styled.div<{ $isMobile?: boolean }>`
   &::after {
     right: 0;
     background: linear-gradient(to left, 
-      ${({ theme }) => theme.colors.background || '#ffffff'} 0%, 
-      ${({ theme }) => theme.colors.background || '#ffffff'}40 50%,
-      ${({ theme }) => theme.colors.background || '#ffffff'}10 85%,
+      #ffffff 0%, 
+      #ffffff40 50%,
+      #ffffff10 85%,
       transparent 100%
     );
   }

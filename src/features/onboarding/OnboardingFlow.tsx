@@ -208,10 +208,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       birthYear: user?.birthYear?.toString() || "",
       gender: user?.gender || "",
       bio: user?.bio || "",
-      profileImageUrl: user?.profile_image_url || "",
+      profileImageUrl: user?.profileImageUrl || "",
       interests: user?.interests || [],
       mbti: user?.mbti || "",
-      districtId: "",
+      districtId: user?.districtId || "",
     });
 
     return () => {

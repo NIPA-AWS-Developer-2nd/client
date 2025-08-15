@@ -518,14 +518,16 @@ export const MyPage: React.FC = () => {
         const [userData, activityData] = await Promise.all([
           userApiService.getMe(),
           userApiService.getActivityStats(),
-          new Promise((resolve) => setTimeout(resolve, 600)),
+          new Promise((resolve) => setTimeout(resolve, 100)),
         ]);
 
-        // console.log("사용자 정보 조회 성공:", userData);
-        // console.log("활동 통계 조회 성공:", activityData);
+        console.log("사용자 정보 조회 성공:", userData);
+        console.log("활동 통계 조회 성공:", activityData);
 
-        // console.log("사용자 정보:", userData);
-        // console.log("프로필 관심사:", userData.profile?.interests);
+        console.log("사용자 정보:", userData);
+        console.log("프로필 정보:", userData.profile);
+        console.log("프로필 nickname:", userData.profile?.nickname);
+        console.log("프로필 관심사:", userData.profile?.interests);
 
         setUserInfo(userData);
         setActivityStats(activityData);
@@ -926,7 +928,7 @@ export const MyPage: React.FC = () => {
         <ProfileInfoContainer>
           <ProfileHeader>
             <ProfileName $isMobile={isMobile}>
-              {userInfo.profile?.nickname || "사용자"}
+              {userInfo?.profile?.nickname || userInfo?.nickname || "사용자"}
               <LevelText $isMobile={isMobile}>
                 Lv.{userInfo.profile?.level || 1}
               </LevelText>
@@ -1138,8 +1140,8 @@ export const MyPage: React.FC = () => {
             phoneNumber: userInfo.phoneNumber,
 
             // 프로필 정보
-            name: userInfo.profile?.nickname,
-            nickname: userInfo.profile?.nickname,
+            name: userInfo?.profile?.nickname || userInfo?.nickname,
+            nickname: userInfo?.profile?.nickname || userInfo?.nickname,
             birthYear: userInfo.profile?.birthYear?.toString(),
             gender: userInfo.profile?.gender,
             bio: userInfo.profile?.bio,
