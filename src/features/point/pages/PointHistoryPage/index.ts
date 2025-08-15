@@ -1,0 +1,1 @@
+export { PointHistoryPage } from './PointHistoryPage';
