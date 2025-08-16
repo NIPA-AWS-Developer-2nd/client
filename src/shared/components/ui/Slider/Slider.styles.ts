@@ -40,13 +40,7 @@ export const SliderTrack = styled.div<{
   }
   
   ${responsive.mobile(css`
-    height: ${({ $size }) => {
-      switch ($size) {
-        case "small": return "8px";
-        case "large": return "10px";
-        default: return "8px";
-      }
-    }};
+    height: 8px;
   `)}
 `;
 
@@ -130,20 +124,8 @@ export const SliderThumb = styled.div<{
   `}
   
   ${responsive.mobile(css`
-    width: ${({ $size }) => {
-      switch ($size) {
-        case "small": return "16px";
-        case "large": return "20px";
-        default: return "18px";
-      }
-    }};
-    height: ${({ $size }) => {
-      switch ($size) {
-        case "small": return "16px";
-        case "large": return "20px";
-        default: return "18px";
-      }
-    }};
+    width: 18px;
+    height: 18px;
   `)}
 `;
 

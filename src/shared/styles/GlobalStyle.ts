@@ -164,7 +164,7 @@ export const GlobalStyle = createGlobalStyle`
   @media (hover: none) and (pointer: coarse) {
     *:active {
       background-color: ${({ theme }) =>
-        theme.colors.background === "#2D3748"
+        theme.colors.background.primary === "#2D3748"
           ? "rgba(255, 255, 255, 0.1)"
           : "rgba(0, 0, 0, 0.05)"} !important;
       transform: scale(0.98) !important;

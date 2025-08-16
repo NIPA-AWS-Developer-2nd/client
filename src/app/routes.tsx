@@ -36,7 +36,7 @@ export const AppRoutes = () => {
         path="/"
         element={
           <ResponsiveLayout
-            title="Halsaram | 번개모임 커뮤니티"
+            title="할사람? | 번개모임 커뮤니티"
             showBanner={true}
           >
             <HomePage />
@@ -46,7 +46,7 @@ export const AppRoutes = () => {
       <Route
         path="/missions"
         element={
-          <ResponsiveLayout title="지역미션 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="지역미션 | 할사람?" showBanner={true}>
             <MissionsPage />
           </ResponsiveLayout>
         }
@@ -55,7 +55,7 @@ export const AppRoutes = () => {
         path="/missions/:id"
         element={
           <ResponsiveLayout
-            title="지역미션 | Halsaram"
+            title="지역미션 | 할사람?"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -67,7 +67,7 @@ export const AppRoutes = () => {
       <Route
         path="/meetings"
         element={
-          <ResponsiveLayout title="번개모임 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="번개모임 | 할사람?" showBanner={true}>
             <MeetingListPage />
           </ResponsiveLayout>
         }
@@ -76,7 +76,7 @@ export const AppRoutes = () => {
         path="/meetings/new"
         element={
           <ResponsiveLayout
-            title="모임 만들기 | Halsaram"
+            title="모임 만들기 | 할사람?"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -89,7 +89,7 @@ export const AppRoutes = () => {
         path="/meetings/edit/:id"
         element={
           <ResponsiveLayout
-            title="모임 정보 수정 | Halsaram"
+            title="모임 정보 수정 | 할사람?"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -102,7 +102,7 @@ export const AppRoutes = () => {
         path="/meetings/:id"
         element={
           <ResponsiveLayout
-            title="번개모임 | Halsaram"
+            title="번개모임 | 할사람?"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
@@ -115,10 +115,11 @@ export const AppRoutes = () => {
         path="/meetings/:id/channel"
         element={
           <ResponsiveLayout
-            title="모임 채널 | Halsaram"
+            title="모임 채널 | 할사람?"
             showBanner={true}
             noPadding={true}
             hideBottomNav={true}
+            fullWidth={true}
           >
             <MeetingChannelPage />
           </ResponsiveLayout>
@@ -127,7 +128,7 @@ export const AppRoutes = () => {
       <Route
         path="/market"
         element={
-          <ResponsiveLayout title="포인트마켓 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="포인트마켓 | 할사람?" showBanner={true}>
             <MarketPage />
           </ResponsiveLayout>
         }
@@ -135,7 +136,7 @@ export const AppRoutes = () => {
       <Route
         path="/donation"
         element={
-          <ResponsiveLayout title="기부하기 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="기부하기 | 할사람?" showBanner={true}>
             <DonationPage />
           </ResponsiveLayout>
         }
@@ -143,7 +144,7 @@ export const AppRoutes = () => {
       <Route
         path="/my"
         element={
-          <ResponsiveLayout title="마이페이지 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="마이페이지 | 할사람" showBanner={true}>
             <MyPage />
           </ResponsiveLayout>
         }
@@ -151,7 +152,11 @@ export const AppRoutes = () => {
       <Route
         path="/my/settings"
         element={
-          <ResponsiveLayout title="앱 설정 | Halsaram" showBanner={true} hideBottomNav={true}>
+          <ResponsiveLayout
+            title="앱 설정 | 할사람?"
+            showBanner={true}
+            hideBottomNav={true}
+          >
             <AppSettingsPage />
           </ResponsiveLayout>
         }
@@ -159,7 +164,7 @@ export const AppRoutes = () => {
       <Route
         path="/user/:userId?"
         element={
-          <ResponsiveLayout title="사용자 프로필 | Halsaram" showBanner={true}>
+          <ResponsiveLayout title="사용자 프로필 | 할사람?" showBanner={true}>
             <UserProfilePage />
           </ResponsiveLayout>
         }
@@ -167,9 +172,9 @@ export const AppRoutes = () => {
       <Route
         path="/points/history"
         element={
-          <ResponsiveLayout 
-            title="포인트 내역 | Halsaram" 
-            showBanner={true} 
+          <ResponsiveLayout
+            title="포인트 내역 | 할사람?"
+            showBanner={true}
             hideBottomNav={true}
             noPadding={true}
           >

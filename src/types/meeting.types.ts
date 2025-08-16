@@ -1,4 +1,4 @@
-export type MeetingStatus = "recruiting" | "ready" | "active" | "completed" | "canceled";
+export type MeetingStatus = "recruiting" | "ready" | "active" | "completed" | "canceled" | "cancelled";
 export type ParticipantStatus = "joined" | "completed" | "dropped";
 export type VerificationStatus = "pending" | "approved" | "rejected";
 export type MissionDifficulty = "very_easy" | "easy" | "medium" | "hard" | "very_hard";
@@ -53,6 +53,7 @@ export interface Meeting {
   participantProfiles?: ParticipantProfile[];
   currentParticipants?: number;
   likesCount?: number;
+  isLiked?: boolean;
 }
 
 export interface MissionParticipant {
@@ -93,6 +94,7 @@ export interface MissionReview {
 
 export interface User {
   id: string;
+  userId?: string; // Alias for id to maintain compatibility
   nickname: string;
   profileImageUrl: string;
   categoryIds?: number[];

@@ -1,4 +1,4 @@
 export * from './components';
 export * from './pages';
-export * from './types';
-export * from './api/pointApi';
+export type { PointTransaction, PointBalanceData } from './types';
+export { pointApi } from './api/pointApi';
