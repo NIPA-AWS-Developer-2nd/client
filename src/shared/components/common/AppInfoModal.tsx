@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { X, FileText, Shield, Bell } from "lucide-react";
-import { useAlert } from "./AlertProvider";
+import { useAlert } from "../../hooks/useAlert";
 
 const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;

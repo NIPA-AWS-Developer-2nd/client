@@ -5,7 +5,7 @@ import { WindowsDesktopPrompt } from "./components/WindowsDesktopPrompt";
 import { MacOSDesktopPrompt } from "./components/MacOSDesktopPrompt";
 import { AndroidPrompt } from "./components/AndroidPrompt";
 import { IOSPrompt } from "./components/IOSPrompt";
-import { useAlert } from "../AlertProvider";
+import { useAlert } from "../../../hooks/useAlert";
 
 interface InstallPromptProps {
   onDismiss?: () => void;

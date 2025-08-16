@@ -68,11 +68,13 @@ const LocationButton = styled.button<{ $hasError?: boolean }>`
   display: flex;
   align-items: center;
   gap: 6px;
-  background: ${({ $hasError, theme }) => 
-    $hasError ? theme.colors.verificationPendingBg : 'transparent'};
+  background: ${({ $hasError, theme }) =>
+    $hasError ? theme.colors.verificationPendingBg : "transparent"};
   border: none;
-  color: ${({ $hasError, theme }) => 
-    $hasError ? theme.colors.verificationPending : theme.colors.locationVerified};
+  color: ${({ $hasError, theme }) =>
+    $hasError
+      ? theme.colors.verificationPending
+      : theme.colors.locationVerified};
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -81,8 +83,10 @@ const LocationButton = styled.button<{ $hasError?: boolean }>`
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ $hasError, theme }) => 
-      $hasError ? theme.colors.verificationPendingBg : theme.colors.locationVerifiedBg};
+    background: ${({ $hasError, theme }) =>
+      $hasError
+        ? theme.colors.verificationPendingBg
+        : theme.colors.locationVerifiedBg};
   }
 
   svg {
@@ -140,7 +144,7 @@ const DropdownMenu = styled.div`
   overflow: hidden;
 `;
 
-const DropdownItem = styled.button<{ $variant?: 'default' | 'danger' }>`
+const DropdownItem = styled.button<{ $variant?: "default" | "danger" }>`
   width: 100%;
   padding: 12px 16px;
   background: none;
@@ -152,12 +156,12 @@ const DropdownItem = styled.button<{ $variant?: 'default' | 'danger' }>`
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  color: ${({ $variant, theme }) => 
-    $variant === 'danger' ? theme.colors.error : theme.colors.text.primary};
+  color: ${({ $variant, theme }) =>
+    $variant === "danger" ? theme.colors.error : theme.colors.text.primary};
 
   &:hover {
-    background: ${({ $variant, theme }) => 
-      $variant === 'danger' ? theme.colors.errorBg : theme.colors.gray50};
+    background: ${({ $variant, theme }) =>
+      $variant === "danger" ? theme.colors.errorBg : theme.colors.gray50};
   }
 
   svg {
@@ -192,7 +196,7 @@ export interface HeaderAction {
   label: string;
   icon?: React.ReactNode;
   onClick: () => void;
-  variant?: 'default' | 'danger';
+  variant?: "default" | "danger";
   divider?: boolean;
 }
 
@@ -209,7 +213,7 @@ interface PWALayoutProps {
 
 export const PWALayout: React.FC<PWALayoutProps> = ({
   children,
-  title = "Halsaram — 번개모임 커뮤니티",
+  title = "할사람? — 번개모임 커뮤니티",
   showInstallPrompt = true,
   pageName,
   onLocationClick,
@@ -221,10 +225,10 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
   const [isStandalone] = useState(deviceCapabilities.isStandalone());
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   // Mock 지역 인증 상태 - 실제로는 auth store나 context에서 가져와야 함
   const [isLocationVerified] = useState(true); // false로 변경하면 인증 안됨 상태
-  const [userLocation] = useState('송파구'); // 사용자 지역 정보
+  const [userLocation] = useState("송파구"); // 사용자 지역 정보
 
   // Update document title
   useEffect(() => {
@@ -234,14 +238,18 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
 
     if (showDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showDropdown]);
 
@@ -258,7 +266,7 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
       } else {
         // Fallback: 클립보드에 URL 복사
         navigator.clipboard.writeText(window.location.href);
-        success('링크가 클립보드에 복사되었습니다.');
+        success("링크가 클립보드에 복사되었습니다.");
       }
     }
   };
@@ -272,15 +280,18 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
         <Header $isStandalone={isStandalone}>
           <HeaderContent>
             <LeftSection>
-              <PageName>{pageName || '홈'}</PageName>
+              <PageName>{pageName || "홈"}</PageName>
               <Separator>—</Separator>
-              <LocationButton 
+              <LocationButton
                 $hasError={!isLocationVerified}
-                onClick={onLocationClick || (() => console.log('Location setting clicked'))}
+                onClick={
+                  onLocationClick ||
+                  (() => console.log("Location setting clicked"))
+                }
               >
                 {!isLocationVerified && <AlertCircle size={16} />}
                 <LocationText>
-                  {isLocationVerified ? userLocation : '지역 인증 필요'}
+                  {isLocationVerified ? userLocation : "지역 인증 필요"}
                 </LocationText>
                 <ChevronDown size={16} />
               </LocationButton>
@@ -288,7 +299,7 @@ export const PWALayout: React.FC<PWALayoutProps> = ({
 
             {hasActions && (
               <RightSection>
-                <div ref={dropdownRef} style={{ position: 'relative' }}>
+                <div ref={dropdownRef} style={{ position: "relative" }}>
                   <MoreButton onClick={() => setShowDropdown(!showDropdown)}>
                     <MoreVertical size={20} />
                   </MoreButton>

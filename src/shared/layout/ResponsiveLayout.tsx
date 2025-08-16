@@ -27,6 +27,7 @@ import { deviceDetection, viewportManager } from "../utils";
 import { useLocationVerification } from "../hooks";
 import { useHomeData } from "../../features/home/hooks";
 import { useHomeStore } from "../../shared/store/homeStore";
+import { useLocationStore } from "../store/locationStore";
 import { ROUTES } from "../constants/routes";
 import { PointBalance } from "../../features/point/components/PointBalance";
 
@@ -121,7 +122,11 @@ const DesktopSidebar = styled.div<{ $show: boolean }>`
 `;
 
 // 앱 영역
-const AppArea = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
+const AppArea = styled.div<{
+  $isMobile: boolean;
+  $keyboardVisible?: boolean;
+  $fullWidth?: boolean;
+}>`
   flex: 1;
   height: 100%;
   background-color: ${({ theme }) => theme.colors.white};
@@ -129,8 +134,10 @@ const AppArea = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
-  max-width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
+  width: ${({ $isMobile, $fullWidth }) =>
+    $isMobile ? "100vw" : $fullWidth ? "100%" : "800px"};
+  max-width: ${({ $isMobile, $fullWidth }) =>
+    $isMobile ? "100vw" : $fullWidth ? "100%" : "800px"};
 
   /* 키보드가 열렸을 때 전체 높이 확장 */
   ${({ $keyboardVisible, $isMobile }) =>
@@ -288,10 +295,11 @@ const AppMain = styled.main<{
   $keyboardVisible?: boolean;
   $noPadding?: boolean;
   $noScroll?: boolean;
+  $fullWidth?: boolean;
 }>`
   flex: 1;
-  padding: ${({ $isMobile, $noPadding }) =>
-    $noPadding ? "0" : $isMobile ? "0" : "24px 32px"};
+  padding: ${({ $isMobile, $noPadding, $fullWidth }) =>
+    $noPadding || $fullWidth ? "0" : $isMobile ? "0" : "24px 32px"};
   overflow-y: ${({ $noScroll }) => ($noScroll ? "hidden" : "auto")};
   overflow-x: hidden;
   background-color: ${({ theme }) => theme.colors.white};
@@ -511,7 +519,7 @@ interface ResponsiveLayoutProps {
 
 export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   children,
-  title = "Halsaram",
+  title = "할사람?",
   showInstallPrompt = true,
   showBanner = true,
   customHeaderTitle,
@@ -538,6 +546,9 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     isLoading: isLocationLoading,
   } = useLocationVerification();
 
+  // 위치 인증 스토어
+  const { setVerified } = useLocationStore();
+
   // 사용자 위치 정보 - currentDistrict에서 가져오거나 기본값 사용
   const userLocation = currentDistrict?.districtName || "지역 선택";
 
@@ -553,8 +564,12 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       isMyPage: pathname === ROUTES.MY_PAGE,
       isMySettingsPage: pathname === "/my/settings",
       isMissionDetail: pathname.startsWith("/missions/"),
-      isMeetingDetail: pathname.startsWith("/meetings/") && !pathname.includes("/channel") && pathname !== "/meetings/new",
-      isMeetingChannel: pathname.includes("/meetings/") && pathname.includes("/channel"),
+      isMeetingDetail:
+        pathname.startsWith("/meetings/") &&
+        !pathname.includes("/channel") &&
+        pathname !== "/meetings/new",
+      isMeetingChannel:
+        pathname.includes("/meetings/") && pathname.includes("/channel"),
       isMeetingCreate: pathname === "/meetings/new",
       isMainTab: (
         [
@@ -574,12 +589,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
   // 모임 채널 페이지에서 호스트 여부 확인
   const { getMeetingDetail } = useHomeStore();
-  const meetingId = routeInfo.isMeetingChannel 
-    ? location.pathname.split('/')[2] 
+  const meetingId = routeInfo.isMeetingChannel
+    ? location.pathname.split("/")[2]
     : null;
   const meetingDetail = meetingId ? getMeetingDetail(meetingId) : null;
-  const isHostInChannel = meetingDetail?.host?.id === 'current-user-id'; // TODO: 실제 사용자 ID와 비교
-
+  const isHostInChannel = meetingDetail?.host?.id === "current-user-id"; // TODO: 실제 사용자 ID와 비교
 
   // DOM 쿼리를 초기화 시에만 실행하고 ref로 캐싱
   useEffect(() => {
@@ -800,7 +814,10 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     }
 
     // 모임 채널 페이지
-    if (location.pathname.includes("/meetings/") && location.pathname.includes("/channel")) {
+    if (
+      location.pathname.includes("/meetings/") &&
+      location.pathname.includes("/channel")
+    ) {
       return { title: "모임 채널", label: "", showLocation: false };
     }
 
@@ -816,7 +833,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
     // 사용자 프로필 페이지
     if (location.pathname.startsWith("/user/")) {
-      return { title: customHeaderTitle || "사용자 프로필", label: "", showLocation: false };
+      return {
+        title: customHeaderTitle || "사용자 프로필",
+        label: "",
+        showLocation: false,
+      };
     }
 
     const currentTab = tabs.find((tab) => tab.path === location.pathname);
@@ -838,7 +859,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   const handleBack = () => {
     // 모임 채널 페이지에서는 홈으로 이동
     if (routeInfo.isMeetingChannel) {
-      navigate('/');
+      navigate("/");
     } else {
       navigate(-1);
     }
@@ -875,7 +896,6 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       }
     }
   };
-
 
   const handleHelpClick = () => {
     setShowHelpModal(true);
@@ -916,12 +936,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
   const handleVerificationComplete = async (isVerified: boolean) => {
     if (isVerified) {
-      // console.log("위치 인증 성공");
+      console.log("✅ 위치 인증 성공 - 스토어 상태 업데이트");
 
-      // console.log("위치 인증 상태 새로고침 중");
+      // 스토어 상태 즉시 업데이트
+      setVerified(true);
+
       // 위치 인증 상태 새로고침
       await refreshLocationStatus();
-      // console.log("위치 인증 상태 새로고침 완료");
 
       setHasShownModal(false); // 인증 성공 시 자동 모달 상태 리셋
       // 인증 완료 후 모달 자동으로 닫기
@@ -962,7 +983,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         </DesktopSidebar>
 
         {/* 앱 영역 */}
-        <AppArea $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
+        <AppArea
+          $isMobile={isMobile}
+          $keyboardVisible={keyboardVisible}
+          $fullWidth={_fullWidth}
+        >
           <AppHeader $isMobile={isMobile}>
             <HeaderLeft>
               <BackButton $show={!routeInfo.isMainTab} onClick={handleBack}>
@@ -1001,7 +1026,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                 <>
                   {/* 포인트 표시 - 모든 페이지에서 표시 */}
                   {!hideHeaderActions && (
-                    <PointBalance size="sm" showLabel={false} onClick={() => navigate('/points/history')} />
+                    <PointBalance
+                      size="sm"
+                      showLabel={false}
+                      onClick={() => navigate("/points/history")}
+                    />
                   )}
 
                   {!hideHeaderActions && (
@@ -1021,14 +1050,16 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                         )}
 
                       {/* 알림 버튼 - 마이페이지/설정/모임생성 제외 모든 페이지 */}
-                      {!routeInfo.isMyPage && !routeInfo.isMySettingsPage && !routeInfo.isMeetingCreate && (
-                        <HeaderIconButton
-                          $isMobile={isMobile}
-                          onClick={handleNotifications}
-                        >
-                          <Bell size={isMobile ? 18 : 20} />
-                        </HeaderIconButton>
-                      )}
+                      {!routeInfo.isMyPage &&
+                        !routeInfo.isMySettingsPage &&
+                        !routeInfo.isMeetingCreate && (
+                          <HeaderIconButton
+                            $isMobile={isMobile}
+                            onClick={handleNotifications}
+                          >
+                            <Bell size={isMobile ? 18 : 20} />
+                          </HeaderIconButton>
+                        )}
 
                       {/* 미션 상세 페이지 - 공유 버튼 */}
                       {routeInfo.isMissionDetail && (
@@ -1054,7 +1085,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                       {routeInfo.isMeetingChannel && isHostInChannel && (
                         <HeaderIconButton
                           $isMobile={isMobile}
-                          onClick={() => console.log('설정 페이지 준비 중...')} // TODO: 설정 페이지 구현
+                          onClick={() => console.log("설정 페이지 준비 중...")} // TODO: 설정 페이지 구현
                         >
                           <Settings size={isMobile ? 18 : 20} />
                         </HeaderIconButton>
@@ -1089,6 +1120,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             $keyboardVisible={keyboardVisible}
             $noPadding={_noPadding}
             $noScroll={_noScroll}
+            $fullWidth={_fullWidth}
             data-scroll-container
           >
             {children}

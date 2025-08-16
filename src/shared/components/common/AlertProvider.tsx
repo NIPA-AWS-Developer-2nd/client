@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ReactNode } from "react";
+import React, { useState, useCallback, type ReactNode } from "react";
 import { AlertModal } from "./AlertModal";
 import type { AlertType } from "./AlertModal";
 import { 
