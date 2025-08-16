@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import {
   Calendar,
@@ -391,7 +390,6 @@ const getTimeRemaining = (dateStr: string, timeStr: string) => {
 };
 
 export const MeetingsPage: React.FC = () => {
-  const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [activeFilter, setActiveFilter] = React.useState("recruiting");
   const [isRefreshing, setIsRefreshing] = React.useState(false);

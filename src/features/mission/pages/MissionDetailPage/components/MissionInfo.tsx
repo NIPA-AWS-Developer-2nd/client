@@ -84,91 +84,6 @@ const InfoIcon = styled.div`
   color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
-const _LocationSection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.gray50};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
-  padding: ${({ $isMobile }) => ($isMobile ? "20px 20px" : "24px 28px")};
-  margin-bottom: 32px;
-`;
-
-const _LocationTitle = styled.h3<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "16px" : "18px")};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 20px 0;
-`;
-
-const _LocationInfo = styled.div<{ $isMobile?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  border: 1px solid ${({ theme }) => theme.colors.gray200};
-`;
-
-const _LocationText = styled.div<{ $isMobile?: boolean }>`
-  flex: 1;
-`;
-
-const _LocationName = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin-bottom: 4px;
-`;
-
-const _LocationDistrict = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "14px")};
-  color: ${({ theme }) => theme.colors.text.secondary};
-`;
-
-const _MapFrame = styled.div<{ $isMobile?: boolean }>`
-  width: 100%;
-  height: ${({ $isMobile }) => ($isMobile ? "200px" : "250px")};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  border: 1px solid ${({ theme }) => theme.colors.gray200};
-  overflow: hidden;
-  margin-bottom: 12px;
-  background: ${({ theme }) => theme.colors.gray100};
-`;
-
-const _MapButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  border: 1px solid ${({ theme }) => theme.colors.gray300};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.gray50};
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-declare global {
-  interface Window {
-    naver: {
-      maps: {
-        Map: new (element: HTMLElement, options: object) => object;
-        LatLng: new (lat: number, lng: number) => object;
-        Marker: new (options: object) => object;
-        Position: { TOP_RIGHT: string };
-      };
-    };
-  }
-}
 
 export const MissionInfo: React.FC<MissionInfoProps> = ({
   mission,
@@ -258,17 +173,6 @@ export const MissionInfo: React.FC<MissionInfoProps> = ({
     }
   }, [mapLoaded, mission, hasLocationInfo]);
 
-  const _handleMapButtonClick = () => {
-    const location =
-      mission.location ||
-      (mission.district
-        ? `${mission.district.city} ${mission.district.districtName}`
-        : "활동 지역");
-    const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(
-      location
-    )}`;
-    window.open(naverMapUrl, "_blank");
-  };
 
   return (
     <>

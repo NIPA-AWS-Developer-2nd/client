@@ -412,13 +412,6 @@ export const MeetingsPage: React.FC = () => {
     navigate(`/meetings/${meetingId}`);
   };
 
-  // 호스트 클릭 핸들러 (Mock 데이터이므로 임시로 비활성화)
-  const handleHostClick = (e: React.MouseEvent, hostName: string) => {
-    e.stopPropagation(); // 카드 클릭 이벤트 방지
-    // TODO: 실제 API 연결 시 userId로 변경
-    console.log('호스트 클릭:', hostName);
-    // navigate(`/user/${userId}`);
-  };
 
   React.useEffect(() => {
     const handleResize = () => {

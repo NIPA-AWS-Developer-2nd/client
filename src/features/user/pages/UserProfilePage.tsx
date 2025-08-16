@@ -20,7 +20,6 @@ import { useOnboardingStore } from "../../../shared/store";
 import { ImageModal } from "../../../shared/components/common/ImageModal";
 import { useImageModal } from "../../../shared/hooks/useImageModal";
 import { Skeleton } from "../../../shared/components/ui";
-import type { VerificationStatus } from "../../../types";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
@@ -72,13 +71,6 @@ const ProfileHeader = styled.div`
   margin-bottom: 16px;
 `;
 
-const _VerificationContainer = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 8px;
-`;
 
 const ProfileName = styled.h3<{ $isMobile?: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "18px" : "22px")};
@@ -112,70 +104,6 @@ const BioSection = styled.div<{ $isMobile?: boolean }>`
   gap: 8px;
 `;
 
-const _VerificationBadge = styled.div<{
-  $status: VerificationStatus;
-  $isMobile?: boolean;
-  $isLocation?: boolean;
-}>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: ${({ $isMobile }) => ($isMobile ? "11px" : "12px")};
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-
-  ${({ $status, $isLocation, theme }) => {
-    if ($isLocation) {
-      if ($status === "APPROVED") {
-        return `
-          color: #059669;
-          background: linear-gradient(135deg, #D1FAE5, #10B98120);
-          border: 1px solid #10B98130;
-        `;
-      } else {
-        return `
-          color: #6B7280;
-          background: linear-gradient(135deg, #F3F4F6, #9CA3AF20);
-          border: 1px solid #9CA3AF30;
-        `;
-      }
-    }
-
-    if ($status === "APPROVED") {
-      return `
-        color: #1E40AF;
-        background: linear-gradient(135deg, #DBEAFE, #3B82F620);
-        border: 1px solid #3B82F630;
-      `;
-    }
-
-    switch ($status) {
-      case "PENDING":
-        return `
-          color: ${theme.colors.warning};
-          background: linear-gradient(135deg, #FEF3C7, ${theme.colors.warning}20);
-          border: 1px solid ${theme.colors.warning}30;
-        `;
-      case "REJECTED":
-        return `
-          color: ${theme.colors.danger};
-          background: linear-gradient(135deg, #FEE2E2, ${theme.colors.danger}20);
-          border: 1px solid ${theme.colors.danger}30;
-        `;
-      default:
-        return `
-          color: ${theme.colors.text.secondary};
-          background: ${theme.colors.gray100};
-          border: 1px solid ${theme.colors.border};
-        `;
-    }
-  }}
-`;
 
 const ActivitySection = styled.div<{ $isMobile?: boolean }>`
   background: ${({ theme }) => theme.colors.white};
@@ -323,14 +251,16 @@ interface UserProfileData {
 // 디버그용 사용자 목록 컴포넌트
 const DebugUserList: React.FC = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = React.useState<Array<{
-    id: string;
-    phoneNumber?: string;
-    status: string;
-    onboardingCompleted: boolean;
-    nickname?: string;
-    profileImageUrl?: string;
-  }>>([]);
+  const [users, setUsers] = React.useState<
+    Array<{
+      id: string;
+      phoneNumber?: string;
+      status: string;
+      onboardingCompleted: boolean;
+      nickname?: string;
+      profileImageUrl?: string;
+    }>
+  >([]);
   const [loading, setLoading] = React.useState(false);
 
   const loadUsers = async () => {
@@ -350,7 +280,14 @@ const DebugUserList: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ border: "1px solid #ddd", padding: "15px", borderRadius: "8px", background: "#f9f9f9" }}>
+    <div
+      style={{
+        border: "1px solid #ddd",
+        padding: "15px",
+        borderRadius: "8px",
+        background: "#f9f9f9",
+      }}
+    >
       <h3 style={{ marginTop: 0 }}>🔧 디버그: 존재하는 사용자 목록</h3>
       {loading ? (
         <p>로딩 중...</p>
@@ -371,14 +308,27 @@ const DebugUserList: React.FC = () => {
                 }}
                 onClick={() => navigate(`/user/${user.id}`)}
               >
-                <div style={{ fontSize: "12px", fontFamily: "monospace", color: "#666" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontFamily: "monospace",
+                    color: "#666",
+                  }}
+                >
                   ID: {user.id}
                 </div>
                 <div>
-                  <strong>{user.nickname || "닉네임 없음"}</strong> ({user.phoneNumber || "번호 없음"})
+                  <strong>{user.nickname || "닉네임 없음"}</strong> (
+                  {user.phoneNumber || "번호 없음"})
                 </div>
-                <div style={{ fontSize: "12px", color: user.onboardingCompleted ? "green" : "orange" }}>
-                  {user.status} | 온보딩: {user.onboardingCompleted ? "완료" : "미완료"}
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: user.onboardingCompleted ? "green" : "orange",
+                  }}
+                >
+                  {user.status} | 온보딩:{" "}
+                  {user.onboardingCompleted ? "완료" : "미완료"}
                 </div>
               </div>
             ))}
@@ -427,31 +377,39 @@ export const UserProfilePage: React.FC = () => {
 
         const userData = await userApiService.getOtherUserProfile(userId);
         setUserInfo(userData);
-        
+
         // 페이지 제목 동적 변경
-        document.title = `${userData.profile?.nickname || '사용자'} 프로필 | Halsaram`;
-        
+        document.title = `${
+          userData.profile?.nickname || "사용자"
+        } 프로필 | 할사람`;
+
         // 헤더 제목도 업데이트
-        const headerElement = document.querySelector('[data-header-title]');
+        const headerElement = document.querySelector("[data-header-title]");
         if (headerElement) {
-          headerElement.textContent = `${userData.profile?.nickname || '사용자'} 프로필`;
+          headerElement.textContent = `${
+            userData.profile?.nickname || "사용자"
+          } 프로필`;
         }
       } catch (err) {
         console.error("❌ 사용자 프로필 조회 실패:", err);
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        
+        const errorMessage =
+          err instanceof Error ? err.message : "Unknown error";
+
         // 사용자를 찾을 수 없는 경우 404 페이지로 리다이렉트
-        if (errorMessage.includes("찾을 수 없습니다") || errorMessage.includes("not found")) {
+        if (
+          errorMessage.includes("찾을 수 없습니다") ||
+          errorMessage.includes("not found")
+        ) {
           navigate("/404", { replace: true });
           return;
         }
-        
+
         setError(errorMessage);
         // 에러 시 기본 제목으로 설정
-        document.title = "사용자 프로필 | Halsaram";
-        
+        document.title = "사용자 프로필 | 할사람?";
+
         // 헤더 제목도 기본값으로 설정
-        const headerElement = document.querySelector('[data-header-title]');
+        const headerElement = document.querySelector("[data-header-title]");
         if (headerElement) {
           headerElement.textContent = "사용자 프로필";
         }
@@ -572,9 +530,12 @@ export const UserProfilePage: React.FC = () => {
     return (
       <PageContainer $isMobile={isMobile}>
         <div style={{ padding: "20px" }}>
-          <h2>사용자 정보를 불러오는데 실패했습니다</h2>
+          <h2>
+            서버 측에서 예상치 못한 문제가 발생하여 사용자 정보를 불러올 수
+            없습니다
+          </h2>
           <p style={{ color: "red", marginBottom: "20px" }}>{error}</p>
-          
+
           <DebugUserList />
         </div>
       </PageContainer>

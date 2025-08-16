@@ -38,23 +38,6 @@ const Label = styled.label<{ $isMobile?: boolean }>`
   margin-bottom: 8px;
 `;
 
-const _Input = styled.input<{ $isMobile?: boolean }>`
-  width: 100%;
-  padding: ${({ $isMobile }) => ($isMobile ? "12px" : "14px")};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
-  background: ${({ theme }) => theme.colors.white};
-  
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-  
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.text.secondary};
-  }
-`;
 
 const Textarea = styled.textarea<{ $isMobile?: boolean }>`
   width: 100%;
@@ -66,22 +49,24 @@ const Textarea = styled.textarea<{ $isMobile?: boolean }>`
   resize: vertical;
   min-height: 100px;
   font-family: inherit;
-  
+
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
   }
-  
+
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.secondary};
   }
 `;
 
-
-const SubmitButton = styled.button<{ $isMobile?: boolean; $isLoading?: boolean }>`
+const SubmitButton = styled.button<{
+  $isMobile?: boolean;
+  $isLoading?: boolean;
+}>`
   width: 100%;
   padding: ${({ $isMobile }) => ($isMobile ? "16px" : "18px")};
-  background: ${({ theme, $isLoading }) => 
+  background: ${({ theme, $isLoading }) =>
     $isLoading ? theme.colors.text.secondary : theme.colors.primary};
   color: white;
   border: none;
@@ -121,7 +106,7 @@ export const MeetingEditPage: React.FC = () => {
   const navigate = useNavigate();
   const { id: meetingId } = useParams<{ id: string }>();
   const { user } = useAuth();
-  
+
   // 디버깅용 로그
   console.log("현재 사용자 정보:", user);
   const { error, success } = useAlert();
@@ -130,7 +115,7 @@ export const MeetingEditPage: React.FC = () => {
   // 원본 모임 데이터
   const [meetingData, setMeetingData] = useState<MeetingDetailDto | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(true);
-  
+
   // 폼 상태
   const [formData, setFormData] = useState({
     introduction: "",
@@ -138,7 +123,7 @@ export const MeetingEditPage: React.FC = () => {
     traits: [] as SelectedHashtagWithPreference[],
   });
 
-  const [hashtags, setHashtags] = useState<Hashtag[]>([]);
+  const [_hashtags, _setHashtags] = useState<Hashtag[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -159,14 +144,14 @@ export const MeetingEditPage: React.FC = () => {
       try {
         setIsDataLoading(true);
         const data = await meetingApiService.getMeetingDetail(meetingId);
-        
+
         // 호스트 권한 확인 (디버깅용 로그 추가)
         console.log("호스트 권한 확인:", {
           dataHostUserId: data.hostUserId,
           currentUserId: user?.id,
-          isEqual: data.hostUserId === user?.id
+          isEqual: data.hostUserId === user?.id,
         });
-        
+
         if (data.hostUserId !== user?.id) {
           error("수정 권한이 없습니다.");
           navigate(`/meetings/${meetingId}`);
@@ -174,17 +159,18 @@ export const MeetingEditPage: React.FC = () => {
         }
 
         setMeetingData(data);
-        
+
         // 폼 데이터 초기화
         setFormData({
           introduction: data.introduction || "",
           focusScore: data.focusScore || 50,
           traits: [], // TODO: 기존 해시태그 데이터 변환 필요
         });
-
-      } catch (error) {
-        console.error("모임 데이터 로드 실패:", error);
-        error("모임 정보를 불러올 수 없습니다.");
+      } catch (err) {
+        console.error("모임 데이터 로드 실패:", err);
+        error(
+          "서버 측에서 예상치 못한 문제가 발생하여 모임 정보를 불러올 수 없습니다."
+        );
         navigate("/meetings");
       } finally {
         setIsDataLoading(false);
@@ -199,7 +185,7 @@ export const MeetingEditPage: React.FC = () => {
     const loadHashtags = async () => {
       try {
         const hashtagData = await userApiService.getUserHashtags();
-        setHashtags(hashtagData);
+        _setHashtags(hashtagData);
       } catch (error) {
         console.error("해시태그 로드 실패:", error);
       }
@@ -210,7 +196,7 @@ export const MeetingEditPage: React.FC = () => {
 
   // 페이지 제목 설정
   useEffect(() => {
-    document.title = "모임 정보 수정 | Halsaram";
+    document.title = "모임 정보 수정 | 할사람?";
   }, []);
 
   const validateForm = () => {
@@ -235,30 +221,31 @@ export const MeetingEditPage: React.FC = () => {
       const updateData = {
         introduction: formData.introduction,
         focusScore: formData.focusScore,
-        traits: formData.traits.map(trait => ({ id: trait.name })),
+        traits: formData.traits.map((trait) => ({ id: trait.name })),
       };
 
       console.log("모임 수정 데이터:", updateData);
-      
+
       await meetingApiService.updateMeeting(meetingData.id, updateData);
-      
+
       success("모임 정보가 수정되었습니다.");
       navigate(`/meetings/${meetingId}`);
-
-    } catch (error) {
-      console.error("모임 수정 실패:", error);
-      error("모임 수정 중 오류가 발생했습니다.");
+    } catch (err) {
+      console.error("모임 수정 실패:", err);
+      error(
+        "서버 측에서 예상치 못한 문제가 발생하여 모임을 수정할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (field: string, value: unknown) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // 에러 메시지 초기화
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -266,9 +253,7 @@ export const MeetingEditPage: React.FC = () => {
     return (
       <Container $isMobile={isMobile}>
         <Content $isMobile={isMobile}>
-          <LoadingContainer>
-            모임 정보를 불러오는 중...
-          </LoadingContainer>
+          <LoadingContainer>모임 정보를 불러오는 중...</LoadingContainer>
         </Content>
       </Container>
     );
@@ -295,20 +280,17 @@ export const MeetingEditPage: React.FC = () => {
                 estimatedDuration: meetingData.mission.estimatedDuration,
                 thumbnailUrl: meetingData.mission.thumbnailUrl,
                 hashtags: meetingData.mission.hashtags,
-                difficulty: meetingData.mission.difficulty,
-                categoryId: meetingData.mission.categoryId,
-                districtId: meetingData.mission.districtId,
-                isActive: meetingData.mission.isActive,
-                createdAt: meetingData.mission.createdAt,
-                updatedAt: meetingData.mission.updatedAt,
+                difficulty: meetingData.mission.difficulty as "very_easy" | "easy" | "medium" | "hard" | "very_hard",
+                category: meetingData.mission.category,
+                district: meetingData.mission.district ? {
+                  name: meetingData.mission.district.districtName,
+                } : undefined,
               }}
-              showParticipants={true}
               onClick={() => {}}
-              style={{ cursor: "default" }}
+              isClickable={false}
             />
           </FormSection>
         )}
-
 
         {/* 모임 소개 */}
         <FormSection>
@@ -326,7 +308,8 @@ export const MeetingEditPage: React.FC = () => {
             <span
               style={{
                 fontSize: isMobile ? "12px" : "13px",
-                color: formData.introduction.length > 100 ? "#EF4444" : "#6B7280",
+                color:
+                  formData.introduction.length > 100 ? "#EF4444" : "#6B7280",
                 fontWeight: "500",
               }}
             >
@@ -443,9 +426,10 @@ export const MeetingEditPage: React.FC = () => {
             </span>
           </div>
           <HashtagSelector
-            hashtags={hashtags}
             selectedHashtags={formData.traits}
-            onSelectionChange={(selected) => handleInputChange("traits", selected)}
+            onHashtagsChange={(selected: SelectedHashtagWithPreference[]) =>
+              handleInputChange("traits", selected)
+            }
           />
         </FormSection>
 

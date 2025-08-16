@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   // ArrowLeft, 
   Plus, 
@@ -35,7 +34,6 @@ import { PointBalance } from '../../components/PointBalance';
 import * as S from './PointHistoryPage.styles';
 
 export const PointHistoryPage: React.FC = () => {
-  const _navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [transactions, setTransactions] = useState<PointTransactionData[]>([]);
   const [loading, setLoading] = useState(false);

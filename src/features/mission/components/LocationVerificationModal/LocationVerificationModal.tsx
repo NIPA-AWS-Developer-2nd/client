@@ -7,19 +7,6 @@ import {
 } from "../../../../shared/services/userApi";
 import { apiClient } from "../../../../shared/api/apiClient";
 
-declare global {
-  interface Window {
-    naver: {
-      maps: {
-        Map: new (element: HTMLElement, options: object) => unknown;
-        LatLng: new (lat: number, lng: number) => unknown;
-        Marker: new (options: object) => unknown;
-        Circle: new (options: object) => unknown;
-        Position: { TOP_RIGHT: string };
-      };
-    };
-  }
-}
 
 interface LocationVerificationModalProps {
   isOpen: boolean;
@@ -92,7 +79,7 @@ export const LocationVerificationModal: React.FC<
   // 좌표를 주소로 변환하는 함수 - 백엔드 API 호출
   const convertCoordinatesToAddress = async (lat: number, lng: number): Promise<string> => {
     try {
-      const response = await apiClient.get<{ address: string }>(`/location/reverse-geocode?lat=${lat}&lng=${lng}`);
+      const response = await apiClient.get(`/location/reverse-geocode?lat=${lat}&lng=${lng}`) as { address: string };
       return response.address || `위도 ${lat.toFixed(4)}, 경도 ${lng.toFixed(4)}`;
     } catch (error) {
       console.error('주소 변환 API 호출 실패:', error);
@@ -146,14 +133,7 @@ export const LocationVerificationModal: React.FC<
     };
   }, []);
 
-  // 현재 위치 가져오기
-  useEffect(() => {
-    if (isOpen && currentStep === "verify") {
-      getCurrentLocation();
-    }
-  }, [isOpen, currentStep]);
-
-  const getCurrentLocation = () => {
+  const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError("이 브라우저는 위치 서비스를 지원하지 않습니다.");
       return;
@@ -198,7 +178,14 @@ export const LocationVerificationModal: React.FC<
         maximumAge: 300000, // 5분
       }
     );
-  };
+  }, []);
+
+  // 현재 위치 가져오기
+  useEffect(() => {
+    if (isOpen && currentStep === "verify") {
+      getCurrentLocation();
+    }
+  }, [isOpen, currentStep, getCurrentLocation]);
 
   // 지도 초기화
   useEffect(() => {
@@ -303,20 +290,6 @@ export const LocationVerificationModal: React.FC<
     }
   };
 
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // Distance in meters
-  };
 
   const handleVerifyLocation = async () => {
     if (!selectedDistrict || !currentLocation) {
