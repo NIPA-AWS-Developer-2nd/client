@@ -76,18 +76,6 @@ const MapButton = styled.button`
   }
 `;
 
-declare global {
-  interface Window {
-    naver: {
-      maps: {
-        Map: new (element: HTMLElement, options: object) => object;
-        LatLng: new (lat: number, lng: number) => object;
-        Marker: new (options: object) => object;
-        Position: { TOP_RIGHT: string };
-      };
-    };
-  }
-}
 
 interface MissionLocationProps {
   mission: MissionWithDetails;

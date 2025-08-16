@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import type { MissionActionsProps } from "../types";
-import missionGuideImage from "../../../../../assets/images/mission-guide.png";
+// import missionGuideImage from "../../../../../assets/images/mission-guide.png"; // Removed hardcoded image
 import { meetingApiService } from "../../../../../shared/services";
 import { MeetingMapper } from "../../../../../shared/services/meetingMapper";
 import MeetingCard from "../../../../meeting/components/MeetingCard";
 import MeetingCardSkeleton from "../../../../meeting/components/MeetingCardSkeleton";
 import type { Meeting } from "../../../../../types";
+import { useLocationVerification } from "../../../../../shared/hooks";
+import { useAlert } from "../../../../../shared/hooks/useAlert";
 
 const ActionSection = styled.div<{ $isMobile?: boolean }>`
   background: ${({ theme }) => theme.colors.white};
@@ -24,7 +26,7 @@ const ActionImage = styled.img<{ $isMobile?: boolean }>`
   margin: 0 auto 20px;
   display: block;
   filter: ${({ theme }) =>
-    theme.colors.background === "#2D3748"
+    theme.colors.background.primary === "#2D3748"
       ? "brightness(0.8) blur(0.5px)"
       : "none"};
   transition: filter 0.2s ease;
@@ -135,6 +137,8 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
   const [searchParams] = useSearchParams();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
+  const { warning } = useAlert();
 
   // 모임 상세페이지에서 온 경우 미션과 연결된 모임 리스트를 숨김
   const hideFromMeetingDetail = searchParams.get("from") === "meeting";
@@ -166,6 +170,17 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
   }, [missionId, hideFromMeetingDetail]);
 
   const handleViewAllMeetings = () => {
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "모임 보기");
+      return;
+    }
+
     if (meetings.length < 3) {
       // 3개 미만인 경우 전체 모임 보기 (필터 없음)
       navigate("/meetings");
@@ -184,16 +199,18 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
   if (mission.isCompleted) {
     return (
       <ActionSection $isMobile={isMobile}>
-        <ActionImage
-          $isMobile={isMobile}
-          src={missionGuideImage}
-          alt="미션 완료"
-          loading="lazy"
-          onError={(e) => {
-            console.log("Guide image failed to load:", missionGuideImage);
-            e.currentTarget.style.display = "none";
-          }}
-        />
+        {mission.context?.photoGuide && (
+          <ActionImage
+            $isMobile={isMobile}
+            src={mission.context.photoGuide}
+            alt="미션 완료"
+            loading="lazy"
+            onError={(e) => {
+              console.log("Guide image failed to load:", mission.context?.photoGuide);
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        )}
         <ActionTitle $isMobile={isMobile}>미션을 완료했어요! 🎉</ActionTitle>
         <ActionDescription $isMobile={isMobile}>
           축하합니다! 이미 완료한 미션입니다.
@@ -206,16 +223,18 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
 
   return (
     <ActionSection $isMobile={isMobile}>
-      <ActionImage
-        $isMobile={isMobile}
-        src={missionGuideImage}
-        alt="미션 가이드"
-        loading="lazy"
-        onError={(e) => {
-          console.log("Guide image failed to load:", missionGuideImage);
-          e.currentTarget.style.display = "none";
-        }}
-      />
+      {mission.context?.photoGuide && (
+        <ActionImage
+          $isMobile={isMobile}
+          src={mission.context.photoGuide}
+          alt="미션 가이드"
+          loading="lazy"
+          onError={(e) => {
+            console.log("Guide image failed to load:", mission.context?.photoGuide);
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      )}
       <ActionTitle $isMobile={isMobile}>
         이 미션, 함께 도전해볼까요?
       </ActionTitle>

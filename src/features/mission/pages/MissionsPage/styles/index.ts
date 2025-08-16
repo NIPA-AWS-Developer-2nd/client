@@ -124,7 +124,7 @@ export const FilterSelect = styled.select`
   transition: ${({ theme }) => theme.transitions.fast};
   appearance: none;
   background-image: ${({ theme }) =>
-    theme.colors.background === "#2D3748"
+    theme.colors.background.primary === "#2D3748"
       ? `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`
       : `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`};
   background-repeat: no-repeat;
@@ -210,7 +210,7 @@ export const PointBadgeOverlay = styled.div<{ $isMobile?: boolean; $point: numbe
   right: 12px;
   padding: ${({ $isMobile }) => ($isMobile ? "6px 10px" : "8px 12px")};
   background: ${({ $point, theme }) => {
-    const isDark = theme.colors.background === "#2D3748";
+    const isDark = theme.colors.background.primary === "#2D3748";
     return getPointBadgeColor($point, isDark).background;
   }};
   color: ${({ $point }) => ($point < 300 ? "#4B5563" : "#FFFFFF")};
@@ -219,7 +219,7 @@ export const PointBadgeOverlay = styled.div<{ $isMobile?: boolean; $point: numbe
   font-weight: 800;
   box-shadow: 0 2px 6px
     ${({ $point, theme }) => {
-      const isDark = theme.colors.background === "#2D3748";
+      const isDark = theme.colors.background.primary === "#2D3748";
       return getPointBadgeColor($point, isDark).shadow;
     }};
   text-shadow: ${({ $point }) =>

@@ -16,7 +16,7 @@ const HeroImage = styled.img`
   height: 100%;
   object-fit: cover;
   filter: ${({ theme }) =>
-    theme.colors.background === "#2D3748"
+    theme.colors.background.primary === "#2D3748"
       ? "brightness(0.8) blur(0.5px)"
       : "none"};
   transition: filter 0.2s ease;
