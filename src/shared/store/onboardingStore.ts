@@ -10,7 +10,7 @@ import {
   type Hashtag,
 } from "../services";
 import { cachedApiCall } from "../utils/apiCache";
-import type { LocationData } from "../../types";
+import type { LocationData, AccountStatus } from "../../types";
 import type { User } from "../../features/auth/hooks/useAuth";
 
 interface OnboardingState {
@@ -159,7 +159,7 @@ export const useOnboardingStore = create<OnboardingState>()(
               // 기존 사용자 정보 설정
               existingUserInfo: { 
                 ...result.user,
-                status: result.user.status as string
+                status: result.user.status as AccountStatus
               },
             }));
           } else {
