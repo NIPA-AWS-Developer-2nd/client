@@ -23,26 +23,7 @@ const Container = styled.div<{ $isMobile?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
 `;
 
-const _Header = styled.div<{ $isMobile?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
 
-  svg {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const _Subtitle = styled.p<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin: -8px 0 16px 0;
-  line-height: 1.4;
-`;
 
 const SectionTitle = styled.h4<{ $isMobile?: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
@@ -110,14 +91,6 @@ const HashtagButton = styled.button<{
   }
 `;
 
-const _SelectedCount = styled.div<{ $isMobile?: boolean; $isNearMax?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
-  color: ${({ theme, $isNearMax }) => 
-    $isNearMax ? theme.colors.orange : theme.colors.text.secondary};
-  font-weight: 500;
-  text-align: center;
-  margin-top: 12px;
-`;
 
 const SkeletonGrid = styled.div<{ $isMobile?: boolean }>`
   display: grid;
@@ -144,7 +117,7 @@ const HashtagSelector: React.FC<HashtagSelectorProps> = ({
         setHashtags(data);
       } catch (err) {
         console.error('Failed to fetch hashtags:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load hashtags');
+        setError(err instanceof Error ? err.message : '서버 측에서 예상치 못한 문제가 발생하여 해시태그를 불러올 수 없습니다.');
       } finally {
         setIsLoading(false);
       }

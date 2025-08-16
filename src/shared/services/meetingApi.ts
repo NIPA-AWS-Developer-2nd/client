@@ -3,6 +3,7 @@ import { authFetch, apiUrl } from "../utils/api";
 // 백엔드 API 응답 타입에 맞춤
 export interface MeetingHostDto {
   id: string;
+  userId?: string; // Alias for id to maintain compatibility
   nickname: string;
   profileImageUrl: string | null;
   points: number;
@@ -92,6 +93,8 @@ export interface MeetingDetailDto extends MeetingDto {
   canJoin: boolean;
   userParticipationStatus: string | null;
   isLiked: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부
+  introduction?: string;
+  focusScore?: number;
 }
 
 export interface GetMeetingsResponse {

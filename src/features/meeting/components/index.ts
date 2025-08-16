@@ -9,3 +9,4 @@ export { RecruitmentDeadlineNotice } from './RecruitmentDeadlineNotice';
 export { MeetingJoinModal } from './MeetingJoinModal';
 export { MeetingLeaveModal } from './MeetingLeaveModal';
 export { MeetingCancelModal } from './MeetingCancelModal';
+export { QRTestHelper } from './QRTestHelper';

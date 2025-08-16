@@ -75,7 +75,7 @@ export class MeetingMapper {
     return {
       id: dto.id,
       nickname: dto.nickname,
-      profileImageUrl: dto.profileImageUrl,
+      profileImageUrl: dto.profileImageUrl || "",
       points: dto.points,
       level: dto.level,
       mbti: dto.mbti,
@@ -89,7 +89,7 @@ export class MeetingMapper {
     return {
       id: dto.id,
       nickname: dto.nickname,
-      profileImageUrl: dto.profileImageUrl,
+      profileImageUrl: dto.profileImageUrl || "",
       level: dto.level,
       isHost: dto.isHost,
     };

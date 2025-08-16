@@ -31,6 +31,7 @@ export const mockMeetings: MeetingWithDetails[] = [
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       status: "ACTIVE",
+      isCompleted: false,
     },
     host: {
       id: 1,
@@ -98,6 +99,7 @@ export const mockMeetings: MeetingWithDetails[] = [
       createdAt: "2024-01-01T00:00:00Z",
       updatedAt: "2024-01-01T00:00:00Z",
       status: "ACTIVE",
+      isCompleted: false,
     },
     host: {
       id: 2,

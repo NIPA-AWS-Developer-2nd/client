@@ -1,1 +1,1 @@
-export { default as HashtagSelector } from './HashtagSelector';
+export { default as HashtagSelector, type SelectedHashtagWithPreference } from './HashtagSelector';

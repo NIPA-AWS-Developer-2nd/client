@@ -11,18 +11,23 @@ import {
   User,
   Heart,
   Edit3,
-  MoreVertical,
 } from "lucide-react";
 import { meetingApiService } from "../../../../shared/services/meetingApi";
 import { attendanceApiService } from "../../../../shared/services/attendanceApi";
 import type { MeetingDetailDto } from "../../../../shared/services/meetingApi";
-import type { AttendanceStatusResponse, MyAttendanceResponse } from "../../../../shared/services/attendanceApi";
+import type {
+  AttendanceStatusResponse,
+  MyAttendanceResponse,
+} from "../../../../shared/services/attendanceApi";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
 import { useTheme } from "../../../../shared/hooks/useTheme";
 import { useAuth } from "../../../auth/hooks/useAuth";
 import { AlertModal } from "../../../../shared/components/common";
 import { MeetingJoinModal } from "../../components/MeetingJoinModal/MeetingJoinModal";
-import { QRCodeScanner, QRCodeGenerator } from "../../../../shared/components/ui";
+import {
+  QRCodeScanner,
+  QRCodeGenerator,
+} from "../../../../shared/components/ui";
 import {
   PageContainer,
   StatusBadge,
@@ -114,18 +119,6 @@ const calculateTimeRemaining = (dateStr: string, timeStr: string) => {
   }
 };
 
-declare global {
-  interface Window {
-    naver: {
-      maps: {
-        Map: new (element: HTMLElement, options: object) => object;
-        LatLng: new (lat: number, lng: number) => object;
-        Marker: new (options: object) => object;
-        Position: { TOP_RIGHT: string };
-      };
-    };
-  }
-}
 
 export const MeetingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,10 +138,13 @@ export const MeetingDetailPage: React.FC = () => {
   const [isLiking, setIsLiking] = useState(false);
   const [showAlreadyLikedModal, setShowAlreadyLikedModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  
+
   // 출석체크 관련 상태
-  const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatusResponse | null>(null);
-  const [myAttendance, setMyAttendance] = useState<MyAttendanceResponse | null>(null);
+  const [attendanceStatus, setAttendanceStatus] =
+    useState<AttendanceStatusResponse | null>(null);
+  const [myAttendance, setMyAttendance] = useState<MyAttendanceResponse | null>(
+    null
+  );
   const [showQRGenerator, setShowQRGenerator] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [qrCodeToken, setQRCodeToken] = useState<string | null>(null);
@@ -177,9 +173,12 @@ export const MeetingDetailPage: React.FC = () => {
         setMeetingData(data);
         // API 응답에서 현재 사용자의 좋아요 상태 설정
         setIsLiked(data.isLiked || false);
-        
+
         // 출석 데이터 가져오기 (참가자만)
-        if (data.participantList?.some(p => p.userId === currentUserId) || data.hostUserId === currentUserId) {
+        if (
+          data.participantList?.some((p) => p.userId === currentUserId) ||
+          data.hostUserId === currentUserId
+        ) {
           await fetchAttendanceData(id);
         }
       } catch (err) {
@@ -293,7 +292,7 @@ export const MeetingDetailPage: React.FC = () => {
   // 페이지 제목 및 헤더 타이틀 동적 설정
   useEffect(() => {
     if (meetingData?.mission?.title) {
-      document.title = `${meetingData.mission.title} | Halsaram`;
+      document.title = `${meetingData.mission.title} | 할사람?`;
 
       // 헤더 제목도 업데이트
       const headerElement = document.querySelector("[data-header-title]");
@@ -301,7 +300,7 @@ export const MeetingDetailPage: React.FC = () => {
         headerElement.textContent = meetingData.mission.title;
       }
     } else if (meetingData) {
-      document.title = "번개모임 | Halsaram";
+      document.title = "번개모임 | 할사람?";
 
       const headerElement = document.querySelector("[data-header-title]");
       if (headerElement) {
@@ -409,7 +408,7 @@ export const MeetingDetailPage: React.FC = () => {
           const confirmed = window.confirm(
             "정말로 모임을 삭제하시겠습니까?\n삭제된 모임은 복구할 수 없습니다."
           );
-          
+
           if (confirmed) {
             try {
               await meetingApiService.deleteMeeting(meetingData.id);
@@ -417,13 +416,15 @@ export const MeetingDetailPage: React.FC = () => {
               navigate("/meetings"); // 모임 목록으로 이동
             } catch (error) {
               console.error("모임 삭제 실패:", error);
-              alert("모임 삭제 중 오류가 발생했습니다.");
+              alert(
+                "서버 측에서 예상치 못한 문제가 발생하여 모임을 삭제할 수 없습니다. 잠시 후 다시 시도해주세요."
+              );
             }
           }
         } else {
           // 일반 참여자 - 참여 취소 로직
           const confirmed = window.confirm("정말로 모임을 나가시겠습니까?");
-          
+
           if (confirmed) {
             try {
               await meetingApiService.leaveMeeting(meetingData.id);
@@ -431,7 +432,9 @@ export const MeetingDetailPage: React.FC = () => {
               window.location.reload(); // 페이지 새로고침
             } catch (error) {
               console.error("모임 나가기 실패:", error);
-              alert("모임 나가기 중 오류가 발생했습니다.");
+              alert(
+                "서버 측에서 예상치 못한 문제가 발생하여 모임을 나갈 수 없습니다. 잠시 후 다시 시도해주세요."
+              );
             }
           }
         }
@@ -455,7 +458,9 @@ export const MeetingDetailPage: React.FC = () => {
       }
     } catch (error) {
       console.error("참여/취소 처리 실패:", error);
-      alert("처리 중 오류가 발생했습니다.");
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -471,7 +476,7 @@ export const MeetingDetailPage: React.FC = () => {
       setAttendanceStatus(statusData);
       setMyAttendance(myData);
     } catch (error) {
-      console.error('출석 데이터 가져오기 실패:', error);
+      console.error("출석 데이터 가져오기 실패:", error);
     }
   };
 
@@ -487,8 +492,10 @@ export const MeetingDetailPage: React.FC = () => {
       // 출석 상태 새로고침
       await fetchAttendanceData(meetingData.id);
     } catch (error) {
-      console.error('QR 코드 생성 실패:', error);
-      alert('출석체크를 시작할 수 없습니다.');
+      console.error("QR 코드 생성 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 출석체크를 시작할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     } finally {
       setIsGeneratingQR(false);
     }
@@ -501,13 +508,15 @@ export const MeetingDetailPage: React.FC = () => {
     try {
       setIsCheckingIn(true);
       await attendanceApiService.checkIn(meetingData.id, qrToken);
-      alert('출석체크가 완료되었습니다!');
+      alert("출석체크가 완료되었습니다!");
       setShowQRScanner(false);
       // 출석 상태 새로고침
       await fetchAttendanceData(meetingData.id);
     } catch (error) {
-      console.error('출석체크 실패:', error);
-      alert('출석체크에 실패했습니다.');
+      console.error("출석체크 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 출석체크를 완료할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     } finally {
       setIsCheckingIn(false);
     }
@@ -517,7 +526,9 @@ export const MeetingDetailPage: React.FC = () => {
   const handleMarkNoShow = async () => {
     if (!meetingData?.id || !isHost) return;
 
-    const confirmed = window.confirm('출석체크하지 않은 참가자를 노쇼로 처리하시겠습니까?');
+    const confirmed = window.confirm(
+      "출석체크하지 않은 참가자를 노쇼로 처리하시겠습니까?"
+    );
     if (!confirmed) return;
 
     try {
@@ -526,8 +537,10 @@ export const MeetingDetailPage: React.FC = () => {
       // 출석 상태 새로고침
       await fetchAttendanceData(meetingData.id);
     } catch (error) {
-      console.error('노쇼 처리 실패:', error);
-      alert('노쇼 처리에 실패했습니다.');
+      console.error("노쇼 처리 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 노쇼 처리를 완료할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     }
   };
 
@@ -618,7 +631,9 @@ export const MeetingDetailPage: React.FC = () => {
                 {meetingData.mission?.title || "제목 없음"}
               </HeroTitle>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
                 {/* 호스트 전용 수정 버튼 */}
                 {isHost && (
                   <div
@@ -915,140 +930,202 @@ export const MeetingDetailPage: React.FC = () => {
             {/* 이런 분과 함께하고 싶어요 - API에서 제공되지 않아 임시로 숨김 */}
 
             {/* 출석체크 현황 (진행 중인 모임이고 참가자인 경우만 표시) */}
-            {meetingData.status === 'active' && (isParticipant || isHost) && attendanceStatus && (
-              <DetailCard $isMobile={isMobile} $col={6}>
-                <DetailHeader>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'space-between' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Users size={20} />
-                      출석 현황 ({attendanceStatus.summary.checkedIn}/{attendanceStatus.summary.total})
-                    </span>
-                    
-                    {/* 호스트 액션 버튼들 */}
-                    {isHost && (
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        {attendanceStatus.canGenerateQR && !attendanceStatus.qrCodeActive && (
+            {meetingData.status === "active" &&
+              (isParticipant || isHost) &&
+              attendanceStatus && (
+                <DetailCard $isMobile={isMobile} $col={6}>
+                  <DetailHeader>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        width: "100%",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Users size={20} />
+                        출석 현황 ({attendanceStatus.summary.checkedIn}/
+                        {attendanceStatus.summary.total})
+                      </span>
+
+                      {/* 호스트 액션 버튼들 */}
+                      {isHost && (
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {attendanceStatus.canGenerateQR &&
+                            !attendanceStatus.qrCodeActive && (
+                              <button
+                                onClick={handleGenerateQR}
+                                disabled={isGeneratingQR}
+                                style={{
+                                  padding: "4px 8px",
+                                  fontSize: "11px",
+                                  backgroundColor: "#10B981",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {isGeneratingQR ? "생성 중..." : "QR 생성"}
+                              </button>
+                            )}
+
+                          {attendanceStatus.qrCodeActive && (
+                            <span
+                              style={{
+                                padding: "4px 8px",
+                                fontSize: "11px",
+                                backgroundColor: "#3B82F6",
+                                color: "white",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              QR 활성
+                            </span>
+                          )}
+
                           <button
-                            onClick={handleGenerateQR}
-                            disabled={isGeneratingQR}
+                            onClick={handleMarkNoShow}
                             style={{
-                              padding: '4px 8px',
-                              fontSize: '11px',
-                              backgroundColor: '#10B981',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              backgroundColor: "#EF4444",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
                             }}
                           >
-                            {isGeneratingQR ? '생성 중...' : 'QR 생성'}
+                            노쇼 처리
                           </button>
-                        )}
-                        
-                        {attendanceStatus.qrCodeActive && (
-                          <span style={{
-                            padding: '4px 8px',
-                            fontSize: '11px',
-                            backgroundColor: '#3B82F6',
-                            color: 'white',
-                            borderRadius: '4px',
-                          }}>
-                            QR 활성
-                          </span>
-                        )}
-                        
+                        </div>
+                      )}
+
+                      {/* 참가자 출석 버튼 */}
+                      {!isHost && myAttendance?.canCheckIn && (
                         <button
-                          onClick={handleMarkNoShow}
+                          onClick={() => setShowQRScanner(true)}
                           style={{
-                            padding: '4px 8px',
-                            fontSize: '11px',
-                            backgroundColor: '#EF4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            backgroundColor: "#10B981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
                           }}
                         >
-                          노쇼 처리
+                          출석체크
                         </button>
-                      </div>
-                    )}
-                    
-                    {/* 참가자 출석 버튼 */}
-                    {!isHost && myAttendance?.canCheckIn && (
-                      <button
-                        onClick={() => setShowQRScanner(true)}
-                        style={{
-                          padding: '4px 8px',
-                          fontSize: '11px',
-                          backgroundColor: '#10B981',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        출석체크
-                      </button>
-                    )}
-                  </div>
-                </DetailHeader>
-                <DetailContent>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {attendanceStatus.attendances.map((attendance) => (
-                      <div
-                        key={attendance.userId}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '6px 8px',
-                          backgroundColor: attendance.status === 'checked_in' ? '#F0FDF4' :
-                                           attendance.status === 'no_show' ? '#FEF2F2' : '#F9FAFB',
-                          borderRadius: '6px',
-                          border: '1px solid',
-                          borderColor: attendance.status === 'checked_in' ? '#D1FAE5' :
-                                      attendance.status === 'no_show' ? '#FEE2E2' : '#E5E7EB',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ fontWeight: '500', fontSize: isMobile ? '13px' : '14px' }}>
-                            {attendance.nickname}
-                            {attendance.isHost && <Crown size={12} color="#F59E0B" style={{ marginLeft: '4px' }} />}
+                      )}
+                    </div>
+                  </DetailHeader>
+                  <DetailContent>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                      }}
+                    >
+                      {attendanceStatus.attendances.map((attendance) => (
+                        <div
+                          key={attendance.userId}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "6px 8px",
+                            backgroundColor:
+                              attendance.status === "checked_in"
+                                ? "#F0FDF4"
+                                : attendance.status === "no_show"
+                                ? "#FEF2F2"
+                                : "#F9FAFB",
+                            borderRadius: "6px",
+                            border: "1px solid",
+                            borderColor:
+                              attendance.status === "checked_in"
+                                ? "#D1FAE5"
+                                : attendance.status === "no_show"
+                                ? "#FEE2E2"
+                                : "#E5E7EB",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight: "500",
+                                fontSize: isMobile ? "13px" : "14px",
+                              }}
+                            >
+                              {attendance.nickname}
+                              {attendance.isHost && (
+                                <Crown
+                                  size={12}
+                                  color="#F59E0B"
+                                  style={{ marginLeft: "4px" }}
+                                />
+                              )}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              backgroundColor:
+                                attendance.status === "checked_in"
+                                  ? "#10B981"
+                                  : attendance.status === "no_show"
+                                  ? "#EF4444"
+                                  : "#6B7280",
+                              color: "white",
+                            }}
+                          >
+                            {attendance.status === "checked_in"
+                              ? "출석"
+                              : attendance.status === "no_show"
+                              ? "노쇼"
+                              : "대기"}
                           </div>
                         </div>
-                        <div style={{
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          backgroundColor: attendance.status === 'checked_in' ? '#10B981' :
-                                          attendance.status === 'no_show' ? '#EF4444' : '#6B7280',
-                          color: 'white',
-                        }}>
-                          {attendance.status === 'checked_in' ? '출석' :
-                           attendance.status === 'no_show' ? '노쇼' : '대기'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* 요약 정보 */}
-                  <div style={{
-                    marginTop: '12px',
-                    padding: '8px',
-                    backgroundColor: '#F3F4F6',
-                    borderRadius: '6px',
-                    fontSize: isMobile ? '12px' : '13px',
-                    color: '#6B7280',
-                  }}>
-                    출석: {attendanceStatus.summary.checkedIn}명 | 
-                    노쇼: {attendanceStatus.summary.noShow}명 | 
-                    대기: {attendanceStatus.summary.pending}명
-                  </div>
-                </DetailContent>
-              </DetailCard>
-            )}
+                      ))}
+                    </div>
+
+                    {/* 요약 정보 */}
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        padding: "8px",
+                        backgroundColor: "#F3F4F6",
+                        borderRadius: "6px",
+                        fontSize: isMobile ? "12px" : "13px",
+                        color: "#6B7280",
+                      }}
+                    >
+                      출석: {attendanceStatus.summary.checkedIn}명 | 노쇼:{" "}
+                      {attendanceStatus.summary.noShow}명 | 대기:{" "}
+                      {attendanceStatus.summary.pending}명
+                    </div>
+                  </DetailContent>
+                </DetailCard>
+              )}
 
             {/* 현재 멤버 */}
             <DetailCard $isMobile={isMobile} $col={6}>
@@ -1071,12 +1148,18 @@ export const MeetingDetailPage: React.FC = () => {
                     <MemberItem key={participant.userId} $isMobile={isMobile}>
                       <MemberAvatar
                         $isMobile={isMobile}
-                        onClick={() =>
+                        onClick={
                           participant.userId &&
-                          navigate(`/user/${participant.userId}`)
+                          participant.userId !== currentUserId
+                            ? () => navigate(`/user/${participant.userId}`)
+                            : undefined
                         }
                         style={{
-                          cursor: participant.userId ? "pointer" : "default",
+                          cursor:
+                            participant.userId &&
+                            participant.userId !== currentUserId
+                              ? "pointer"
+                              : "default",
                         }}
                       >
                         {participant.profileImageUrl ? (
@@ -1096,18 +1179,22 @@ export const MeetingDetailPage: React.FC = () => {
                       <MemberInfo>
                         <MemberName $isMobile={isMobile}>
                           <span
-                            onClick={() =>
+                            onClick={
                               participant.userId &&
-                              navigate(`/user/${participant.userId}`)
+                              participant.userId !== currentUserId
+                                ? () => navigate(`/user/${participant.userId}`)
+                                : undefined
                             }
                             style={{
                               color:
                                 participant.userId === currentUserId
                                   ? "#3B82F6"
                                   : "inherit",
-                              cursor: participant.userId
-                                ? "pointer"
-                                : "default",
+                              cursor:
+                                participant.userId &&
+                                participant.userId !== currentUserId
+                                  ? "pointer"
+                                  : "default",
                             }}
                           >
                             {participant.nickname}
@@ -1332,11 +1419,9 @@ export const MeetingDetailPage: React.FC = () => {
               if (!meetingData.scheduledAt) return "날짜 정보 없음";
               if (typeof meetingData.scheduledAt === "string")
                 return meetingData.scheduledAt;
-              if (
-                meetingData.scheduledAt.date &&
-                meetingData.scheduledAt.time
-              ) {
-                return `${meetingData.scheduledAt.date} ${meetingData.scheduledAt.time}`;
+              const scheduledAtObj = meetingData.scheduledAt as { date?: string; time?: string };
+              if (scheduledAtObj?.date && scheduledAtObj?.time) {
+                return `${scheduledAtObj.date} ${scheduledAtObj.time}`;
               }
               return "날짜 정보 없음";
             })(),
@@ -1353,54 +1438,64 @@ export const MeetingDetailPage: React.FC = () => {
       {showQRGenerator && qrCodeToken && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             zIndex: 1000,
           }}
           onClick={() => setShowQRGenerator(false)}
         >
           <div
             style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '24px',
-              maxWidth: '400px',
-              width: '90%',
-              textAlign: 'center',
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "24px",
+              maxWidth: "400px",
+              width: "90%",
+              textAlign: "center",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '600' }}>
+            <h3
+              style={{
+                margin: "0 0 16px 0",
+                fontSize: "18px",
+                fontWeight: "600",
+              }}
+            >
               출석체크 QR 코드
             </h3>
-            <p style={{ margin: '0 0 20px 0', color: '#6B7280', fontSize: '14px' }}>
-              참가자들이 이 QR 코드를 스캔하여 출석체크할 수 있습니다. (30분 유효)
+            <p
+              style={{
+                margin: "0 0 20px 0",
+                color: "#6B7280",
+                fontSize: "14px",
+              }}
+            >
+              참가자들이 이 QR 코드를 스캔하여 출석체크할 수 있습니다. (30분
+              유효)
             </p>
-            
-            <QRCodeGenerator 
-              value={qrCodeToken} 
-              size={200} 
-            />
-            
+
+            <QRCodeGenerator value={qrCodeToken} size={200} />
+
             <button
               onClick={() => setShowQRGenerator(false)}
               style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#3B82F6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
+                width: "100%",
+                padding: "12px",
+                backgroundColor: "#3B82F6",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "16px",
+                fontWeight: "600",
+                cursor: "pointer",
               }}
             >
               닫기
@@ -1413,44 +1508,59 @@ export const MeetingDetailPage: React.FC = () => {
       {showQRScanner && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             zIndex: 1000,
           }}
         >
           <div
             style={{
-              maxWidth: '400px',
-              width: '90%',
-              textAlign: 'center',
+              maxWidth: "400px",
+              width: "90%",
+              textAlign: "center",
             }}
           >
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
+            <h3
+              style={{
+                margin: "0 0 16px 0",
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "white",
+              }}
+            >
               QR 코드를 스캔해주세요
             </h3>
-            <p style={{ margin: '0 0 20px 0', color: '#D1D5DB', fontSize: '14px' }}>
+            <p
+              style={{
+                margin: "0 0 20px 0",
+                color: "#D1D5DB",
+                fontSize: "14px",
+              }}
+            >
               호스트가 제공한 QR 코드를 카메라에 비춰주세요
             </p>
-            
+
             <QRCodeScanner
               isActive={showQRScanner}
               onScan={handleQRScan}
               onClose={() => setShowQRScanner(false)}
             />
-            
+
             {isCheckingIn && (
-              <div style={{ 
-                marginTop: '16px', 
-                color: 'white', 
-                fontSize: '14px' 
-              }}>
+              <div
+                style={{
+                  marginTop: "16px",
+                  color: "white",
+                  fontSize: "14px",
+                }}
+              >
                 출석체크 처리 중...
               </div>
             )}

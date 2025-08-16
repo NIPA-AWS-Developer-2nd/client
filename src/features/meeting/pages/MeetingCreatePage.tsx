@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { deviceDetection } from "../../../shared/utils/deviceDetection";
-import { Users } from "lucide-react";
 import { useMissionStore } from "../../../shared/store";
 import {
   meetingApiService,
@@ -41,24 +40,6 @@ const Label = styled.label<{ $isMobile?: boolean }>`
   margin-bottom: 8px;
 `;
 
-const Input = styled.input<{ $isMobile?: boolean }>`
-  width: 100%;
-  padding: ${({ $isMobile }) => ($isMobile ? "12px" : "14px")};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
-  background: ${({ theme }) => theme.colors.white};
-  color: ${({ theme }) => theme.colors.text.primary};
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.text.placeholder};
-  }
-`;
 
 const TextArea = styled.textarea<{ $isMobile?: boolean }>`
   width: 100%;
@@ -80,23 +61,6 @@ const TextArea = styled.textarea<{ $isMobile?: boolean }>`
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.placeholder};
   }
-`;
-
-const InputGroup = styled.div`
-  position: relative;
-`;
-
-const InputIcon = styled.div`
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${({ theme }) => theme.colors.text.secondary};
-  pointer-events: none;
-`;
-
-const IconInput = styled(Input)`
-  padding-left: 40px;
 `;
 
 const BottomBar = styled.div<{ $isMobile?: boolean }>`
@@ -250,7 +214,7 @@ export const MeetingCreatePage: React.FC = () => {
   };
 
   const handleHashtagsChange = (hashtags: SelectedHashtagWithPreference[]) => {
-    handleInputChange("selectedHashtags", hashtags);
+    setFormData(prev => ({ ...prev, selectedHashtags: hashtags }));
     // 해시태그 선택 시 에러 클리어
     if (validationErrors.selectedHashtags) {
       setValidationErrors((prev) => ({ ...prev, selectedHashtags: undefined }));

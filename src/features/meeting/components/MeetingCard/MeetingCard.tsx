@@ -4,6 +4,9 @@ import { Crown, Calendar, MapPin, Clock, Heart } from "lucide-react";
 import type { Meeting } from "../../../../types";
 import { meetingApiService } from "../../../../shared/services/meetingApi";
 import { AlertModal } from "../../../../shared/components/common";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { useLocationVerification } from "../../../../shared/hooks";
+import { useAlert } from "../../../../shared/hooks/useAlert";
 import * as S from "./MeetingCard.styles";
 
 interface MeetingCardProps {
@@ -20,12 +23,26 @@ const mockMeetingData = {
 
 const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
+  const { warning } = useAlert();
   const [likesCount, setLikesCount] = useState(meeting.likesCount || 0);
   const [isLiked, setIsLiked] = useState(meeting.isLiked || false);
   const [isLiking, setIsLiking] = useState(false);
   const [showAlreadyLikedModal, setShowAlreadyLikedModal] = useState(false);
 
   const handleClick = () => {
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "모임 상세");
+      return;
+    }
+
     // URL에서 현재 위치가 미션 상세페이지인지 확인
     const currentPath = window.location.pathname;
     const isFromMission = currentPath.includes('/missions/');
@@ -66,14 +83,40 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
 
   const handleHostClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // 카드 클릭 이벤트 방지
-    if (meeting.host?.userId) {
+    
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "사용자 프로필");
+      return;
+    }
+    
+    // 본인 프로필은 클릭하지 않도록 방지
+    if (meeting.host?.userId && meeting.host.userId !== user?.id) {
       navigate(`/user/${meeting.host.userId}`);
     }
   };
 
   const handleParticipantClick = (e: React.MouseEvent, participantId: string) => {
     e.stopPropagation(); // 카드 클릭 이벤트 방지
-    if (participantId) {
+    
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "사용자 프로필");
+      return;
+    }
+    
+    // 본인 프로필은 클릭하지 않도록 방지
+    if (participantId && participantId !== user?.id) {
       navigate(`/user/${participantId}`);
     }
   };
@@ -232,7 +275,9 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
         <S.HostSection>
           <S.HostAvatarWrapper 
             onClick={handleHostClick}
-            style={{ cursor: meeting.host?.userId ? 'pointer' : 'default' }}
+            style={{ 
+              cursor: (meeting.host?.userId && meeting.host.userId !== user?.id) ? 'pointer' : 'default' 
+            }}
           >
             <S.HostAvatar
               src={meeting.host?.profileImageUrl || "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"}
@@ -246,7 +291,9 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
             <div>
               <S.HostName 
                 onClick={handleHostClick}
-                style={{ cursor: meeting.host?.userId ? 'pointer' : 'default' }}
+                style={{ 
+                  cursor: (meeting.host?.userId && meeting.host.userId !== user?.id) ? 'pointer' : 'default' 
+                }}
               >
                 {meeting.host?.nickname || "호스트"}
               </S.HostName>
@@ -297,7 +344,9 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
                   alt={participant.nickname}
                   title={participant.nickname}
                   onClick={(e) => handleParticipantClick(e, participant.id)}
-                  style={{ cursor: participant.id ? 'pointer' : 'default' }}
+                  style={{ 
+                    cursor: (participant.id && participant.id !== user?.id) ? 'pointer' : 'default' 
+                  }}
                 />
               ))}
               {meeting.currentParticipants && meeting.currentParticipants > 4 && (

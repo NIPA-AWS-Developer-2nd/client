@@ -150,7 +150,7 @@ const WheelTimePicker: React.FC<WheelTimePickerProps> = ({
   const minutes = [0, 30];
 
   const scrollToItem = (
-    wheelRef: React.RefObject<HTMLDivElement>,
+    wheelRef: React.RefObject<HTMLDivElement | null>,
     index: number,
     itemHeight: number = 40
   ) => {
@@ -183,7 +183,7 @@ const WheelTimePicker: React.FC<WheelTimePickerProps> = ({
   }, [currentSelection.period, currentSelection.hour]);
 
   const handleScroll = (
-    wheelRef: React.RefObject<HTMLDivElement>,
+    wheelRef: React.RefObject<HTMLDivElement | null>,
     items: (string | number)[],
     type: 'period' | 'hour' | 'minute'
   ) => {
@@ -219,7 +219,7 @@ const WheelTimePicker: React.FC<WheelTimePickerProps> = ({
   const renderWheel = (
     items: (string | number)[],
     selectedValue: string | number,
-    wheelRef: React.RefObject<HTMLDivElement>,
+    wheelRef: React.RefObject<HTMLDivElement | null>,
     type: 'period' | 'hour' | 'minute',
     width: number
   ) => (
