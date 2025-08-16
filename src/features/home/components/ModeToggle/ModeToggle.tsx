@@ -1,5 +1,4 @@
 import React from 'react';
-import { UserMode } from '../../types';
 import { useHomeStore } from '../../store';
 import { deviceDetection } from '../../../../shared/utils';
 import {
@@ -17,7 +16,7 @@ export const ModeToggle: React.FC<ModeToggleProps> = ({ className }) => {
   const { userMode, toggleUserMode } = useHomeStore();
   const [isMobile] = React.useState(deviceDetection.isMobile());
 
-  const isHostMode = userMode === UserMode.HOST;
+  const isHostMode = userMode === 'host';
 
   return (
     <ToggleContainer className={className} $isMobile={isMobile}>

@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import type { MyMeetingDetail } from "../../types";
 import { homeApi } from "../../api/homeApi";
 import { deviceDetection } from "../../../../shared/utils";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { useLocationVerification } from "../../../../shared/hooks";
+import { useAlert } from "../../../../shared/hooks/useAlert";
 import * as S from "./MyMeetingDetailModal.styles";
 
 interface MyMeetingDetailModalProps {
@@ -27,6 +30,9 @@ export const MyMeetingDetailModal: React.FC<MyMeetingDetailModalProps> = ({
   meetingId,
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
+  const { warning } = useAlert();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [meetingDetail, setMeetingDetail] = useState<MyMeetingDetail | null>(
     null
@@ -43,12 +49,6 @@ export const MyMeetingDetailModal: React.FC<MyMeetingDetailModalProps> = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    if (isOpen && meetingId) {
-      fetchMeetingDetail();
-    }
-  }, [isOpen, meetingId, fetchMeetingDetail]);
-
   const fetchMeetingDetail = useCallback(async () => {
     try {
       setLoading(true);
@@ -59,12 +59,18 @@ export const MyMeetingDetailModal: React.FC<MyMeetingDetailModalProps> = ({
       setError(
         err instanceof Error
           ? err.message
-          : "모임 정보를 불러오는데 실패했습니다."
+          : "서버 측에서 예상치 못한 문제가 발생하여 모임 정보를 불러올 수 없습니다."
       );
     } finally {
       setLoading(false);
     }
   }, [meetingId]);
+
+  useEffect(() => {
+    if (isOpen && meetingId) {
+      fetchMeetingDetail();
+    }
+  }, [isOpen, meetingId, fetchMeetingDetail]);
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -84,6 +90,20 @@ export const MyMeetingDetailModal: React.FC<MyMeetingDetailModalProps> = ({
   };
 
   const handleParticipantClick = (participantId: string) => {
+    // 본인 프로필은 클릭하지 않도록 방지
+    if (participantId === user?.id) return;
+    
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "사용자 프로필");
+      return;
+    }
+    
     navigate(`/user/${participantId}`);
     onClose();
   };
@@ -177,7 +197,14 @@ export const MyMeetingDetailModal: React.FC<MyMeetingDetailModalProps> = ({
                     <S.ParticipantCard
                       key={`${participant.id}-${index}`}
                       $isMobile={isMobile}
-                      onClick={() => handleParticipantClick(participant.id)}
+                      onClick={
+                        participant.id !== user?.id
+                          ? () => handleParticipantClick(participant.id)
+                          : undefined
+                      }
+                      style={{
+                        cursor: participant.id !== user?.id ? "pointer" : "default",
+                      }}
                     >
                       <S.ParticipantAvatarWrapper>
                         <S.ParticipantAvatar

@@ -239,6 +239,7 @@ export const ParticipantAvatar = styled.img<{ $isMobile: boolean }>`
   height: ${({ $isMobile }) => ($isMobile ? '48px' : '56px')};
   border-radius: 50%;
   object-fit: cover;
+  object-position: center;
 
   ${responsive.mobile(css`
     width: 48px;

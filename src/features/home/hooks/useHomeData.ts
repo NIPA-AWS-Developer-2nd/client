@@ -25,7 +25,7 @@ export const useHomeData = (params?: GetHomeDataParams): UseHomeDataResult => {
       setData(response.data);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "데이터를 불러오는데 실패했습니다."
+        err instanceof Error ? err.message : "서버 측에서 예상치 못한 문제가 발생하여 정보를 불러올 수 없습니다."
       );
     } finally {
       setLoading(false);

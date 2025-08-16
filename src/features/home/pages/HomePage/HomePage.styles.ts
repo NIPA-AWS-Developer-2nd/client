@@ -390,15 +390,15 @@ export const LikesContainer = styled.div`
 // My Meeting Card Components
 export const MyMeetingCard = styled.div<{ $isMobile: boolean; $isExpanded?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
-  background: ${({ theme }) => theme.colors.gray50};
+  background: rgba(240, 250, 252, 0.6);
   border-radius: ${({ theme, $isExpanded }) => 
     $isExpanded 
       ? `${theme.borderRadius.md} ${theme.borderRadius.md} 0 0`
       : theme.borderRadius.md
   };
   cursor: pointer;
-  border: 1px solid ${({ theme, $isExpanded }) => 
-    $isExpanded ? theme.colors.gray200 : 'transparent'
+  border: 1px solid ${({ $isExpanded }) => 
+    $isExpanded ? 'rgba(180, 235, 242, 0.8)' : 'transparent'
   };
   border-bottom: ${({ $isExpanded }) => $isExpanded ? 'none' : '1px solid transparent'};
   margin-bottom: ${({ $isExpanded }) => $isExpanded ? '0' : '12px'};
@@ -410,7 +410,8 @@ export const MyMeetingCard = styled.div<{ $isMobile: boolean; $isExpanded?: bool
   }
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
+    background: rgba(220, 245, 248, 0.8);
+    border-color: rgba(153, 228, 237, 0.3);
   }
 
   ${responsive.mobile(css`
@@ -429,6 +430,29 @@ export const MyMeetingStatus = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+
+  ${responsive.mobile(css`
+    gap: 6px;
+  `)}
+`;
+
+export const HostBadge = styled.span<{ $isMobile: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: ${({ $isMobile }) => ($isMobile ? "4px 8px" : "5px 10px")};
+  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
+  font-weight: 600;
+  color: rgb(0, 171, 191);
+  background: rgba(0, 171, 191, 0.08);
+  border: 1px solid rgba(0, 171, 191, 0.2);
+  border-radius: ${({ theme }) => theme.borderRadius.sm};
+
+  ${responsive.mobile(css`
+    padding: 4px 8px;
+    font-size: 12px;
+    gap: 3px;
+  `)}
 `;
 
 export const StatusBadge = styled.span<{ $color: string; $isMobile: boolean }>`
@@ -440,18 +464,18 @@ export const StatusBadge = styled.span<{ $color: string; $isMobile: boolean }>`
     switch ($color) {
       case "primary":
         return `
-          color: ${theme.colors.primary};
-          background: ${theme.colors.primary}15;
+          color: rgb(0, 171, 191);
+          background: rgba(0, 171, 191, 0.08);
         `;
       case "success":
         return `
-          color: #10b981;
-          background: #10b98115;
+          color: rgb(0, 171, 191);
+          background: rgba(0, 171, 191, 0.08);
         `;
       case "warning":
         return `
-          color: #f59e0b;
-          background: #f59e0b15;
+          color: rgb(0, 140, 180);
+          background: rgba(0, 140, 180, 0.08);
         `;
       case "disabled":
         return `
@@ -641,15 +665,15 @@ export const HostAvatarWrapper = styled.div`
 
 export const HostAvatar = styled.img<{ $isMobile: boolean }>`
   width: ${({ $isMobile }) => ($isMobile ? "36px" : "42px")};
-  height: ${({ $isMobile }) => ($isMobile ? "32px" : "36px")};
-  border-radius: ${({ $isMobile }) => ($isMobile ? "12px" : "14px")};
+  height: ${({ $isMobile }) => ($isMobile ? "36px" : "42px")};
+  border-radius: 50%;
   object-fit: cover;
+  object-position: center;
   border: 2px solid ${({ theme }) => theme.colors.white};
 
   ${responsive.mobile(css`
     width: 36px;
-    height: 32px;
-    border-radius: 12px;
+    height: 36px;
   `)}
 `;
 
@@ -788,6 +812,7 @@ export const ParticipantAvatar = styled.img<{ $isMobile: boolean }>`
   height: ${({ $isMobile }) => ($isMobile ? "24px" : "28px")};
   border-radius: 50%;
   object-fit: cover;
+  object-position: center;
   border: 2px solid ${({ theme }) => theme.colors.white};
 
   ${responsive.mobile(css`

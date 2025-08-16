@@ -10,6 +10,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { deviceDetection } from "../../../../shared/utils";
 import { useHomeStore } from "../../../../shared/store/homeStore";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { useLocationVerification } from "../../../../shared/hooks";
+import { useAlert } from "../../../../shared/hooks/useAlert";
 import * as S from "./MyMeetingDropdown.styles";
 
 interface MyMeetingDropdownProps {
@@ -22,6 +25,9 @@ export const MyMeetingDropdown: React.FC<MyMeetingDropdownProps> = ({
   isExpanded,
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
+  const { warning } = useAlert();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   
   const {
@@ -61,10 +67,44 @@ export const MyMeetingDropdown: React.FC<MyMeetingDropdownProps> = ({
   };
 
   const handleParticipantClick = (participantId: string) => {
+    // 본인 프로필은 클릭하지 않도록 방지
+    if (participantId === user?.id) return;
+    
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "사용자 프로필");
+      return;
+    }
+    
     navigate(`/user/${participantId}`);
   };
 
   const handleChatRoomClick = () => {
+    console.log('🔍 모임 채널 클릭 - 상태 체크:', {
+      isLocationLoading,
+      isLocationVerified,
+      meetingId
+    });
+    
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      console.log('⏳ 위치 인증 로딩 중이므로 대기');
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      console.log('❌ 지역 인증이 안됨 - 경고 표시');
+      warning("지역 인증이 필요합니다.", "모임 채널");
+      return;
+    }
+    
+    console.log('✅ 지역 인증 통과 - 모임 채널로 이동');
     // 모임 채널로 이동
     navigate(`/meetings/${meetingId}/channel`);
   };
@@ -130,7 +170,14 @@ export const MyMeetingDropdown: React.FC<MyMeetingDropdownProps> = ({
                 <S.ParticipantItem
                   key={`${participant.id}-${index}`}
                   $isMobile={isMobile}
-                  onClick={() => handleParticipantClick(participant.id)}
+                  onClick={
+                    participant.id && participant.id !== user?.id
+                      ? () => handleParticipantClick(participant.id!)
+                      : undefined
+                  }
+                  style={{
+                    cursor: participant.id !== user?.id ? "pointer" : "default",
+                  }}
                 >
                   <S.ParticipantAvatar
                     src={

@@ -67,7 +67,7 @@ export interface HotMeeting {
 export interface MyMeeting {
   id: string;
   title: string;
-  status: 'active' | 'completed' | 'hosting';
+  status: 'recruiting' | 'ready' | 'active' | 'completed';
   scheduledAt: string;
   isHost: boolean;
   participantCount: number;
@@ -123,7 +123,7 @@ export interface MyMeetingDetail {
   description: string;
   scheduledAt: string;
   recruitUntil: string;
-  status: string;
+  status: "recruiting" | "ready" | "active" | "completed";
   introduction?: string;
   focusScore: number;
   maxParticipants: number;
