@@ -61,7 +61,7 @@ const GenderButtonGroup = styled.div`
 const GenderButton = styled.button<{ $selected: boolean }>`
   flex: 1;
   padding: 12px;
-  border: 1px solid
+  border: 1.5px solid
     ${({ theme, $selected }) =>
       $selected ? theme.colors.primary : theme.colors.border};
   border-radius: 8px;
@@ -202,14 +202,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
 
-  useEffect(() => {
-    if (existingUserInfo) {
-      // 기존 사용자와 통합 완료 후 홈으로 이동
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000); // 1초 후 이동 (통합 처리 완료 대기)
-    }
-  }, [existingUserInfo]);
+  // 계정 통합 처리는 OnboardingFlow에서 관리
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -237,17 +230,9 @@ export const Step1BasicInfo: React.FC<Props> = ({
   };
 
   const handleVerifyCode = async () => {
-    // 자동 인증 완료 처리
-    updateFormData({ phoneVerified: true });
-    setTimerActive(false);
-    setTimeLeft(0);
-    return;
-
-    // TODO: 프로덕션에서 실제 인증 처리
-    /*
     if (!formData.verificationCode) return;
     try {
-      await verifyCode(formData.phoneNumber, formData.verificationCode);
+      await _verifyCode(formData.phoneNumber, formData.verificationCode);
       setTimerActive(false);
       setTimeLeft(0);
 
@@ -258,7 +243,6 @@ export const Step1BasicInfo: React.FC<Props> = ({
       setTimerActive(false);
       setTimeLeft(0);
     }
-    */
   };
 
   const handleBirthYearChange = (value: string) => {
@@ -274,7 +258,11 @@ export const Step1BasicInfo: React.FC<Props> = ({
     message: string;
   } => {
     if (existingUserInfo) {
-      return { status: "success", message: "기존 계정으로 로그인됩니다" };
+      return {
+        status: "success",
+        message:
+          "이미 가입된 전화번호가 존재합니다. 통합된 계정으로 로그인됩니다.",
+      };
     }
     if (formData.phoneVerified) {
       return { status: "success", message: "전화번호 인증이 완료되었습니다" };

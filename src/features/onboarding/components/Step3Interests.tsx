@@ -50,7 +50,7 @@ const InterestsGrid = styled.div`
 
 const InterestButton = styled.button<{ $selected: boolean }>`
   padding: 12px 10px;
-  border: 1px solid
+  border: 1.5px solid
     ${({ theme, $selected }) =>
       $selected ? theme.colors.primary : theme.colors.border};
   border-radius: 8px;

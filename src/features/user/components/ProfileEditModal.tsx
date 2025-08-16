@@ -163,7 +163,7 @@ const ProfileImage = styled.img`
   height: 100%;
   object-fit: cover;
   filter: ${({ theme }) =>
-    theme.colors.background === "#1A202C"
+    theme.colors.background.primary === "#1A202C"
       ? "brightness(0.8) blur(0.5px)"
       : "none"};
   transition: filter 0.2s ease;
@@ -592,7 +592,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const [formData, setFormData] = useState({
     name: user.nickname || "",
     bio: user.bio || "",
-    profile_image_url: user.profile_image_url || "",
+    profile_image_url: user.profileImageUrl || "",
   });
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -652,7 +652,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       setFormData({
         name: user.nickname || "",
         bio: user.bio || "",
-        profile_image_url: user.profile_image_url || "",
+        profile_image_url: user.profileImageUrl || "",
       });
 
       // MBTI 초기화

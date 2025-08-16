@@ -51,7 +51,6 @@ interface OnboardingState {
   // 상태
   isVerificationCodeSent: boolean;
   accountMerged: boolean; // 계정 통합 여부
-  showAccountMergeModal: boolean; // 계정 통합 모달 표시 여부
   _onboardingCompleted?: boolean; // 내부 상태: 통합된 계정의 온보딩 완료 여부
   existingUserInfo: User | null; // 계정 통합 시 기존 사용자 정보
 
@@ -60,7 +59,6 @@ interface OnboardingState {
   updateFormData: (data: Partial<OnboardingState["formData"]>) => void;
   sendVerificationCode: (phoneNumber: string) => Promise<void>;
   verifyCode: (phoneNumber: string, code: string) => Promise<void>;
-  closeAccountMergeModal: () => void;
 
   // API Actions
   loadStaticData: () => Promise<void>;
@@ -103,7 +101,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       error: null,
       isVerificationCodeSent: false,
       accountMerged: false,
-      showAccountMergeModal: false,
       _onboardingCompleted: undefined,
       existingUserInfo: null,
 
@@ -151,15 +148,19 @@ export const useOnboardingStore = create<OnboardingState>()(
             localStorage.setItem("accessToken", result.accessToken);
             localStorage.setItem("refreshToken", result.refreshToken);
 
-            // 모달을 표시하고 상태 업데이트
+            // 계정 통합 상태 업데이트 (Alert는 OnboardingFlow에서 처리)
             set((state) => ({
               formData: { ...state.formData, phoneVerified: true },
               isVerifyingCode: false,
               error: null,
               accountMerged: true,
-              showAccountMergeModal: true,
-              // 온보딩 완료 여부를 저장해두기 (모달에서 사용)
+              // 온보딩 완료 여부를 저장해두기
               _onboardingCompleted: result.user.onboardingCompleted,
+              // 기존 사용자 정보 설정
+              existingUserInfo: { 
+                ...result.user,
+                status: result.user.status as string
+              },
             }));
           } else {
             // 일반적인 전화번호 인증 완료
@@ -177,21 +178,6 @@ export const useOnboardingStore = create<OnboardingState>()(
             isVerifyingCode: false,
           });
           throw error;
-        }
-      },
-
-      closeAccountMergeModal: () => {
-        const { _onboardingCompleted } = get();
-
-        // 모달을 닫고 적절한 페이지로 리디렉션
-        set({ showAccountMergeModal: false });
-
-        if (_onboardingCompleted) {
-          // 온보딩이 완료된 사용자는 홈으로
-          window.location.href = "/";
-        } else {
-          // 온보딩이 필요한 사용자는 온보딩 계속 (현재 페이지에 머물기)
-          // 별도 처리 불필요 - 모달만 닫으면 됨
         }
       },
 
@@ -356,7 +342,6 @@ export const useOnboardingStore = create<OnboardingState>()(
           error: null,
           isVerificationCodeSent: false,
           accountMerged: false,
-          showAccountMergeModal: false,
           _onboardingCompleted: undefined,
           existingUserInfo: null,
         });

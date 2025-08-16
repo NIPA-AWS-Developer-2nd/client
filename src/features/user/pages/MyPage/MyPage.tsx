@@ -66,6 +66,8 @@ const ProfileAvatar = styled.div<{ $isMobile?: boolean }>`
   color: ${({ theme }) => theme.colors.gray500};
   flex-shrink: 0;
   margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
 `;
 
 const ProfileInfoContainer = styled.div`
@@ -777,7 +779,7 @@ export const MyPage: React.FC = () => {
   if (error) {
     return (
       <PageContainer $isMobile={isMobile}>
-        <div>사용자 정보를 불러오는데 실패했습니다: {error}</div>
+        <div>서버 측에서 예상치 못한 문제가 발생하여 사용자 정보를 불러올 수 없습니다: {error}</div>
       </PageContainer>
     );
   }
@@ -790,6 +792,10 @@ export const MyPage: React.FC = () => {
       </PageContainer>
     );
   }
+
+  // 지역인증 상태 확인 (일주일 이내)
+  const isLocationVerified = userInfo.lastLocationVerificationAt &&
+    new Date().getTime() - new Date(userInfo.lastLocationVerificationAt).getTime() <= 7 * 24 * 60 * 60 * 1000;
 
   const getVerificationIcon = (status: VerificationStatus) => {
     switch (status) {
@@ -914,10 +920,13 @@ export const MyPage: React.FC = () => {
               src={userInfo.profile.profileImageUrl}
               alt="Profile"
               style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
                 width: "100%",
                 height: "100%",
-                borderRadius: "50%",
                 objectFit: "cover",
+                objectPosition: "center",
               }}
             />
           ) : (
@@ -928,7 +937,7 @@ export const MyPage: React.FC = () => {
         <ProfileInfoContainer>
           <ProfileHeader>
             <ProfileName $isMobile={isMobile}>
-              {userInfo?.profile?.nickname || userInfo?.nickname || "사용자"}
+              {userInfo?.profile?.nickname || "사용자"}
               <LevelText $isMobile={isMobile}>
                 Lv.{userInfo.profile?.level || 1}
               </LevelText>
@@ -944,16 +953,12 @@ export const MyPage: React.FC = () => {
                 번호 인증
               </VerificationBadge>
               <VerificationBadge
-                $status={userInfo.districtVerifiedAt ? "APPROVED" : "PENDING"}
+                $status={isLocationVerified ? "APPROVED" : "PENDING"}
                 $isMobile={isMobile}
                 $isLocation={true}
               >
-                {getVerificationIcon(
-                  userInfo.districtVerifiedAt ? "APPROVED" : "PENDING"
-                )}
-                {userInfo.districtVerifiedAt
-                  ? "지역 인증"
-                  : "지역인증이 필요합니다"}
+                {getVerificationIcon(isLocationVerified ? "APPROVED" : "PENDING")}
+                {isLocationVerified ? "지역 인증" : "지역인증이 필요합니다"}
               </VerificationBadge>
             </VerificationContainer>
           </ProfileHeader>
@@ -1140,8 +1145,8 @@ export const MyPage: React.FC = () => {
             phoneNumber: userInfo.phoneNumber,
 
             // 프로필 정보
-            name: userInfo?.profile?.nickname || userInfo?.nickname,
-            nickname: userInfo?.profile?.nickname || userInfo?.nickname,
+            name: userInfo?.profile?.nickname,
+            nickname: userInfo?.profile?.nickname,
             birthYear: userInfo.profile?.birthYear?.toString(),
             gender: userInfo.profile?.gender,
             bio: userInfo.profile?.bio,
@@ -1185,7 +1190,7 @@ export const MyPage: React.FC = () => {
 
             // 인증 상태 정보
             isPhoneVerified: !!userInfo.phoneVerifiedAt,
-            isLocationVerified: !!userInfo.districtVerifiedAt,
+            isLocationVerified: isLocationVerified,
           } as User
         }
         onSave={async (updatedUser) => {
@@ -1208,7 +1213,7 @@ export const MyPage: React.FC = () => {
             const updateData = {
               nickname: updatedUser.nickname,
               bio: updatedUser.bio,
-              profileImageUrl: updatedUser.profile_image_url,
+              profileImageUrl: updatedUser.profileImageUrl,
               userInterestIds: userInterestIds,
               userHashtagIds: userHashtagIds,
               mbti: updatedUser.mbti,
@@ -1231,8 +1236,8 @@ export const MyPage: React.FC = () => {
           } catch (error) {
             console.error("프로필 업데이트 실패:", error);
             alert(
-              `프로필 업데이트에 실패했습니다: ${
-                error instanceof Error ? error.message : "알 수 없는 오류"
+              `서버 측에서 예상치 못한 문제가 발생하여 프로필을 업데이트할 수 없습니다. 잠시 후 다시 시도해주세요.: ${
+                error instanceof Error ? error.message : "예상치 못한 문제"
               }`
             );
           }
