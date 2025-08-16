@@ -2,16 +2,18 @@ import React from "react";
 import styled from "styled-components";
 import { BRANDING } from "../../constants";
 import logoImage from "../../../assets/images/halsaram-logo.png";
+import brandingLogo from "../../../assets/images/branding-logo.png";
 
 interface BrandingContentProps {
   variant?: "splash" | "sidebar";
   className?: string;
+  logoVariant?: "default" | "black";
 }
 
 const LogoImage = styled.img<{ $variant: "splash" | "sidebar" }>`
   width: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
   height: ${({ $variant }) => ($variant === "splash" ? "120px" : "80px")};
-  margin-bottom: ${({ $variant }) => ($variant === "splash" ? "32px" : "24px")};
+  margin-bottom: ${({ $variant }) => ($variant === "splash" ? "16px" : "12px")};
   border-radius: 24px;
 
   @media (max-width: 768px) {
@@ -21,6 +23,9 @@ const LogoImage = styled.img<{ $variant: "splash" | "sidebar" }>`
 `;
 
 const BrandingContainer = styled.div<{ $variant: "splash" | "sidebar" }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   color: ${({ theme, $variant }) => 
     $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
@@ -28,16 +33,15 @@ const BrandingContainer = styled.div<{ $variant: "splash" | "sidebar" }>`
   position: relative;
 `;
 
-const BrandingTitle = styled.h1<{ $variant: "splash" | "sidebar" }>`
-  font-size: ${({ $variant }) => ($variant === "splash" ? "48px" : "36px")};
-  font-weight: 700;
+
+const BrandingLogoImage = styled.img<{ $variant: "splash" | "sidebar"; $logoVariant: "default" | "black" }>`
+  width: ${({ $variant }) => ($variant === "splash" ? "200px" : "120px")};
+  height: auto;
   margin-bottom: ${({ $variant }) => ($variant === "splash" ? "24px" : "16px")};
-  line-height: 1.2;
-  color: ${({ theme, $variant }) => 
-    $variant === "splash" ? theme.colors.text.primary : "#FFFFFF"};
+  filter: ${({ $logoVariant }) => ($logoVariant === "black" ? "invert(1)" : "none")};
 
   @media (max-width: 768px) {
-    font-size: ${({ $variant }) => ($variant === "splash" ? "40px" : "36px")};
+    width: ${({ $variant }) => ($variant === "splash" ? "160px" : "100px")};
   }
 `;
 
@@ -67,6 +71,7 @@ const BrandingDescription = styled.p<{ $variant: "splash" | "sidebar" }>`
 export const BrandingContent: React.FC<BrandingContentProps> = ({
   variant = "sidebar",
   className,
+  logoVariant = "default",
 }) => {
   return (
     <BrandingContainer $variant={variant} className={className}>
@@ -75,7 +80,12 @@ export const BrandingContent: React.FC<BrandingContentProps> = ({
         src={logoImage} 
         alt="Halsaram Logo"
       />
-      <BrandingTitle $variant={variant}>{BRANDING.title}</BrandingTitle>
+      <BrandingLogoImage 
+        $variant={variant} 
+        $logoVariant={logoVariant}
+        src={brandingLogo} 
+        alt="Halsaram Branding Logo"
+      />
       <BrandingSubtitle $variant={variant}>
         {BRANDING.subtitle}
       </BrandingSubtitle>

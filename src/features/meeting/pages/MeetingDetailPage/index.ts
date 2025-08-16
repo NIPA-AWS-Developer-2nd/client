@@ -1,1 +1,1 @@
-export { default } from './MeetingDetailPage';
+export { MeetingDetailPage } from './MeetingDetailPage';

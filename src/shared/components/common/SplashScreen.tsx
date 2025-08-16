@@ -182,7 +182,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   return (
     <SplashContainer $isFadingOut={isFadingOut}>
       <SplashContent>
-        <BrandingContent variant="splash" />
+        <BrandingContent variant="splash" logoVariant="black" />
         <LoadingSpinner>
           <SpinnerRing />
         </LoadingSpinner>

@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { useAlert } from "../../../../shared/components/common";
 import {
   Moon,
   Sun,
@@ -309,6 +310,7 @@ const ThemeSettingsWrapper = styled.div<{ $isMobile?: boolean }>`
 export const AppSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { info, error, confirm } = useAlert();
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const { themeMode, setThemeMode } = useTheme();
   const { isInstalled, isInstallable, installApp } = usePWA();
@@ -364,7 +366,7 @@ export const AppSettingsPage: React.FC = () => {
     if (isInstallable) {
       installApp();
     } else if (isInstalled) {
-      alert("앱이 이미 설치되어 있습니다.");
+      info("앱이 이미 설치되어 있습니다.");
     } else {
       const userAgent = navigator.userAgent.toLowerCase();
       const isChrome =
@@ -372,23 +374,23 @@ export const AppSettingsPage: React.FC = () => {
       const isEdge = userAgent.includes("edg");
 
       if (deviceDetection.isIOS()) {
-        alert(
+        info(
           'Safari에서 "공유" 버튼을 누른 후 "홈 화면에 추가"를 선택하여 앱을 설치할 수 있습니다.'
         );
       } else if (deviceDetection.isAndroid()) {
-        alert(
+        info(
           'Chrome에서 메뉴(⋮) 버튼을 누른 후 "홈 화면에 추가" 또는 "앱 설치"를 선택하여 앱을 설치할 수 있습니다.'
         );
       } else if (isChrome) {
-        alert(
+        info(
           'Chrome 주소창 오른쪽의 설치 아이콘을 클릭하거나, 메뉴(⋮) > "앱 설치"를 선택하여 설치할 수 있습니다.\n\n또는 페이지를 새로고침한 후 다시 시도해보세요.'
         );
       } else if (isEdge) {
-        alert(
+        info(
           'Edge 주소창 오른쪽의 설치 아이콘을 클릭하거나, 메뉴(⋯) > "앱" > "이 사이트를 앱으로 설치"를 선택하여 설치할 수 있습니다.'
         );
       } else {
-        alert(
+        error(
           `현재 브라우저는 지원되지 않습니다.\n\n앱 설치를 위해 Chrome 또는 Edge 브라우저를 사용해보세요.`
         );
       }
@@ -405,13 +407,13 @@ export const AppSettingsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (
-      window.confirm(
-        "정말로 회원탈퇴를 진행하시겠습니까?\n\n탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다."
-      )
-    ) {
-      alert("회원탈퇴 기능을 준비 중입니다.");
+  const handleDeleteAccount = async () => {
+    const confirmed = await confirm(
+      "탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.",
+      "정말로 회원탈퇴를 진행하시겠습니까?"
+    );
+    if (confirmed) {
+      info("회원탈퇴 기능을 준비 중입니다.");
     }
   };
 
@@ -419,22 +421,22 @@ export const AppSettingsPage: React.FC = () => {
     {
       icon: Bell,
       label: "알림 설정",
-      onClick: () => alert("알림 설정 기능을 준비 중입니다."),
+      onClick: () => info("알림 설정 기능을 준비 중입니다."),
     },
     {
       icon: Shield,
       label: "개인정보",
-      onClick: () => alert("개인정보 기능을 준비 중입니다."),
+      onClick: () => info("개인정보 기능을 준비 중입니다."),
     },
     {
       icon: CreditCard,
       label: "결제 수단",
-      onClick: () => alert("결제 수단 기능을 준비 중입니다."),
+      onClick: () => info("결제 수단 기능을 준비 중입니다."),
     },
     {
       icon: HelpCircle,
       label: "고객 센터",
-      onClick: () => alert("고객 센터 기능을 준비 중입니다."),
+      onClick: () => info("고객 센터 기능을 준비 중입니다."),
     },
   ];
 

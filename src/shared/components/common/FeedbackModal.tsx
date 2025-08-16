@@ -33,7 +33,7 @@ const ModalHeader = styled.div<{ $isMobile?: boolean }>`
   justify-content: space-between;
   padding: ${({ $isMobile }) => ($isMobile ? "16px 20px" : "20px 24px")};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.gray50};
+  background: ${({ theme }) => theme.colors.white};
 `;
 
 const ModalTitle = styled.h2<{ $isMobile?: boolean }>`

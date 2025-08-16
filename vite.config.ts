@@ -18,6 +18,20 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
     },
+    build: {
+      // Optimize build performance and memory usage
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            router: ['react-router-dom'],
+            ui: ['styled-components', 'lucide-react'],
+            utils: ['zustand', 'ulid'],
+          }
+        }
+      }
+    },
     server: {
       // 개발 서버에서 캐시 비활성화
       headers: {

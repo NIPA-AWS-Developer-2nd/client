@@ -48,8 +48,8 @@ export const NotFoundPage: React.FC = () => {
 
   return (
     <ResponsiveLayout
-      title="Not Found"
-      customHeaderTitle="Not Found"
+      title="404 ERROR"
+      customHeaderTitle="404 ERROR"
       hideHeaderActions={true}
       hideBottomNav={true}
       noPadding={true}

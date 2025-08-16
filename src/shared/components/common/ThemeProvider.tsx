@@ -49,12 +49,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const updateMetaThemeColor = (theme: Theme) => {
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", theme.colors.background);
+      metaThemeColor.setAttribute("content", theme.colors.background.primary);
     }
 
     document.documentElement.style.setProperty(
       "--body-bg",
-      theme.colors.background
+      theme.colors.background.primary
     );
   };
 

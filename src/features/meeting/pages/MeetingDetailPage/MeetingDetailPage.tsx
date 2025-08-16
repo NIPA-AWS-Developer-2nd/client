@@ -1,450 +1,1572 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import type { Meeting } from "../../../../types";
-import * as S from "./MeetingDetailPage.styles";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Clock,
+  Users,
+  MapPin,
+  ChevronRight,
+  DollarSign,
+  Timer,
+  Crown,
+  User,
+  Heart,
+  Edit3,
+} from "lucide-react";
+import { meetingApiService } from "../../../../shared/services/meetingApi";
+import { attendanceApiService } from "../../../../shared/services/attendanceApi";
+import type { MeetingDetailDto } from "../../../../shared/services/meetingApi";
+import type {
+  AttendanceStatusResponse,
+  MyAttendanceResponse,
+} from "../../../../shared/services/attendanceApi";
+import { deviceDetection } from "../../../../shared/utils/deviceDetection";
+import { useTheme } from "../../../../shared/hooks/useTheme";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { AlertModal } from "../../../../shared/components/common";
+import { MeetingJoinModal } from "../../components/MeetingJoinModal/MeetingJoinModal";
+import {
+  QRCodeScanner,
+  QRCodeGenerator,
+} from "../../../../shared/components/ui";
+import {
+  PageContainer,
+  StatusBadge,
+  CountdownBadge,
+  HeroTitle,
+  InfoChip,
+  InfoIcon,
+  ContentSection,
+  StorySection,
+  SectionTitle,
+  Description,
+  HostCard,
+  HostAvatar,
+  HostInfo,
+  HostName,
+  HostLevel,
+  MemberItem,
+  MemberInfo,
+  MemberName,
+  MemberLevel,
+  MemberAvatar,
+  MemberDetails,
+  MemberMBTI,
+  HostBadge,
+  DetailsGrid,
+  MapFrame,
+  DetailCard,
+  DetailHeader,
+  DetailContent,
+  LocationInfo,
+  LocationMain,
+  LocationName,
+  LocationAddress,
+  MissionCard,
+  MissionHeader,
+  MissionTitle,
+  MissionBody,
+  ViewMissionBtn,
+  FloatingActions,
+  ActionContainer,
+  PriceInfo,
+  SeatsInfo,
+  PrimaryAction,
+  BottomActionSection,
+} from "./MeetingDetailPage.styles";
 
-const MeetingDetailPage: React.FC = () => {
+const getStatusInfo = (
+  status: string,
+  currentParticipants: number,
+  participants: number
+) => {
+  const isFull = currentParticipants >= participants && status === "recruiting";
+
+  if (isFull) {
+    return { text: "모집완료", color: "#F59E0B", bgColor: "#FEF3C7" };
+  }
+
+  switch (status) {
+    case "recruiting":
+      return { text: "모집중", color: "#10B981", bgColor: "#D1FAE5" };
+    case "active":
+      return { text: "진행중", color: "#3B82F6", bgColor: "#DBEAFE" };
+    case "completed":
+      return { text: "완료", color: "#6B7280", bgColor: "#F3F4F6" };
+    case "cancelled":
+      return { text: "취소됨", color: "#EF4444", bgColor: "#FEE2E2" };
+    default:
+      return { text: "알 수 없음", color: "#6B7280", bgColor: "#F3F4F6" };
+  }
+};
+
+const calculateTimeRemaining = (dateStr: string, timeStr: string) => {
+  const meetingDateTime = new Date(`${dateStr} ${timeStr}`);
+  const now = new Date();
+  const diffInMs = meetingDateTime.getTime() - now.getTime();
+
+  if (diffInMs <= 0) return { display: "시작됨", urgent: false };
+
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const diffInMinutes = Math.floor((diffInMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (diffInHours < 1) {
+    return { display: `${diffInMinutes}분 후`, urgent: true };
+  } else if (diffInHours < 24) {
+    return { display: `${diffInHours}시간 후`, urgent: diffInHours < 3 };
+  } else {
+    const diffInDays = Math.floor(diffInHours / 24);
+    return { display: `${diffInDays}일 후`, urgent: false };
+  }
+};
+
+
+export const MeetingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [meeting, setMeeting] = useState<Meeting | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isParticipant, setIsParticipant] = useState(false);
-  const [currentUserId] = useState("user1");
+  const [searchParams] = useSearchParams();
+  const { isDark } = useTheme();
+  const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
+  const [_showMissionModal, _setShowMissionModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [meetingData, setMeetingData] = useState<MeetingDetailDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+  const [showAlreadyLikedModal, setShowAlreadyLikedModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
-  const mockMeeting: Meeting = {
-    id: "01HQXXX001",
-    missionId: "mission1",
-    hostUserId: "user1",
-    status: "recruiting",
-    recruitUntil: new Date(Date.now() + 86400000 * 2).toISOString(),
-    scheduledAt: new Date(Date.now() + 86400000 * 3).toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    currentParticipants: 3,
-    mission: {
-      id: "mission1",
-      title: "한강 러닝 크루 함께해요",
-      description:
-        "한강에서 함께 러닝하실 분들 모집합니다!\n\n초보자도 환영이며, 각자의 페이스에 맞춰 달릴 예정입니다.\n러닝 후에는 간단한 스트레칭과 함께 시원한 음료를 마시며 이야기 나누는 시간도 가질 예정이에요.\n\n운동화와 편한 복장으로 오시면 됩니다!",
-      minParticipants: 2,
-      maxParticipants: 8,
-      estimatedDuration: 120,
-      minimumDuration: 90,
-      basePoints: 100,
-      photoVerificationGuide: "러닝 전후 단체 사진, 한강 배경 인증샷",
-      sampleImageUrls: [],
-      categoryId: 1,
-      difficulty: "easy",
-      thumbnailUrl: "https://via.placeholder.com/800x450",
-      precautions: ["운동화 필수", "물 준비", "날씨 확인 필수"],
-      districtId: "11680",
-      location: "반포한강공원 달빛광장",
-      hashtags: ["러닝", "한강", "운동", "건강", "주말"],
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      category: { id: 1, name: "운동", slug: "sports", isActive: true },
-      district: {
-        id: "11680",
-        regionCode: "11680",
-        districtName: "강남구",
-        city: "서울",
-        isActive: true,
-      },
-    },
-    host: {
-      id: "user1",
-      nickname: "러닝매니아",
-      profileImageUrl: "https://via.placeholder.com/100",
-      points: 1200,
-      level: 3,
-      bio: "매주 한강에서 러닝하고 있어요!",
-    },
-    participants: [
-      {
-        id: 1,
-        meetingId: "01HQXXX001",
-        userId: "user1",
-        isHost: true,
-        status: "joined",
-        joinedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        user: {
-          id: "user1",
-          nickname: "러닝매니아",
-          profileImageUrl: "https://via.placeholder.com/100",
-          points: 1200,
-          level: 3,
-        },
-      },
-      {
-        id: 2,
-        meetingId: "01HQXXX001",
-        userId: "user2",
-        isHost: false,
-        status: "joined",
-        joinedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        user: {
-          id: "user2",
-          nickname: "건강러",
-          profileImageUrl: "https://via.placeholder.com/100",
-          points: 800,
-          level: 2,
-        },
-      },
-      {
-        id: 3,
-        meetingId: "01HQXXX001",
-        userId: "user3",
-        isHost: false,
-        status: "joined",
-        joinedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        user: {
-          id: "user3",
-          nickname: "초보러너",
-          profileImageUrl: "https://via.placeholder.com/100",
-          points: 200,
-          level: 1,
-        },
-      },
-    ],
-  };
+  // 출석체크 관련 상태
+  const [attendanceStatus, setAttendanceStatus] =
+    useState<AttendanceStatusResponse | null>(null);
+  const [myAttendance, setMyAttendance] = useState<MyAttendanceResponse | null>(
+    null
+  );
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [qrCodeToken, setQRCodeToken] = useState<string | null>(null);
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
-  const loadMeetingDetail = async () => {
+  // 미션 상세페이지에서 온 경우 연결된 미션 섹션을 숨김
+  const hideFromMissionDetail = searchParams.get("from") === "mission";
+
+  // 현재 사용자 ID
+  const currentUserId = user?.id;
+
+  // API에서 모임 데이터 가져오기
+  useEffect(() => {
+    const fetchMeetingDetail = async () => {
+      if (!id) {
+        setError("모임 ID가 없습니다.");
+        setIsDataLoading(false);
+        return;
+      }
+
+      try {
+        setIsDataLoading(true);
+        setError(null);
+        const data = await meetingApiService.getMeetingDetail(id);
+        setMeetingData(data);
+        // API 응답에서 현재 사용자의 좋아요 상태 설정
+        setIsLiked(data.isLiked || false);
+
+        // 출석 데이터 가져오기 (참가자만)
+        if (
+          data.participantList?.some((p) => p.userId === currentUserId) ||
+          data.hostUserId === currentUserId
+        ) {
+          await fetchAttendanceData(id);
+        }
+      } catch (err) {
+        console.error("모임 상세 조회 실패:", err);
+        setError(
+          err instanceof Error ? err.message : "모임 정보를 불러올 수 없습니다."
+        );
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+
+    fetchMeetingDetail();
+  }, [id, currentUserId]);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(deviceDetection.isMobile());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Naver Map initialization
+  useEffect(() => {
+    // 네이버 지도 API가 이미 로드되어 있는지 확인
+    if (window.naver && window.naver.maps) {
+      setMapLoaded(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    // 새로운 Maps API 사용 (NCP)
+    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${
+      import.meta.env.VITE_NAVER_MAP_CLIENT_ID || "YOUR_CLIENT_ID"
+    }`;
+    script.async = true;
+    script.defer = true;
+
+    script.onload = () => {
+      setMapLoaded(true);
+    };
+
+    script.onerror = () => {
+      console.error("네이버 지도 API 로드 실패");
+      // API 로드 실패 시에도 페이지는 정상 작동하도록
+      setMapLoaded(false);
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // 지역 정보가 있을 때만 지도 초기화
+    if (
+      mapLoaded &&
+      mapRef.current &&
+      window.naver &&
+      window.naver.maps &&
+      meetingData &&
+      (meetingData.mission?.districtId || meetingData.mission?.location)
+    ) {
+      try {
+        // 송파구 중심 좌표 (기본값)
+        const songpaLat = 37.5145;
+        const songpaLng = 127.1056;
+
+        const mapOptions = {
+          center: new window.naver.maps.LatLng(songpaLat, songpaLng),
+          zoom: meetingData.mission?.location ? 16 : 14, // 상세 장소가 있으면 더 확대
+          minZoom: 7,
+          zoomControl: true,
+          zoomControlOptions: {
+            position: window.naver.maps.Position.TOP_RIGHT,
+          },
+          // 커스텀 스타일 적용 (다크모드일 때)
+          ...(isDark
+            ? {
+                styleMapTypeId: "e82da828-0643-428f-9402-06cb9fc04b8f",
+                styleMapTypeOptions: {
+                  styleVersion: "20250814193747",
+                },
+              }
+            : {}),
+        };
+
+        const map = new window.naver.maps.Map(mapRef.current, mapOptions);
+
+        // 마커 추가
+        const markerTitle =
+          meetingData.mission?.location ||
+          (meetingData.mission?.district
+            ? `${meetingData.mission.district.city} ${meetingData.mission.district.districtName}`
+            : "송파구");
+
+        new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(songpaLat, songpaLng),
+          map: map,
+          title: markerTitle,
+        });
+      } catch (error) {
+        console.error("네이버 지도 초기화 실패:", error);
+      }
+    }
+  }, [mapLoaded, meetingData, isDark]);
+
+  // 페이지 제목 및 헤더 타이틀 동적 설정
+  useEffect(() => {
+    if (meetingData?.mission?.title) {
+      document.title = `${meetingData.mission.title} | 할사람?`;
+
+      // 헤더 제목도 업데이트
+      const headerElement = document.querySelector("[data-header-title]");
+      if (headerElement) {
+        headerElement.textContent = meetingData.mission.title;
+      }
+    } else if (meetingData) {
+      document.title = "번개모임 | 할사람?";
+
+      const headerElement = document.querySelector("[data-header-title]");
+      if (headerElement) {
+        headerElement.textContent = "번개모임";
+      }
+    }
+  }, [meetingData]);
+
+  // 로딩 상태
+  if (isDataLoading) {
+    return (
+      <PageContainer $isMobile={isMobile}>
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <div>모임 정보를 불러오는 중...</div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 에러 상태
+  if (error || !meetingData) {
+    const from = searchParams.get("from");
+
+    const handleGoBack = () => {
+      if (from === "home") {
+        navigate("/");
+      } else if (from === "mission") {
+        navigate(-1); // 미션 상세에서 온 경우 이전 페이지로
+      } else {
+        navigate("/meetings"); // 기본적으로 모임 리스트로
+      }
+    };
+
+    return (
+      <PageContainer $isMobile={isMobile}>
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <div style={{ color: "#EF4444", marginBottom: "10px" }}>
+            {error || "모임 정보를 찾을 수 없습니다."}
+          </div>
+          <button
+            onClick={handleGoBack}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#3B82F6",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            돌아가기
+          </button>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 날짜와 시간 파싱
+  const meetingDateTime = new Date(meetingData.scheduledAt);
+  const meetingDate = meetingDateTime.toISOString().split("T")[0];
+  const meetingTime = meetingDateTime.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const timeRemaining = calculateTimeRemaining(meetingDate, meetingTime);
+  const statusInfo = getStatusInfo(
+    meetingData.status,
+    meetingData.currentParticipants || 0,
+    meetingData.participants || 0
+  );
+
+  const seatsLeft = Math.max(
+    0,
+    (meetingData.participants || 0) - (meetingData.currentParticipants || 0)
+  );
+
+  // 현재 사용자가 참여한 모임인지 확인
+  const isParticipant =
+    meetingData.participantList?.some((p) => p.userId === currentUserId) ||
+    false;
+
+  // 현재 사용자가 호스트인지 확인
+  const isHost = meetingData.hostUserId === currentUserId;
+
+  const handleJoin = async () => {
+    console.log("참여하기 버튼 클릭됨", {
+      isParticipant,
+      isHost,
+      meetingId: meetingData?.id,
+    });
+
+    if (!meetingData) {
+      console.error("모임 데이터가 없습니다");
+      return;
+    }
+
     setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setMeeting(mockMeeting);
 
-      const isUserParticipant =
-        mockMeeting.participants?.some((p) => p.userId === currentUserId) ||
-        false;
-      setIsParticipant(isUserParticipant);
+    try {
+      if (isParticipant) {
+        if (isHost) {
+          // 호스트 - 모임 삭제 로직
+          const confirmed = window.confirm(
+            "정말로 모임을 삭제하시겠습니까?\n삭제된 모임은 복구할 수 없습니다."
+          );
+
+          if (confirmed) {
+            try {
+              await meetingApiService.deleteMeeting(meetingData.id);
+              alert("모임이 삭제되었습니다.");
+              navigate("/meetings"); // 모임 목록으로 이동
+            } catch (error) {
+              console.error("모임 삭제 실패:", error);
+              alert(
+                "서버 측에서 예상치 못한 문제가 발생하여 모임을 삭제할 수 없습니다. 잠시 후 다시 시도해주세요."
+              );
+            }
+          }
+        } else {
+          // 일반 참여자 - 참여 취소 로직
+          const confirmed = window.confirm("정말로 모임을 나가시겠습니까?");
+
+          if (confirmed) {
+            try {
+              await meetingApiService.leaveMeeting(meetingData.id);
+              alert("모임에서 나갔습니다.");
+              window.location.reload(); // 페이지 새로고침
+            } catch (error) {
+              console.error("모임 나가기 실패:", error);
+              alert(
+                "서버 측에서 예상치 못한 문제가 발생하여 모임을 나갈 수 없습니다. 잠시 후 다시 시도해주세요."
+              );
+            }
+          }
+        }
+      } else {
+        // 참여하기 로직 - 모달을 열거나 직접 참여
+        console.log("참여하기 로직 실행");
+
+        // 포인트가 필요한 경우 모달 열기
+        if (
+          meetingData.mission?.basePoints &&
+          meetingData.mission.basePoints > 0
+        ) {
+          console.log("포인트가 필요한 모임 - 모달 열기");
+          setShowJoinModal(true);
+        } else {
+          // 무료 모임 직접 참여
+          console.log("무료 모임 직접 참여");
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          alert("모임에 참여했습니다!");
+        }
+      }
     } catch (error) {
-      console.error("Failed to load meeting detail:", error);
+      console.error("참여/취소 처리 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadMeetingDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  const handleBack = () => {
-    navigate(-1);
-  };
-
-  const handleJoin = async () => {
+  // 출석 데이터 가져오기
+  const fetchAttendanceData = async (meetingId: string) => {
     try {
-      console.log("Joining meeting:", id);
-      setIsParticipant(true);
+      const [statusData, myData] = await Promise.all([
+        attendanceApiService.getAttendanceStatus(meetingId),
+        attendanceApiService.getMyAttendance(meetingId),
+      ]);
+      setAttendanceStatus(statusData);
+      setMyAttendance(myData);
     } catch (error) {
-      console.error("Failed to join meeting:", error);
+      console.error("출석 데이터 가져오기 실패:", error);
     }
   };
 
-  const handleLeave = async () => {
+  // QR 코드 생성 (호스트 전용)
+  const handleGenerateQR = async () => {
+    if (!meetingData?.id || !isHost) return;
+
     try {
-      console.log("Leaving meeting:", id);
-      setIsParticipant(false);
+      setIsGeneratingQR(true);
+      const result = await attendanceApiService.generateQRCode(meetingData.id);
+      setQRCodeToken(result.qrCodeToken);
+      setShowQRGenerator(true);
+      // 출석 상태 새로고침
+      await fetchAttendanceData(meetingData.id);
     } catch (error) {
-      console.error("Failed to leave meeting:", error);
+      console.error("QR 코드 생성 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 출석체크를 시작할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
+    } finally {
+      setIsGeneratingQR(false);
     }
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: meeting?.mission?.title,
-        text: meeting?.mission?.description,
-        url: window.location.href,
-      });
+  // QR 코드 스캔 처리
+  const handleQRScan = async (qrToken: string) => {
+    if (!meetingData?.id) return;
+
+    try {
+      setIsCheckingIn(true);
+      await attendanceApiService.checkIn(meetingData.id, qrToken);
+      alert("출석체크가 완료되었습니다!");
+      setShowQRScanner(false);
+      // 출석 상태 새로고침
+      await fetchAttendanceData(meetingData.id);
+    } catch (error) {
+      console.error("출석체크 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 출석체크를 완료할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
+    } finally {
+      setIsCheckingIn(false);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
-    const period = hours >= 12 ? "오후" : "오전";
-    const displayHours = hours > 12 ? hours - 12 : hours || 12;
+  // 노쇼 처리 (호스트 전용)
+  const handleMarkNoShow = async () => {
+    if (!meetingData?.id || !isHost) return;
 
-    return `${year}년 ${month}월 ${day}일 (${dayOfWeek}) ${period} ${displayHours}:${minutes
-      .toString()
-      .padStart(2, "0")}`;
-  };
+    const confirmed = window.confirm(
+      "출석체크하지 않은 참가자를 노쇼로 처리하시겠습니까?"
+    );
+    if (!confirmed) return;
 
-  const formatDeadline = (dateString: string) => {
-    const now = new Date();
-    const deadline = new Date(dateString);
-    const diff = deadline.getTime() - now.getTime();
-
-    if (diff < 0) return "마감됨";
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-    if (days > 0) return `${days}일 ${hours}시간 남음`;
-    if (hours > 0) return `${hours}시간 남음`;
-    return "곧 마감";
-  };
-
-  const getStatusText = (status: Meeting["status"]) => {
-    switch (status) {
-      case "recruiting":
-        return "모집중";
-      case "active":
-        return "진행중";
-      case "completed":
-        return "완료";
-      case "cancelled":
-        return "취소됨";
-      default:
-        return status;
+    try {
+      const result = await attendanceApiService.markNoShow(meetingData.id);
+      alert(`${result.noShowCount}명을 노쇼로 처리했습니다.`);
+      // 출석 상태 새로고침
+      await fetchAttendanceData(meetingData.id);
+    } catch (error) {
+      console.error("노쇼 처리 실패:", error);
+      alert(
+        "서버 측에서 예상치 못한 문제가 발생하여 노쇼 처리를 완료할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
     }
   };
 
-  const getDifficultyText = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy":
-        return "쉬움";
-      case "medium":
-        return "보통";
-      case "hard":
-        return "어려움";
-      default:
-        return difficulty;
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (isLiking || !meetingData) return;
+
+    // 이미 좋아요를 눌렀다면 모달 표시
+    if (isLiked) {
+      setShowAlreadyLikedModal(true);
+      return;
+    }
+
+    try {
+      setIsLiking(true);
+      const result = await meetingApiService.toggleLike(meetingData.id);
+
+      setIsLiked(result.isLiked);
+
+      // meetingData의 likesCount 업데이트
+      setMeetingData((prev) =>
+        prev ? { ...prev, likesCount: result.likesCount } : null
+      );
+    } catch (error) {
+      console.error("좋아요 처리 실패:", error);
+    } finally {
+      setIsLiking(false);
     }
   };
 
-  const isHost = meeting?.hostUserId === currentUserId;
-  const isFull =
-    meeting && (meeting.currentParticipants ?? 0) >= (meeting.mission?.maxParticipants ?? 0);
-  const canJoin = meeting?.status === "recruiting" && !isParticipant && !isFull;
-  const canLeave = meeting?.status === "recruiting" && isParticipant && !isHost;
-
-  if (isLoading) {
-    return <div>로딩중...</div>;
-  }
-
-  if (!meeting) {
-    return <div>모임을 찾을 수 없습니다.</div>;
-  }
+  const getJoinButtonText = () => {
+    if (isLoading) return "가입 처리 중이에요";
+    if (meetingData.status !== "recruiting") return "지금은 참여할 수 없어요";
+    if (isParticipant) {
+      // 호스트인 경우 "모임 삭제하기", 일반 참여자인 경우 "참여 취소하기"
+      return isHost ? "모임 삭제하기" : "모임 나가기";
+    }
+    if (!meetingData.canJoin) return "참여할 수 없습니다";
+    return seatsLeft > 0 ? "참여하기" : "대기자로 참여하기";
+  };
 
   return (
-    <S.Container>
-      <S.Header>
-        <S.BackButton onClick={handleBack}>←</S.BackButton>
-        <S.HeaderTitle>모임 상세</S.HeaderTitle>
-        <S.HeaderActions>
-          <S.IconButton onClick={handleShare}>📤</S.IconButton>
-        </S.HeaderActions>
-      </S.Header>
+    <>
+      <PageContainer $isMobile={isMobile}>
+        {/* 노션 스타일 헤더 */}
+        <ContentSection $isMobile={isMobile}>
+          <StorySection $isMobile={isMobile} $isHeader={true}>
+            {/* 모집 마감 시간 */}
+            {timeRemaining.display !== "시작됨" && (
+              <div style={{ marginBottom: "8px" }}>
+                <CountdownBadge $urgent={timeRemaining.urgent}>
+                  <Clock size={12} />
+                  모집 마감까지 {timeRemaining.display}
+                </CountdownBadge>
+              </div>
+            )}
 
-      <S.Content>
-        <S.MainContent>
-          <S.ImageSection>
-            <S.StatusBadge $status={meeting.status}>
-              {getStatusText(meeting.status)}
-            </S.StatusBadge>
-            <S.MainImage
-              src={meeting.mission?.thumbnailUrl || "/default-mission.jpg"}
-              alt={meeting.mission?.title}
-            />
-          </S.ImageSection>
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                marginBottom: "12px",
+                flexWrap: "wrap",
+              }}
+            >
+              <StatusBadge
+                $color={statusInfo.color}
+                $bgColor={statusInfo.bgColor}
+              >
+                {statusInfo.text}
+              </StatusBadge>
+            </div>
 
-          <S.InfoSection>
-            <S.TitleSection>
-              <S.CategoryBadge>
-                {meeting.mission?.category?.name}
-              </S.CategoryBadge>
-              <S.Title>{meeting.mission?.title}</S.Title>
-              <S.MetaInfo>
-                <S.MetaItem>
-                  📍 {meeting.mission?.district?.districtName} ·{" "}
-                  {meeting.mission?.location}
-                </S.MetaItem>
-                <S.MetaItem>📅 {formatDate(meeting.scheduledAt)}</S.MetaItem>
-                <S.MetaItem>
-                  ⏰ 약 {Math.floor((meeting.mission?.estimatedDuration ?? 60) / 60)}
-                  시간
-                </S.MetaItem>
-              </S.MetaInfo>
-            </S.TitleSection>
+            {/* 타이틀과 액션 버튼들 */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+              }}
+            >
+              <HeroTitle
+                $isMobile={isMobile}
+                style={{ margin: "0", color: "inherit", flex: 1 }}
+              >
+                {meetingData.mission?.title || "제목 없음"}
+              </HeroTitle>
 
-            <S.HostSection>
-              <S.HostAvatar
-                src={meeting.host?.profileImageUrl || "/default-avatar.png"}
-                alt={meeting.host?.nickname}
-              />
-              <S.HostInfo>
-                <S.HostLabel>호스트</S.HostLabel>
-                <S.HostName>{meeting.host?.nickname}</S.HostName>
-              </S.HostInfo>
-            </S.HostSection>
-
-            <S.Section>
-              <S.SectionTitle>미션 소개</S.SectionTitle>
-              <S.Description>{meeting.mission?.description}</S.Description>
-            </S.Section>
-
-            <S.Section>
-              <S.SectionTitle>미션 정보</S.SectionTitle>
-              <S.InfoGrid>
-                <S.InfoCard>
-                  <S.InfoCardLabel>난이도</S.InfoCardLabel>
-                  <S.InfoCardValue>
-                    {getDifficultyText(meeting.mission?.difficulty || 'medium')}
-                  </S.InfoCardValue>
-                </S.InfoCard>
-                <S.InfoCard>
-                  <S.InfoCardLabel>참여 인원</S.InfoCardLabel>
-                  <S.InfoCardValue>
-                    {meeting.mission?.minParticipants}~
-                    {meeting.mission?.maxParticipants}명
-                  </S.InfoCardValue>
-                </S.InfoCard>
-                <S.InfoCard>
-                  <S.InfoCardLabel>기본 포인트</S.InfoCardLabel>
-                  <S.InfoCardValue>
-                    {meeting.mission?.basePoints}P
-                  </S.InfoCardValue>
-                </S.InfoCard>
-                <S.InfoCard>
-                  <S.InfoCardLabel>최소 참여시간</S.InfoCardLabel>
-                  <S.InfoCardValue>
-                    {meeting.mission?.minimumDuration}분
-                  </S.InfoCardValue>
-                </S.InfoCard>
-                <S.InfoCard>
-                  <S.InfoCardLabel>모집 마감</S.InfoCardLabel>
-                  <S.InfoCardValue>
-                    {formatDeadline(meeting.recruitUntil)}
-                  </S.InfoCardValue>
-                </S.InfoCard>
-                <S.InfoCard>
-                  <S.InfoCardLabel>인증 방법</S.InfoCardLabel>
-                  <S.InfoCardValue>사진 인증</S.InfoCardValue>
-                </S.InfoCard>
-              </S.InfoGrid>
-            </S.Section>
-
-            {meeting.mission?.precautions &&
-              meeting.mission.precautions.length > 0 && (
-                <S.Section>
-                  <S.SectionTitle>주의사항</S.SectionTitle>
-                  <S.PrecautionList>
-                    {meeting.mission.precautions.map((precaution, index) => (
-                      <S.PrecautionItem key={index}>
-                        {precaution}
-                      </S.PrecautionItem>
-                    ))}
-                  </S.PrecautionList>
-                </S.Section>
-              )}
-
-            {meeting.mission?.hashtags &&
-              meeting.mission.hashtags.length > 0 && (
-                <S.Section>
-                  <S.SectionTitle>태그</S.SectionTitle>
-                  <S.HashtagList>
-                    {meeting.mission.hashtags.map((tag, index) => (
-                      <S.Hashtag key={index}>#{tag}</S.Hashtag>
-                    ))}
-                  </S.HashtagList>
-                </S.Section>
-              )}
-
-            <S.Section>
-              <S.SectionTitle>인증 가이드</S.SectionTitle>
-              <S.Description>
-                {meeting.mission?.photoVerificationGuide}
-              </S.Description>
-            </S.Section>
-          </S.InfoSection>
-        </S.MainContent>
-
-        <S.Sidebar>
-          <S.ParticipantSection>
-            <S.ParticipantHeader>
-              <S.ParticipantTitle>참여자</S.ParticipantTitle>
-              <S.ParticipantCount>
-                {meeting.currentParticipants}/{meeting.mission?.maxParticipants}
-                명
-              </S.ParticipantCount>
-            </S.ParticipantHeader>
-            <S.ParticipantList>
-              {meeting.participants?.map((participant) => (
-                <S.ParticipantItem key={participant.id}>
-                  <S.ParticipantAvatar
-                    src={
-                      participant.user?.profileImageUrl || "/default-avatar.png"
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                {/* 호스트 전용 수정 버튼 */}
+                {isHost && (
+                  <div
+                    onClick={() => navigate(`/meetings/edit/${meetingData.id}`)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      backgroundColor: "rgba(59, 130, 246, 0.1)",
+                      padding: "6px 10px",
+                      borderRadius: "16px",
+                      cursor: "pointer",
+                      transition: "transform 0.2s ease",
+                    }}
+                    onMouseDown={(e) =>
+                      (e.currentTarget.style.transform = "scale(0.95)")
                     }
-                    alt={participant.user?.nickname}
-                  />
-                  <S.ParticipantInfo>
-                    <S.ParticipantName>
-                      {participant.user?.nickname}
-                      {participant.isHost && (
-                        <S.ParticipantBadge> (호스트)</S.ParticipantBadge>
-                      )}
-                    </S.ParticipantName>
-                  </S.ParticipantInfo>
-                </S.ParticipantItem>
-              ))}
-            </S.ParticipantList>
-          </S.ParticipantSection>
+                    onMouseUp={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                  >
+                    <Edit3 size={14} color="#3B82F6" />
+                    <span
+                      style={{
+                        fontSize: isMobile ? "12px" : "13px",
+                        fontWeight: "600",
+                        color: "#3B82F6",
+                      }}
+                    >
+                      수정
+                    </span>
+                  </div>
+                )}
 
-          {meeting.status === "recruiting" && (
-            <S.DeadlineWarning>
-              모집 마감까지 {formatDeadline(meeting.recruitUntil)}
-            </S.DeadlineWarning>
+                {/* 좋아요 버튼 */}
+                <div
+                  onClick={handleLikeClick}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    backgroundColor: "rgba(255, 139, 85, 0.1)",
+                    padding: "6px 10px",
+                    borderRadius: "16px",
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease",
+                  }}
+                  onMouseDown={(e) =>
+                    (e.currentTarget.style.transform = "scale(0.95)")
+                  }
+                  onMouseUp={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
+                >
+                  <Heart
+                    size={16}
+                    fill={isLiked ? "#ff8b55" : "transparent"}
+                    color="#ff8b55"
+                  />
+                  <span
+                    style={{
+                      fontSize: isMobile ? "14px" : "15px",
+                      fontWeight: "600",
+                      color: "#ff8b55",
+                    }}
+                  >
+                    {meetingData.likesCount || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 노션 스타일 정보 칩들 */}
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
+                marginBottom: "16px",
+              }}
+            >
+              <InfoChip>
+                <InfoIcon>
+                  <Clock size={16} />
+                </InfoIcon>
+                {meetingDateTime.toLocaleDateString("ko-KR", {
+                  month: "short",
+                  day: "numeric",
+                  weekday: "short",
+                })}{" "}
+                {meetingTime}
+              </InfoChip>
+              <InfoChip>
+                <InfoIcon>
+                  <Timer size={16} />
+                </InfoIcon>
+                {meetingData.mission?.estimatedDuration || 0}분
+              </InfoChip>
+              <InfoChip $highlight>
+                <InfoIcon>
+                  <DollarSign size={16} />
+                </InfoIcon>
+                +{meetingData.mission?.basePoints || 0}P
+              </InfoChip>
+            </div>
+          </StorySection>
+
+          {/* 미션 상세페이지에서 온 경우가 아닐 때만 연결된 미션 섹션 표시 */}
+          {!hideFromMissionDetail && (
+            <MissionCard $isMobile={isMobile}>
+              <MissionHeader>
+                <div>
+                  <MissionTitle $isMobile={isMobile}>
+                    🎯 연결된 미션
+                  </MissionTitle>
+                  <p
+                    style={{
+                      margin: "4px 0 0 0",
+                      fontSize: isMobile ? "15px" : "16px",
+                      color: "#6B7280",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {meetingData.mission?.title || "미션 제목 없음"}
+                  </p>
+                </div>
+              </MissionHeader>
+              <MissionBody>
+                <p
+                  style={{
+                    margin: "0 0 12px 0",
+                    color: "#6B7280",
+                    lineHeight: "1.5",
+                    fontSize: isMobile ? "13px" : "14px",
+                  }}
+                >
+                  {meetingData.mission?.description || "미션 설명 없음"}
+                </p>
+                <ViewMissionBtn
+                  onClick={() =>
+                    navigate(
+                      `/missions/${meetingData.mission?.id}?from=meeting`
+                    )
+                  }
+                  $isMobile={isMobile}
+                >
+                  미션 상세보기 <ChevronRight size={16} />
+                </ViewMissionBtn>
+              </MissionBody>
+            </MissionCard>
           )}
 
-          <S.ActionSection>
-            {isHost ? (
-              <>
-                <S.PrimaryButton disabled>내가 만든 모임</S.PrimaryButton>
-                <S.SecondaryButton>모임 관리</S.SecondaryButton>
-              </>
-            ) : (
-              <>
-                {canJoin && (
-                  <S.PrimaryButton onClick={handleJoin}>
-                    참여하기
-                  </S.PrimaryButton>
+          <StorySection $isMobile={isMobile}>
+            <SectionTitle $isMobile={isMobile}>이런 모임이에요</SectionTitle>
+            <Description $isMobile={isMobile}>
+              {meetingData.mission?.description || "모임 설명이 없습니다."}
+            </Description>
+
+            {/* 미션 해시태그 표시 */}
+            {meetingData.mission?.hashtags &&
+              meetingData.mission.hashtags.length > 0 && (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "6px",
+                  }}
+                >
+                  {meetingData.mission.hashtags.map((hashtag, index) => (
+                    <span
+                      key={index}
+                      style={{
+                        background: "#F3F4F6",
+                        color: "#6B7280",
+                        padding: "4px 8px",
+                        borderRadius: "12px",
+                        fontSize: isMobile ? "12px" : "13px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      #{hashtag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+            <HostCard
+              $isMobile={isMobile}
+              onClick={() =>
+                meetingData.host?.userId &&
+                navigate(`/user/${meetingData.host.userId}`)
+              }
+              style={{
+                cursor: meetingData.host?.userId ? "pointer" : "default",
+              }}
+            >
+              <HostAvatar $isMobile={isMobile}>
+                {meetingData.host?.profileImageUrl ? (
+                  <img
+                    src={meetingData.host.profileImageUrl}
+                    alt={meetingData.host.nickname}
+                  />
+                ) : (
+                  <Crown size={isMobile ? 18 : 20} />
                 )}
-                {canLeave && (
-                  <S.SecondaryButton onClick={handleLeave}>
-                    참여 취소
-                  </S.SecondaryButton>
+              </HostAvatar>
+              <HostInfo>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  <HostName $isMobile={isMobile}>
+                    {meetingData.host?.nickname || "호스트"}
+                  </HostName>
+                  <Crown size={isMobile ? 12 : 14} color="#F59E0B" />
+                  <HostLevel $isMobile={isMobile}>
+                    LV.{meetingData.host?.level || 1}
+                  </HostLevel>
+                </div>
+                {meetingData.participantList?.find((p) => p.isHost)?.bio && (
+                  <div
+                    style={{
+                      fontSize: isMobile ? "12px" : "13px",
+                      color: "#6B7280",
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    {meetingData.participantList?.find((p) => p.isHost)?.bio}
+                  </div>
                 )}
-                {isParticipant && !canLeave && (
-                  <S.PrimaryButton disabled>참여중</S.PrimaryButton>
+              </HostInfo>
+            </HostCard>
+          </StorySection>
+
+          <DetailsGrid $isMobile={isMobile}>
+            {/* 미션 상세 정보 */}
+            {meetingData.mission?.precautions &&
+              meetingData.mission.precautions.length > 0 && (
+                <DetailCard $isMobile={isMobile} $col={6}>
+                  <DetailHeader>
+                    <MapPin size={20} />
+                    <span>주의사항</span>
+                  </DetailHeader>
+                  <DetailContent>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                      }}
+                    >
+                      {meetingData.mission.precautions.map(
+                        (precaution, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: "8px",
+                              fontSize: isMobile ? "13px" : "14px",
+                              color: "#6B7280",
+                              lineHeight: "1.4",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "#F59E0B",
+                                fontWeight: "bold",
+                                minWidth: "4px",
+                              }}
+                            >
+                              •
+                            </span>
+                            <span>{precaution}</span>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </DetailContent>
+                </DetailCard>
+              )}
+
+            {/* 이런 분과 함께하고 싶어요 - API에서 제공되지 않아 임시로 숨김 */}
+
+            {/* 출석체크 현황 (진행 중인 모임이고 참가자인 경우만 표시) */}
+            {meetingData.status === "active" &&
+              (isParticipant || isHost) &&
+              attendanceStatus && (
+                <DetailCard $isMobile={isMobile} $col={6}>
+                  <DetailHeader>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        width: "100%",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Users size={20} />
+                        출석 현황 ({attendanceStatus.summary.checkedIn}/
+                        {attendanceStatus.summary.total})
+                      </span>
+
+                      {/* 호스트 액션 버튼들 */}
+                      {isHost && (
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {attendanceStatus.canGenerateQR &&
+                            !attendanceStatus.qrCodeActive && (
+                              <button
+                                onClick={handleGenerateQR}
+                                disabled={isGeneratingQR}
+                                style={{
+                                  padding: "4px 8px",
+                                  fontSize: "11px",
+                                  backgroundColor: "#10B981",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                {isGeneratingQR ? "생성 중..." : "QR 생성"}
+                              </button>
+                            )}
+
+                          {attendanceStatus.qrCodeActive && (
+                            <span
+                              style={{
+                                padding: "4px 8px",
+                                fontSize: "11px",
+                                backgroundColor: "#3B82F6",
+                                color: "white",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              QR 활성
+                            </span>
+                          )}
+
+                          <button
+                            onClick={handleMarkNoShow}
+                            style={{
+                              padding: "4px 8px",
+                              fontSize: "11px",
+                              backgroundColor: "#EF4444",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            노쇼 처리
+                          </button>
+                        </div>
+                      )}
+
+                      {/* 참가자 출석 버튼 */}
+                      {!isHost && myAttendance?.canCheckIn && (
+                        <button
+                          onClick={() => setShowQRScanner(true)}
+                          style={{
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            backgroundColor: "#10B981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          출석체크
+                        </button>
+                      )}
+                    </div>
+                  </DetailHeader>
+                  <DetailContent>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                      }}
+                    >
+                      {attendanceStatus.attendances.map((attendance) => (
+                        <div
+                          key={attendance.userId}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "6px 8px",
+                            backgroundColor:
+                              attendance.status === "checked_in"
+                                ? "#F0FDF4"
+                                : attendance.status === "no_show"
+                                ? "#FEF2F2"
+                                : "#F9FAFB",
+                            borderRadius: "6px",
+                            border: "1px solid",
+                            borderColor:
+                              attendance.status === "checked_in"
+                                ? "#D1FAE5"
+                                : attendance.status === "no_show"
+                                ? "#FEE2E2"
+                                : "#E5E7EB",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight: "500",
+                                fontSize: isMobile ? "13px" : "14px",
+                              }}
+                            >
+                              {attendance.nickname}
+                              {attendance.isHost && (
+                                <Crown
+                                  size={12}
+                                  color="#F59E0B"
+                                  style={{ marginLeft: "4px" }}
+                                />
+                              )}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              backgroundColor:
+                                attendance.status === "checked_in"
+                                  ? "#10B981"
+                                  : attendance.status === "no_show"
+                                  ? "#EF4444"
+                                  : "#6B7280",
+                              color: "white",
+                            }}
+                          >
+                            {attendance.status === "checked_in"
+                              ? "출석"
+                              : attendance.status === "no_show"
+                              ? "노쇼"
+                              : "대기"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 요약 정보 */}
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        padding: "8px",
+                        backgroundColor: "#F3F4F6",
+                        borderRadius: "6px",
+                        fontSize: isMobile ? "12px" : "13px",
+                        color: "#6B7280",
+                      }}
+                    >
+                      출석: {attendanceStatus.summary.checkedIn}명 | 노쇼:{" "}
+                      {attendanceStatus.summary.noShow}명 | 대기:{" "}
+                      {attendanceStatus.summary.pending}명
+                    </div>
+                  </DetailContent>
+                </DetailCard>
+              )}
+
+            {/* 현재 멤버 */}
+            <DetailCard $isMobile={isMobile} $col={6}>
+              <DetailHeader>
+                <Users size={20} />
+                <span>
+                  현재 멤버 ({meetingData.currentParticipants || 0}/
+                  {meetingData.participants || 0})
+                </span>
+              </DetailHeader>
+              <DetailContent>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                  }}
+                >
+                  {meetingData.participantList?.map((participant) => (
+                    <MemberItem key={participant.userId} $isMobile={isMobile}>
+                      <MemberAvatar
+                        $isMobile={isMobile}
+                        onClick={
+                          participant.userId &&
+                          participant.userId !== currentUserId
+                            ? () => navigate(`/user/${participant.userId}`)
+                            : undefined
+                        }
+                        style={{
+                          cursor:
+                            participant.userId &&
+                            participant.userId !== currentUserId
+                              ? "pointer"
+                              : "default",
+                        }}
+                      >
+                        {participant.profileImageUrl ? (
+                          <img
+                            src={participant.profileImageUrl}
+                            alt={participant.nickname}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: "50%",
+                            }}
+                          />
+                        ) : (
+                          <User size={isMobile ? 16 : 18} />
+                        )}
+                      </MemberAvatar>
+                      <MemberInfo>
+                        <MemberName $isMobile={isMobile}>
+                          <span
+                            onClick={
+                              participant.userId &&
+                              participant.userId !== currentUserId
+                                ? () => navigate(`/user/${participant.userId}`)
+                                : undefined
+                            }
+                            style={{
+                              color:
+                                participant.userId === currentUserId
+                                  ? "#3B82F6"
+                                  : "inherit",
+                              cursor:
+                                participant.userId &&
+                                participant.userId !== currentUserId
+                                  ? "pointer"
+                                  : "default",
+                            }}
+                          >
+                            {participant.nickname}
+                          </span>
+                          {participant.isHost && (
+                            <HostBadge $isMobile={isMobile}>
+                              <Crown size={12} />
+                            </HostBadge>
+                          )}
+                          {participant.userId === currentUserId && (
+                            <span
+                              style={{
+                                fontSize: isMobile ? "10px" : "11px",
+                                color: "#3B82F6",
+                                fontWeight: "600",
+                                marginLeft: "6px",
+                                background: "rgba(59, 130, 246, 0.1)",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                              }}
+                            >
+                              나
+                            </span>
+                          )}
+                        </MemberName>
+                        <MemberDetails $isMobile={isMobile}>
+                          <MemberLevel>LV.{participant.level}</MemberLevel>
+                          {participant.mbti && (
+                            <MemberMBTI>{participant.mbti}</MemberMBTI>
+                          )}
+                        </MemberDetails>
+                      </MemberInfo>
+                    </MemberItem>
+                  )) || (
+                    <div style={{ color: "#6B7280", fontSize: "14px" }}>
+                      참여자가 없습니다.
+                    </div>
+                  )}
+                </div>
+              </DetailContent>
+            </DetailCard>
+
+            {/* 모임 시간 및 장소 : 전체 폭 */}
+            <DetailCard $isMobile={isMobile} $col={12}>
+              <DetailHeader>
+                <MapPin size={20} />
+                <span>모임 시간 및 장소</span>
+              </DetailHeader>
+              <DetailContent>
+                {/* 시간 정보 */}
+                <LocationInfo style={{ marginBottom: "16px" }}>
+                  <LocationMain>
+                    <div
+                      style={{
+                        fontWeight: "700",
+                        color: "#111827",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      모임 시작 일시
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "500",
+                        color: "#6b7280",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      {meetingDateTime.toLocaleDateString("ko-KR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        weekday: "long",
+                      })}{" "}
+                      {meetingTime}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      예상 소요시간:{" "}
+                      {meetingData.mission?.estimatedDuration || 0}분
+                    </div>
+                  </LocationMain>
+                </LocationInfo>
+
+                {/* 장소 정보 */}
+                <LocationInfo>
+                  <LocationMain>
+                    <div
+                      style={{
+                        fontWeight: "700",
+                        color: "#111827",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      모임 장소
+                    </div>
+                    <LocationName>
+                      {meetingData.mission?.location || "상세 장소 없음"}
+                    </LocationName>
+                    <LocationAddress>
+                      {meetingData.mission?.district?.districtName &&
+                      meetingData.mission?.district?.city
+                        ? `${meetingData.mission.district.city} ${meetingData.mission.district.districtName}`
+                        : "주소 정보 없음"}
+                    </LocationAddress>
+                  </LocationMain>
+                </LocationInfo>
+
+                {/* 미션 지역 정보가 있을 때만 지도 표시 */}
+                {(meetingData.mission?.districtId ||
+                  meetingData.mission?.location) && (
+                  <>
+                    <MapFrame ref={mapRef} $isMobile={isMobile} />
+
+                    <button
+                      onClick={() => {
+                        const location =
+                          meetingData.mission?.location ||
+                          (meetingData.mission?.district
+                            ? `${meetingData.mission.district.city} ${meetingData.mission.district.districtName}`
+                            : "송파구");
+                        const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(
+                          location
+                        )}`;
+                        window.open(naverMapUrl, "_blank");
+                      }}
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        marginTop: "12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        backgroundColor: "white",
+                        color: "#374151",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      네이버 지도에서 보기 <ChevronRight size={16} />
+                    </button>
+                  </>
                 )}
-                {isFull && !isParticipant && (
-                  <S.PrimaryButton disabled>모집 완료</S.PrimaryButton>
-                )}
-                {meeting.status !== "recruiting" && (
-                  <S.PrimaryButton disabled>
-                    {getStatusText(meeting.status)}
-                  </S.PrimaryButton>
-                )}
-              </>
+              </DetailContent>
+            </DetailCard>
+          </DetailsGrid>
+
+          {/* 데스크톱에서만 보이는 하단 참여 버튼 */}
+          {meetingData.status === "recruiting" && (
+            <BottomActionSection $isMobile={isMobile}>
+              <PrimaryAction
+                onClick={handleJoin}
+                disabled={isLoading}
+                $isMobile={isMobile}
+                $isCancel={isParticipant}
+              >
+                {getJoinButtonText()}
+              </PrimaryAction>
+            </BottomActionSection>
+          )}
+        </ContentSection>
+      </PageContainer>
+
+      {/* 모바일에서만 보이는 플로팅 버튼 */}
+      {meetingData.status === "recruiting" && isMobile && (
+        <FloatingActions $isMobile={isMobile}>
+          <ActionContainer $isMobile={isMobile}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+            >
+              <PriceInfo $isMobile={isMobile}>
+                +{meetingData.mission?.basePoints || 0}P 획득
+              </PriceInfo>
+              <SeatsInfo $warning={seatsLeft <= 2} $isMobile={isMobile}>
+                {seatsLeft > 0 ? `${seatsLeft}자리 남음` : "대기 접수 가능"}
+              </SeatsInfo>
+            </div>
+            <PrimaryAction
+              onClick={handleJoin}
+              disabled={isLoading}
+              $isMobile={isMobile}
+              $isCancel={isParticipant}
+            >
+              {getJoinButtonText()}
+            </PrimaryAction>
+          </ActionContainer>
+        </FloatingActions>
+      )}
+
+      {/* 이미 좋아요를 눌렀을 때 표시되는 모달 */}
+      <AlertModal
+        isOpen={showAlreadyLikedModal}
+        onClose={() => setShowAlreadyLikedModal(false)}
+        type="info"
+        title="좋아요 알림"
+        message="이미 좋아요를 눌렀습니다."
+        confirmText="확인"
+      />
+
+      {/* 모임 참여 모달 */}
+      {meetingData && (
+        <MeetingJoinModal
+          isOpen={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
+          meetingData={{
+            id: meetingData.id,
+            title: meetingData.mission?.title || "모임",
+            requiredPoints: meetingData.mission?.basePoints || 0,
+            currentParticipants: meetingData.participantList?.length || 0,
+            maxParticipants: meetingData.participants || 4,
+            scheduledAt: (() => {
+              console.log("모임 데이터 scheduledAt:", meetingData.scheduledAt);
+              if (!meetingData.scheduledAt) return "날짜 정보 없음";
+              if (typeof meetingData.scheduledAt === "string")
+                return meetingData.scheduledAt;
+              const scheduledAtObj = meetingData.scheduledAt as { date?: string; time?: string };
+              if (scheduledAtObj?.date && scheduledAtObj?.time) {
+                return `${scheduledAtObj.date} ${scheduledAtObj.time}`;
+              }
+              return "날짜 정보 없음";
+            })(),
+            isHost: meetingData.hostUserId === currentUserId,
+          }}
+          onSuccess={() => {
+            // 참여 성공 후 페이지 새로고침
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {/* QR 코드 생성 모달 (호스트용) */}
+      {showQRGenerator && qrCodeToken && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setShowQRGenerator(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "24px",
+              maxWidth: "400px",
+              width: "90%",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                margin: "0 0 16px 0",
+                fontSize: "18px",
+                fontWeight: "600",
+              }}
+            >
+              출석체크 QR 코드
+            </h3>
+            <p
+              style={{
+                margin: "0 0 20px 0",
+                color: "#6B7280",
+                fontSize: "14px",
+              }}
+            >
+              참가자들이 이 QR 코드를 스캔하여 출석체크할 수 있습니다. (30분
+              유효)
+            </p>
+
+            <QRCodeGenerator value={qrCodeToken} size={200} />
+
+            <button
+              onClick={() => setShowQRGenerator(false)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                backgroundColor: "#3B82F6",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "16px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* QR 코드 스캐너 모달 (참가자용) */}
+      {showQRScanner && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "400px",
+              width: "90%",
+              textAlign: "center",
+            }}
+          >
+            <h3
+              style={{
+                margin: "0 0 16px 0",
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "white",
+              }}
+            >
+              QR 코드를 스캔해주세요
+            </h3>
+            <p
+              style={{
+                margin: "0 0 20px 0",
+                color: "#D1D5DB",
+                fontSize: "14px",
+              }}
+            >
+              호스트가 제공한 QR 코드를 카메라에 비춰주세요
+            </p>
+
+            <QRCodeScanner
+              isActive={showQRScanner}
+              onScan={handleQRScan}
+              onClose={() => setShowQRScanner(false)}
+            />
+
+            {isCheckingIn && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  color: "white",
+                  fontSize: "14px",
+                }}
+              >
+                출석체크 처리 중...
+              </div>
             )}
-          </S.ActionSection>
-        </S.Sidebar>
-      </S.Content>
-    </S.Container>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
-
-export default MeetingDetailPage;

@@ -7,7 +7,7 @@ export interface SearchMissionsRequest {
   minDuration?: number;
   maxDuration?: number;
   minParticipants?: number;
-  maxParticipants?: number;
+  participants?: number;
   minPoints?: number;
   maxPoints?: number;
   keyword?: string;
@@ -80,7 +80,7 @@ export interface MissionSearchResult {
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   duration: number; // minutes
   minParticipants: number;
-  maxParticipants: number;
+  participants: number;
   point: number;
   thumbnailUrl: string;
   upcomingMeetingsCount: number;
@@ -102,7 +102,7 @@ export interface MeetingSearchResult {
   recruitUntil: string;
   status: 'recruiting' | 'active' | 'completed';
   availableSeats: number;
-  maxParticipants: number;
+  participants: number;
   location: {
     district: string;
     place: string;
@@ -159,7 +159,7 @@ export interface MissionDetail {
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   duration: number;
   minParticipants: number;
-  maxParticipants: number;
+  participants: number;
   point: number;
   thumbnailUrl: string;
   photoVerificationGuide: string;
@@ -193,7 +193,7 @@ export interface MeetingDetail {
   scheduledAt: string;
   recruitUntil: string;
   currentParticipants: number;
-  maxParticipants: number;
+  participants: number;
   location: {
     district: string;
     place: string;

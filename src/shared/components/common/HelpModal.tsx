@@ -172,7 +172,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({
         </ModalHeader>
 
         <HelpSection>
-          <SectionTitle $isMobile={isMobile}>1️⃣ Halsaram 소개</SectionTitle>
+          <SectionTitle $isMobile={isMobile}>1️⃣ 할사람? 소개</SectionTitle>
           <InfoText $isMobile={isMobile}>
             지역 기반 번개모임으로 새로운 사람들과 만나고, 미션을 수행하며
             포인트를 획득할 수 있는 서비스입니다.

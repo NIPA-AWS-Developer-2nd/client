@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowUpDown } from "lucide-react";
 import MeetingCard from "../../components/MeetingCard";
-import MeetingCardSkeleton from "../../components/MeetingCardSkeleton";
 import { WeekSelector } from "../../components/WeekSelector";
 import { ResponsiveLayout } from "../../../../shared/layout/ResponsiveLayout";
+import { Checkbox } from "../../../../shared/components/ui/Checkbox";
 import type { Meeting, MeetingListFilters } from "../../../../types";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
 import {
@@ -51,7 +52,7 @@ const MeetingListPage: React.FC = () => {
     sortBy: "newest", // 최신순을 기본값으로
   });
 
-  // 추가 필터: 남은 자리가 있는 모임만
+  // 남은 자리가 있는 모임만 필터 옵션
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
   // 정렬 역방향 상태
@@ -66,11 +67,16 @@ const MeetingListPage: React.FC = () => {
 
   // 일주일 데이터 한번에 로드
   const loadWeekMeetings = useCallback(
-    async (startDate: Date, endDate: Date, isPolling = false) => {
-      // 폴링인 경우 isRefreshing 사용, 아니면 isLoading 사용
+    async (
+      startDate: Date,
+      endDate: Date,
+      isPolling = false,
+      isInitialLoad = false
+    ) => {
+      // 폴링인 경우 isRefreshing 사용, 초기 로딩시에만 isLoading 사용
       if (isPolling) {
         setIsRefreshing(true);
-      } else {
+      } else if (isInitialLoad && !allWeekMeetings.length) {
         setIsLoading(true);
       }
 
@@ -90,12 +96,12 @@ const MeetingListPage: React.FC = () => {
           size: 20, // 일주일치 데이터 가져오기 (최대 20개)
         };
 
-        console.log(
-          isPolling
-            ? "🔄 자동 새로고침 중..."
-            : "🔍 일주일 모임 데이터 로드 시작:",
-          apiParams
-        );
+        // console.log(
+        //   isPolling
+        //     ? "자동 새로고침 중"
+        //     : "일주일 모임 데이터 로드 시작:",
+        //   apiParams
+        // );
 
         const response = await meetingApiService.getMeetings(apiParams);
         const convertedMeetings = MeetingMapper.toMeetings(response.meetings);
@@ -103,12 +109,12 @@ const MeetingListPage: React.FC = () => {
         setAllWeekMeetings(convertedMeetings);
         setLastRefreshed(new Date());
 
-        console.log("✅ 일주일 모임 데이터 로드 완료:", {
-          total: convertedMeetings.length,
-          startDate: startDate.toDateString(),
-          endDate: endDate.toDateString(),
-          isPolling,
-        });
+        // console.log("✅ 일주일 모임 데이터 로드 완료:", {
+        //   total: convertedMeetings.length,
+        //   startDate: startDate.toDateString(),
+        //   endDate: endDate.toDateString(),
+        //   isPolling,
+        // });
       } catch (error) {
         console.error("❌ Failed to load week meetings:", error);
         if (!isPolling) {
@@ -117,7 +123,7 @@ const MeetingListPage: React.FC = () => {
       } finally {
         if (isPolling) {
           setIsRefreshing(false);
-        } else {
+        } else if (isInitialLoad && !allWeekMeetings.length) {
           setIsLoading(false);
         }
       }
@@ -128,6 +134,9 @@ const MeetingListPage: React.FC = () => {
   // 클라이언트 사이드 필터링 및 정렬
   const filteredAndSortedMeetings = useMemo(() => {
     let filtered = [...allWeekMeetings];
+
+    // cancelled 상태 모임 제외
+    filtered = filtered.filter((meeting) => meeting.status !== "cancelled");
 
     // 날짜 필터 (선택된 날짜가 있으면 해당 날짜만)
     if (selectedDate) {
@@ -185,9 +194,9 @@ const MeetingListPage: React.FC = () => {
     // 남은 자리가 있는 모임만 필터링
     if (showAvailableOnly) {
       filtered = filtered.filter((m) => {
-        const maxParticipants = m.mission?.maxParticipants || 0;
+        const participants = m.mission?.participants || 0;
         const currentParticipants = m.currentParticipants || 0;
-        return currentParticipants < maxParticipants;
+        return currentParticipants < participants;
       });
     }
 
@@ -196,9 +205,9 @@ const MeetingListPage: React.FC = () => {
       case "popular": // 인기순 (참여율)
         filtered.sort((a, b) => {
           const aRatio =
-            (a.currentParticipants || 0) / (a.mission?.maxParticipants || 1);
+            (a.currentParticipants || 0) / (a.mission?.participants || 1);
           const bRatio =
-            (b.currentParticipants || 0) / (b.mission?.maxParticipants || 1);
+            (b.currentParticipants || 0) / (b.mission?.participants || 1);
           const diff = bRatio - aRatio;
           return isDescending ? -diff : diff;
         });
@@ -222,16 +231,17 @@ const MeetingListPage: React.FC = () => {
 
       case "newest": // 최신 등록순
         filtered.sort((a, b) => {
-          const diff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          const diff =
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           return isDescending ? -diff : diff;
         });
         break;
 
-      case "hostLevel": // 호스트 레벨순
+      case "points": // 포인트순
         filtered.sort((a, b) => {
-          const aLevel = a.host?.level || 0;
-          const bLevel = b.host?.level || 0;
-          const diff = bLevel - aLevel;
+          const aPoints = a.mission?.points || 0;
+          const bPoints = b.mission?.points || 0;
+          const diff = bPoints - aPoints;
           return isDescending ? -diff : diff;
         });
         break;
@@ -239,7 +249,9 @@ const MeetingListPage: React.FC = () => {
       case "latest": // 활동 시간순
       default:
         filtered.sort((a, b) => {
-          const diff = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime();
+          const diff =
+            new Date(a.scheduledAt).getTime() -
+            new Date(b.scheduledAt).getTime();
           return isDescending ? -diff : diff;
         });
         break;
@@ -267,7 +279,7 @@ const MeetingListPage: React.FC = () => {
       setWeekStartDate(startDate);
       setWeekEndDate(endDate);
       setPage(1);
-      loadWeekMeetings(startDate, endDate);
+      loadWeekMeetings(startDate, endDate, false, false);
     },
     [loadWeekMeetings]
   );
@@ -324,7 +336,7 @@ const MeetingListPage: React.FC = () => {
       setSearchParams(newSearchParams, { replace: true });
     }
 
-    loadWeekMeetings(weekStart, weekEnd);
+    loadWeekMeetings(weekStart, weekEnd, false, true);
   }, [loadWeekMeetings, selectedDateParam, searchParams, setSearchParams]);
 
   // 자동 API 폴링 (3분마다)
@@ -357,10 +369,6 @@ const MeetingListPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleCreateMeeting = () => {
-    navigate("/meetings/create");
-  };
-
   return (
     <ResponsiveLayout>
       <S.Container $isMobile={isMobile}>
@@ -371,22 +379,8 @@ const MeetingListPage: React.FC = () => {
           selectedDate={selectedDate}
         />
 
-
         {/* 추가 필터 옵션 */}
         <S.ExtraFilters $isMobile={isMobile}>
-          <S.FilterOption>
-            <input
-              type="checkbox"
-              id="availableOnly"
-              checked={showAvailableOnly}
-              onChange={(e) => {
-                setShowAvailableOnly(e.target.checked);
-                setPage(1);
-              }}
-            />
-            <label htmlFor="availableOnly">참여 가능</label>
-          </S.FilterOption>
-
           {/* 정렬 옵션 */}
           <S.SortOptions>
             <select
@@ -398,19 +392,51 @@ const MeetingListPage: React.FC = () => {
                 })
               }
             >
-              <option value="newest">최신순</option>
-              <option value="latest">시간순</option>
-              <option value="deadline">모집순</option>
-              <option value="popular">인기순</option>
-              <option value="hostLevel">레벨순</option>
+              <option value="newest">등록일</option>
+              <option value="latest">시작시간</option>
+              <option value="deadline">모집마감</option>
+              <option value="popular">인기도</option>
+              <option value="points">포인트</option>
             </select>
             <S.SortDirectionButton
               onClick={() => setIsDescending(!isDescending)}
               $isDescending={isDescending}
+              title={(() => {
+                switch (filters.sortBy) {
+                  case "popular":
+                    return isDescending ? "낮은순" : "높은순";
+                  case "points":
+                    return isDescending ? "적은순" : "많은순";
+                  default:
+                    return isDescending ? "늦은순" : "빠른순";
+                }
+              })()}
             >
-              ↕
+              <ArrowUpDown size={16} />
+              <span style={{ marginLeft: "4px", fontSize: "12px" }}>
+                {(() => {
+                  switch (filters.sortBy) {
+                    case "popular":
+                      return isDescending ? "낮은순" : "높은순";
+                    case "points":
+                      return isDescending ? "적은순" : "많은순";
+                    default:
+                      return isDescending ? "늦은순" : "빠른순";
+                  }
+                })()}
+              </span>
             </S.SortDirectionButton>
           </S.SortOptions>
+
+          <Checkbox
+            id="availableOnly"
+            checked={showAvailableOnly}
+            onChange={(checked) => {
+              setShowAvailableOnly(checked);
+              setPage(1);
+            }}
+            label="참여 가능한 모임만 보기"
+          />
         </S.ExtraFilters>
 
         {missionIdFromUrl && (
@@ -422,17 +448,10 @@ const MeetingListPage: React.FC = () => {
 
         <S.ContentSection $isMobile={isMobile}>
           <S.Content>
-            {/* 로딩 상태 */}
-            {isLoading ? (
-              <S.MeetingGrid>
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <MeetingCardSkeleton key={`skeleton-${index}`} />
-                ))}
-              </S.MeetingGrid>
-            ) : (
+            {!isLoading && (
               <>
                 {/* 결과 정보 */}
-                {!isLoading && filteredAndSortedMeetings.length > 0 && (
+                {filteredAndSortedMeetings.length > 0 && (
                   <S.ResultInfo $isMobile={isMobile}>
                     {selectedDate && (
                       <span>{selectedDate.toLocaleDateString("ko-KR")} </span>
@@ -471,9 +490,9 @@ const MeetingListPage: React.FC = () => {
                       <S.EmptyDescription $isMobile={isMobile}>
                         {selectedDate ? (
                           <>
-                            선택한 날짜에 모임이 없어요
+                            선택한 날짜에 활성화된 모임이 없어요
                             <br />
-                            다른 날짜를 선택해보세요!
+                            다른 날짜를 선택하거나 직접 모임을 만들어보세요!
                           </>
                         ) : (
                           <>
@@ -483,12 +502,6 @@ const MeetingListPage: React.FC = () => {
                           </>
                         )}
                       </S.EmptyDescription>
-                      <S.CreateButton
-                        $isMobile={isMobile}
-                        onClick={handleCreateMeeting}
-                      >
-                        첫 모임 만들기
-                      </S.CreateButton>
                     </S.EmptyState>
                   ) : (
                     paginatedMeetings.map((meeting) => (
@@ -536,13 +549,6 @@ const MeetingListPage: React.FC = () => {
             )}
           </S.Content>
         </S.ContentSection>
-
-        <S.FloatingActionButton
-          $isMobile={isMobile}
-          onClick={handleCreateMeeting}
-        >
-          +
-        </S.FloatingActionButton>
       </S.Container>
     </ResponsiveLayout>
   );

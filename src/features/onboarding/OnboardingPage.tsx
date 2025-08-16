@@ -11,7 +11,7 @@ export const OnboardingPage: React.FC = () => {
     status: "ACTIVE",
     name: "",
     email: "",
-    profile_image_url: "",
+    profileImageUrl: "",
     interests: [],
     mbti: "",
     birthYear: 0,

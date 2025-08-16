@@ -1,5 +1,25 @@
-import styled, { css } from "styled-components";
-import { responsive, animations, hoverSupported } from "../../../styles/mixins";
+import styled, { css, keyframes } from "styled-components";
+import { responsive, hoverSupported } from "../../../styles/mixins";
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const slideUp = keyframes`
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+`;
 
 interface ModalContentProps {
   $maxWidth?: string;
@@ -15,14 +35,13 @@ export const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: ${({ theme }) => theme.spacing.lg};
-  
-  ${animations.fadeIn('0.2s')}
+  animation: ${fadeIn} 0.2s ease;
   
   ${responsive.mobile(css`
     padding: ${({ theme }) => theme.spacing.md};
@@ -31,17 +50,18 @@ export const ModalOverlay = styled.div`
 
 export const ModalContent = styled.div<ModalContentProps>`
   background: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border-radius: ${({ theme }) => theme.borderRadius.xl};
   width: 100%;
-  max-width: ${({ $maxWidth }) => $maxWidth || "400px"};
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: ${({ theme }) => theme.shadows.xl};
-  
-  ${animations.scaleIn('0.2s')}
+  max-width: ${({ $maxWidth }) => $maxWidth || "500px"};
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: ${slideUp} 0.3s ease;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   
   ${responsive.mobile(css`
-    max-width: 320px;
+    max-width: 90vw;
     max-height: 90vh;
   `)}
 `;
@@ -87,4 +107,6 @@ export const CloseButton = styled.button`
 
 export const ModalBody = styled.div`
   padding: ${({ theme }) => theme.spacing.lg};
+  flex: 1;
+  overflow-y: auto;
 `;

@@ -3,9 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { deviceDetection } from "../../../../shared/utils/deviceDetection";
 import { ShareModal } from "../../../../shared/components/common/ShareModal";
 import { useMissionStore } from "../../../../shared/store";
+import { useLocationVerification } from "../../../../shared/hooks";
+import { useAlert } from "../../../../shared/hooks/useAlert";
 import {
   MissionHeader,
   MissionContent,
+  MissionLocation,
   MissionInfo,
   MissionActions,
 } from "./components";
@@ -19,6 +22,8 @@ export const MissionDetailPage: React.FC = () => {
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
   const [isInitialLoad, setIsInitialLoad] = React.useState(true);
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
+  const { warning } = useAlert();
   
   const { 
     currentMission, 
@@ -45,10 +50,32 @@ export const MissionDetailPage: React.FC = () => {
   }, [id, fetchMissionDetails]);
 
   const handleCreateMeeting = () => {
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "모임 생성");
+      return;
+    }
+    
     navigate(`/meetings/new?missionId=${id}`);
   };
   
   const handleSearchMeetings = () => {
+    // 로딩 중이면 아무 작업도 하지 않음
+    if (isLocationLoading) {
+      return;
+    }
+    
+    // 지역 인증 체크
+    if (!isLocationVerified) {
+      warning("지역 인증이 필요합니다.", "모임 찾기");
+      return;
+    }
+    
     // 미션 컨텍스트와 함께 모임 리스트로 이동
     const tags = currentMission?.category?.join(',') || '';
     navigate(`/meetings?missionId=${id}&tags=${tags}`);
@@ -93,8 +120,10 @@ export const MissionDetailPage: React.FC = () => {
       
       <ContentSection $isMobile={isMobile}>
         <MissionContent mission={currentMission} isMobile={isMobile} />
+        <MissionLocation mission={currentMission} isMobile={isMobile} />
         <MissionInfo mission={currentMission} isMobile={isMobile} />
         <MissionActions
+          mission={currentMission}
           isMobile={isMobile}
           onCreateMeeting={handleCreateMeeting}
           onSearchMeetings={handleSearchMeetings}

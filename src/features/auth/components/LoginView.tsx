@@ -124,11 +124,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     if (error) {
       const errorMessages: Record<string, string> = {
         'google_auth_failed': '구글 로그인 인증에 실패했습니다.',
-        'google_login_failed': '구글 로그인 처리 중 오류가 발생했습니다.',
+        'google_login_failed': '서버 측에서 예상치 못한 문제가 발생하여 구글 로그인을 완료할 수 없습니다.',
         'kakao_auth_failed': '카카오 로그인 인증에 실패했습니다.',
-        'kakao_login_failed': '카카오 로그인 처리 중 오류가 발생했습니다.',
+        'kakao_login_failed': '서버 측에서 예상치 못한 문제가 발생하여 카카오 로그인을 완료할 수 없습니다.',
         'naver_auth_failed': '네이버 로그인 인증에 실패했습니다.',
-        'naver_login_failed': '네이버 로그인 처리 중 오류가 발생했습니다.',
+        'naver_login_failed': '서버 측에서 예상치 못한 문제가 발생하여 네이버 로그인을 완료할 수 없습니다.',
       };
       
       setErrorMessage(errorMessages[error] || '로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -175,7 +175,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       }
     } catch (error) {
       console.error('Test login failed:', error);
-      setErrorMessage('테스트 로그인에 실패했습니다.');
+      setErrorMessage('서버 측에서 예상치 못한 문제가 발생하여 테스트 로그인을 완료할 수 없습니다.');
     }
   };
 
@@ -190,7 +190,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     <LoginContainer>
       <LoginContent>
         <BrandingWrapper>
-          <BrandingContent variant="splash" />
+          <BrandingContent variant="splash" logoVariant="black" />
         </BrandingWrapper>
 
         {/* 에러 메시지 표시 */}

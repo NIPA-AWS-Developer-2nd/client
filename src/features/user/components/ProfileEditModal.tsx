@@ -20,7 +20,7 @@ const ModalOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: 20px 40px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -45,7 +45,7 @@ const ModalContent = styled.div<{ $isMobile?: boolean }>`
 
   @media (max-width: 768px) {
     max-width: 95vw;
-    max-height: 85vh;
+    max-height: 75vh;
   }
 `;
 
@@ -163,7 +163,7 @@ const ProfileImage = styled.img`
   height: 100%;
   object-fit: cover;
   filter: ${({ theme }) =>
-    theme.colors.background === "#1A202C"
+    theme.colors.background.primary === "#1A202C"
       ? "brightness(0.8) blur(0.5px)"
       : "none"};
   transition: filter 0.2s ease;
@@ -427,7 +427,6 @@ const CharacterCount = styled.div`
   margin-top: 4px;
 `;
 
-
 const GenderButtonGroup = styled.div`
   display: flex;
   gap: 8px;
@@ -593,7 +592,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   const [formData, setFormData] = useState({
     name: user.nickname || "",
     bio: user.bio || "",
-    profile_image_url: user.profile_image_url || "",
+    profile_image_url: user.profileImageUrl || "",
   });
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -653,7 +652,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       setFormData({
         name: user.nickname || "",
         bio: user.bio || "",
-        profile_image_url: user.profile_image_url || "",
+        profile_image_url: user.profileImageUrl || "",
       });
 
       // MBTI 초기화
@@ -1022,7 +1021,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                   for (let year = currentYear - 14; year >= 1950; year--) {
                     options.push({
                       value: year.toString(),
-                      label: `${year}년`
+                      label: `${year}년`,
                     });
                   }
                   return options;
@@ -1166,7 +1165,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                 $isMobile={isMobile}
                 value={formData.bio}
                 onChange={(e) => handleInputChange("bio", e.target.value)}
-                placeholder="50자 내외로 자신을 표현해주세요"
+                placeholder="직업, 취미, 관심사 등 무엇이든 좋아요"
                 maxLength={50}
               />
               <CharacterCount>{formData.bio?.length || 0}/50</CharacterCount>

@@ -124,7 +124,7 @@ export const FilterSelect = styled.select`
   transition: ${({ theme }) => theme.transitions.fast};
   appearance: none;
   background-image: ${({ theme }) =>
-    theme.colors.background === "#2D3748"
+    theme.colors.background.primary === "#2D3748"
       ? `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`
       : `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`};
   background-repeat: no-repeat;
@@ -210,7 +210,7 @@ export const PointBadgeOverlay = styled.div<{ $isMobile?: boolean; $point: numbe
   right: 12px;
   padding: ${({ $isMobile }) => ($isMobile ? "6px 10px" : "8px 12px")};
   background: ${({ $point, theme }) => {
-    const isDark = theme.colors.background === "#2D3748";
+    const isDark = theme.colors.background.primary === "#2D3748";
     return getPointBadgeColor($point, isDark).background;
   }};
   color: ${({ $point }) => ($point < 300 ? "#4B5563" : "#FFFFFF")};
@@ -219,7 +219,7 @@ export const PointBadgeOverlay = styled.div<{ $isMobile?: boolean; $point: numbe
   font-weight: 800;
   box-shadow: 0 2px 6px
     ${({ $point, theme }) => {
-      const isDark = theme.colors.background === "#2D3748";
+      const isDark = theme.colors.background.primary === "#2D3748";
       return getPointBadgeColor($point, isDark).shadow;
     }};
   text-shadow: ${({ $point }) =>
@@ -379,40 +379,40 @@ export const getPointBadgeColor = (
   point: number,
   isDark: boolean = false
 ): { background: string; shadow: string } => {
-  if (point < 300) {
+  if (point < 500) {
     return {
       background: isDark
         ? "linear-gradient(135deg, #E5E7EB, #D1D5DB)"
         : "linear-gradient(135deg, #F3F4F6, #E5E7EB)",
       shadow: "rgba(156, 163, 175, 0.3)",
     };
-  } else if (point < 600) {
-    return {
-      background: isDark
-        ? "linear-gradient(135deg, #3B82F6, #1D4ED8, #1E40AF)"
-        : "linear-gradient(135deg, #60A5FA, #3B82F6, #2563EB)",
-      shadow: "rgba(59, 130, 246, 0.4)",
-    };
   } else if (point < 1000) {
     return {
       background: isDark
-        ? "linear-gradient(135deg, #10B981, #047857, #065F46)"
-        : "linear-gradient(135deg, #34D399, #10B981, #059669)",
-      shadow: "rgba(34, 197, 94, 0.4)",
+        ? "linear-gradient(135deg, #93C5FD, #60A5FA, #3B82F6)"
+        : "linear-gradient(135deg, #DBEAFE, #93C5FD, #60A5FA)",
+      shadow: "rgba(147, 197, 253, 0.4)",
     };
   } else if (point < 1500) {
     return {
       background: isDark
-        ? "linear-gradient(135deg, #8B5CF6, #7C3AED, #6D28D9)"
-        : "linear-gradient(135deg, #A78BFA, #8B5CF6, #7C3AED)",
-      shadow: "rgba(139, 92, 246, 0.4)",
+        ? "linear-gradient(135deg, #86EFAC, #4ADE80, #22C55E)"
+        : "linear-gradient(135deg, #DCFCE7, #86EFAC, #4ADE80)",
+      shadow: "rgba(134, 239, 172, 0.4)",
+    };
+  } else if (point < 2000) {
+    return {
+      background: isDark
+        ? "linear-gradient(135deg, #C4B5FD, #A78BFA, #8B5CF6)"
+        : "linear-gradient(135deg, #F3E8FF, #C4B5FD, #A78BFA)",
+      shadow: "rgba(196, 181, 253, 0.4)",
     };
   } else {
     return {
       background: isDark
-        ? "linear-gradient(135deg, #F59E0B, #D97706, #B45309)"
-        : "linear-gradient(135deg, #FBB040, #F59E0B, #EF8A0D)",
-      shadow: "rgba(251, 146, 60, 0.4)",
+        ? "linear-gradient(135deg, #FDBA74, #FB923C, #F97316)"
+        : "linear-gradient(135deg, #FED7AA, #FDBA74, #FB923C)",
+      shadow: "rgba(253, 186, 116, 0.4)",
     };
   }
 };

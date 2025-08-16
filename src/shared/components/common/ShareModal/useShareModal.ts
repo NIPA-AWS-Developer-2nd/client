@@ -14,24 +14,39 @@ import {
 import type { MissionWithDetails } from "../../../../types";
 import type { ShareHandlers } from "./types";
 
+interface AlertMethods {
+  success: (message: string) => void;
+  error: (message: string) => void;
+}
+
 export const useShareModal = (
   mission?: MissionWithDetails,
-  onClose?: () => void
+  onClose?: () => void,
+  alertMethods?: AlertMethods
 ): ShareHandlers => {
   const handleCopyLink = useCallback(async () => {
     const success = await copyToClipboard(window.location.href);
 
     if (success) {
-      alert("링크가 클립보드에 복사되었습니다.");
+      if (alertMethods) {
+        alertMethods.success("링크가 클립보드에 복사되었습니다.");
+      } else {
+        alert("링크가 클립보드에 복사되었습니다.");
+      }
     } else {
-      alert(
-        "링크 복사에 실패했습니다. 링크를 수동으로 복사해주세요:\n" +
-          window.location.href
-      );
+      if (alertMethods) {
+        alertMethods.error(
+          "링크 복사에 실패했습니다. 링크를 수동으로 복사해주세요:\n" + window.location.href
+        );
+      } else {
+        alert(
+          "링크 복사에 실패했습니다. 링크를 수동으로 복사해주세요:\n" + window.location.href
+        );
+      }
     }
 
     onClose?.();
-  }, [onClose]);
+  }, [onClose, alertMethods]);
 
   const handleKakaoShare = useCallback(() => {
     shareToKakao(mission);
@@ -46,10 +61,14 @@ export const useShareModal = (
       onClose?.();
     } catch (error) {
       console.error("Failed to open message app:", error);
-      alert("메시지 앱을 열 수 없습니다. 링크를 복사합니다.");
+      if (alertMethods) {
+        alertMethods.error("메시지 앱을 열 수 없습니다. 링크를 복사합니다.");
+      } else {
+        alert("메시지 앱을 열 수 없습니다. 링크를 복사합니다.");
+      }
       await handleCopyLink();
     }
-  }, [mission, onClose, handleCopyLink]);
+  }, [mission, onClose, handleCopyLink, alertMethods]);
 
   const handleMoreShare = useCallback(async () => {
     debugShareAPI();
@@ -83,15 +102,23 @@ export const useShareModal = (
       }
       
       // iOS나 다른 모바일은 링크 복사로 처리
-      alert("링크를 클립보드에 복사합니다.");
+      if (alertMethods) {
+        alertMethods.success("링크를 클립보드에 복사합니다.");
+      } else {
+        alert("링크를 클립보드에 복사합니다.");
+      }
       await handleCopyLink();
       return;
     }
 
     // 데스크톱은 링크 복사
-    alert("링크를 클립보드에 복사합니다.");
+    if (alertMethods) {
+      alertMethods.success("링크를 클립보드에 복사합니다.");
+    } else {
+      alert("링크를 클립보드에 복사합니다.");
+    }
     await handleCopyLink();
-  }, [mission, onClose, handleCopyLink]);
+  }, [mission, onClose, handleCopyLink, alertMethods]);
 
   return {
     handleKakaoShare,

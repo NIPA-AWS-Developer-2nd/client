@@ -3,18 +3,19 @@ import { authFetch, apiUrl } from "../utils/api";
 // 백엔드 API 응답 타입에 맞춤
 export interface MeetingHostDto {
   id: string;
+  userId?: string; // Alias for id to maintain compatibility
   nickname: string;
-  profileImageUrl: string;
+  profileImageUrl: string | null;
   points: number;
   level: number;
+  mbti?: string;
 }
 
 export interface MeetingMissionDto {
   id: string;
   title: string;
   description: string;
-  minParticipants: number;
-  maxParticipants: number;
+  participants: number;
   estimatedDuration: number;
   minimumDuration: number;
   basePoints: number;
@@ -45,6 +46,14 @@ export interface MeetingMissionDto {
   };
 }
 
+export interface ParticipantProfileDto {
+  id: string;
+  nickname: string;
+  profileImageUrl: string | null;
+  level: number;
+  isHost: boolean;
+}
+
 export interface MeetingDto {
   id: string;
   missionId: string;
@@ -57,8 +66,35 @@ export interface MeetingDto {
   createdAt: string;
   updatedAt: string;
   currentParticipants?: number;
+  likesCount: number;
+  isLiked?: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부 (목록에서는 선택적)
   mission?: MeetingMissionDto;
   host?: MeetingHostDto;
+  participantProfiles?: ParticipantProfileDto[];
+}
+
+export interface MeetingParticipantDto {
+  userId: string;
+  nickname: string;
+  profileImageUrl: string | null;
+  points: number;
+  level: number;
+  status: string;
+  isHost: boolean;
+  mbti?: string;
+  bio?: string;
+  joinedAt: string;
+  createdAt: string;
+}
+
+export interface MeetingDetailDto extends MeetingDto {
+  participants: number;
+  participantList: MeetingParticipantDto[];
+  canJoin: boolean;
+  userParticipationStatus: string | null;
+  isLiked: boolean; // 현재 사용자가 좋아요를 눌렀는지 여부
+  introduction?: string;
+  focusScore?: number;
 }
 
 export interface GetMeetingsResponse {
@@ -84,6 +120,18 @@ export interface GetMeetingsParams {
   missionId?: string;
   page?: number;
   size?: number;
+}
+
+export interface CreateMeetingRequest {
+  missionId: string;
+  recruitUntil?: string;
+  scheduledAt: string;
+  participants?: number;
+  introduction?: string;
+  focusScore?: number;
+  hostStake?: number;
+  participantStake?: number;
+  traits?: Array<{ id: string }>;
 }
 
 class MeetingApiService {
@@ -161,6 +209,170 @@ class MeetingApiService {
       ...params, 
       selectedDate 
     });
+  }
+
+  /**
+   * 모임 상세 정보 조회
+   */
+  async getMeetingDetail(meetingId: string): Promise<MeetingDetailDto> {
+    const url = `/meetings/${meetingId}`;
+    
+    console.log('🔍 모임 상세 API 호출:', url);
+
+    const response = await authFetch(apiUrl(url), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const result: MeetingDetailDto = await response.json();
+    console.log('✅ 모임 상세 조회 성공:', result);
+    
+    return result;
+  }
+
+  /**
+   * 모임 생성
+   */
+  async createMeeting(meetingData: CreateMeetingRequest): Promise<MeetingDetailDto> {
+    const url = '/meetings';
+    
+    console.log('🔍 모임 생성 API 호출:', url, meetingData);
+
+    const response = await authFetch(apiUrl(url), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(meetingData),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const result: MeetingDetailDto = await response.json();
+    console.log('✅ 모임 생성 성공:', result);
+    
+    return result;
+  }
+
+  /**
+   * 모임 좋아요
+   */
+  async toggleLike(meetingId: string): Promise<{ likesCount: number; isLiked: boolean }> {
+    const url = `/meetings/${meetingId}/like`;
+    
+    console.log('🔍 모임 좋아요 API 호출:', url);
+
+    const response = await authFetch(apiUrl(url), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const result: { likesCount: number; isLiked: boolean } = await response.json();
+    console.log('✅ 모임 좋아요 성공:', result);
+    
+    return result;
+  }
+
+  /**
+   * 모임 삭제 (호스트 전용)
+   */
+  async deleteMeeting(meetingId: string): Promise<void> {
+    const url = `/meetings/${meetingId}`;
+    
+    console.log('🔍 모임 삭제 API 호출:', url);
+
+    const response = await authFetch(apiUrl(url), {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    console.log('✅ 모임 삭제 성공');
+  }
+
+  /**
+   * 모임 나가기
+   */
+  async leaveMeeting(meetingId: string): Promise<void> {
+    const url = `/meetings/${meetingId}/leave`;
+    
+    console.log('🔍 모임 나가기 API 호출:', url);
+
+    const response = await authFetch(apiUrl(url), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    console.log('✅ 모임 나가기 성공');
+  }
+
+  /**
+   * 모임 수정 (호스트 전용)
+   */
+  async updateMeeting(meetingId: string, updateData: Partial<CreateMeetingRequest>): Promise<MeetingDetailDto> {
+    const url = `/meetings/${meetingId}`;
+    
+    console.log('🔍 모임 수정 API 호출:', url, updateData);
+
+    const response = await authFetch(apiUrl(url), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const result: MeetingDetailDto = await response.json();
+    console.log('✅ 모임 수정 성공:', result);
+    
+    return result;
   }
 }
 

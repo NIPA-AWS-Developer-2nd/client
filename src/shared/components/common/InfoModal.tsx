@@ -198,7 +198,7 @@ export const InfoModal: React.FC<InfoModalProps> = ({
         
         <InfoList>
           <li>빌드 날짜: 2024.01.31</li>
-          <li>개발팀: Halsaram Team</li>
+          <li>개발팀: 할사람 Team</li>
           <li>지원: 송파구 지역 기반 번개모임 서비스</li>
         </InfoList>
       </InfoSection>

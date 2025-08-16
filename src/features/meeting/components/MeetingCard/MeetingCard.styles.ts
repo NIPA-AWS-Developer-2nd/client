@@ -1,13 +1,25 @@
 import styled from "styled-components";
 
 // 새로운 모임 카드 스타일 (개선된 버전)
-export const NewCard = styled.article`
+export const NewCard = styled.article<{ $status?: string }>`
   background: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   overflow: hidden;
+  border: 3px solid ${({ theme, $status }) => {
+    switch ($status) {
+      case 'recruiting':
+        return '#10b981'; // 초록색
+      case 'active':
+        return '#3b82f6'; // 파란색
+      case 'completed':
+        return theme.colors.primary; // 주황색 (theme primary)
+      default:
+        return 'transparent';
+    }
+  }};
 `;
 
 // 1번째 블록: 핵심 정보 (제목, 일정·장소, 모집마감)
@@ -92,14 +104,34 @@ export const CategoryBadge = styled.span`
 `;
 
 export const DifficultyBadge = styled.span<{
-  $difficulty: "easy" | "medium" | "hard";
+  $difficulty: string;
 }>`
   display: inline-block;
   padding: 4px 8px;
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   font-size: 11px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.2);
+  background: ${({ $difficulty }) => {
+    switch ($difficulty?.toLowerCase()) {
+      case "very_easy":
+      case "매우 쉬움":
+        return "rgba(34, 197, 94, 0.8)"; // 녹색 - 매우 쉬움
+      case "easy":
+      case "쉬움":
+        return "rgba(16, 185, 129, 0.8)"; // 청녹색 - 쉬움
+      case "medium":
+      case "보통":
+        return "rgba(245, 158, 11, 0.8)"; // 노란색 - 보통
+      case "hard":
+      case "어려움":
+        return "rgba(239, 68, 68, 0.8)"; // 빨간색 - 어려움
+      case "very_hard":
+      case "매우 어려움":
+        return "rgba(185, 28, 28, 0.8)"; // 진한 빨간색 - 매우 어려움
+      default:
+        return "rgba(255, 255, 255, 0.2)";
+    }
+  }};
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(4px);
@@ -112,16 +144,16 @@ export const PointBadge = styled.span<{ $point: number }>`
   font-size: 11px;
   font-weight: 800;
   background: ${({ $point }) => {
-    if ($point < 300) {
+    if ($point < 500) {
       return "rgba(156, 163, 175, 0.8)";
-    } else if ($point < 600) {
-      return "linear-gradient(135deg, rgba(96, 165, 250, 0.8), rgba(59, 130, 246, 0.8))";
     } else if ($point < 1000) {
-      return "linear-gradient(135deg, rgba(52, 211, 153, 0.8), rgba(16, 185, 129, 0.8))";
+      return "linear-gradient(135deg, rgba(147, 197, 253, 0.8), rgba(96, 165, 250, 0.8))";
     } else if ($point < 1500) {
-      return "linear-gradient(135deg, rgba(167, 139, 250, 0.8), rgba(139, 92, 246, 0.8))";
+      return "linear-gradient(135deg, rgba(134, 239, 172, 0.8), rgba(74, 222, 128, 0.8))";
+    } else if ($point < 2000) {
+      return "linear-gradient(135deg, rgba(196, 181, 253, 0.8), rgba(167, 139, 250, 0.8))";
     } else {
-      return "linear-gradient(135deg, rgba(251, 176, 64, 0.8), rgba(245, 158, 11, 0.8))";
+      return "linear-gradient(135deg, rgba(253, 186, 116, 0.8), rgba(251, 146, 60, 0.8))";
     }
   }};
   color: #ffffff;
@@ -273,8 +305,14 @@ export const CrownIcon = styled.div`
 
 export const HostInfo = styled.div`
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
+  
+  > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 `;
 
 export const HostName = styled.span`
@@ -288,6 +326,39 @@ export const HostLevel = styled.span`
   font-weight: 700;
   color: ${({ theme }) => theme.colors.primary};
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+`;
+
+export const HostMbti = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  padding: 2px 6px;
+  background: ${({ theme }) => theme.colors.gray100};
+  border-radius: 8px;
+  display: inline-block;
+  width: fit-content;
+  align-self: flex-start;
+`;
+
+export const LikesOverlay = styled.div`
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+`;
+
+export const LikesCountOverlay = styled.span`
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 `;
 
 // 3번째 블록: 선호 특성
@@ -387,4 +458,20 @@ export const MoreParticipants = styled.div`
   font-weight: 600;
   margin-left: -8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+`;
+
+export const ParticipantInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  
+  span {
+    font-size: 13px;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    
+    &:last-child {
+      font-weight: 500;
+      color: ${({ theme }) => theme.colors.primary};
+    }
+  }
 `;

@@ -2,6 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { useOnboardingStore } from "../../../shared/store";
 import { Skeleton } from "../../../shared/components/ui";
+import { useAlert } from "../../../shared/components/common";
 
 const Container = styled.div`
   display: flex;
@@ -49,7 +50,7 @@ const InterestsGrid = styled.div`
 
 const InterestButton = styled.button<{ $selected: boolean }>`
   padding: 12px 10px;
-  border: 1px solid
+  border: 1.5px solid
     ${({ theme, $selected }) =>
       $selected ? theme.colors.primary : theme.colors.border};
   border-radius: 8px;
@@ -113,6 +114,7 @@ const MBTI_TYPES = [
 
 export const Step3Interests: React.FC = () => {
   const { formData, isLoading, updateFormData, categories, hashtags, loadStaticData } = useOnboardingStore();
+  const { warning } = useAlert();
 
   // 데이터 로드
   React.useEffect(() => {
@@ -129,7 +131,7 @@ export const Step3Interests: React.FC = () => {
       newInterests = currentInterests.filter((i) => i !== interest);
     } else {
       if (currentInterests.length >= 6) {
-        alert("최대 6개까지 선택할 수 있습니다.");
+        warning("최대 6개까지 선택할 수 있습니다.");
         return;
       }
       newInterests = [...currentInterests, interest];
@@ -151,7 +153,7 @@ export const Step3Interests: React.FC = () => {
       newMoods = currentMoods.filter((m) => m !== hashtagName);
     } else {
       if (currentMoods.length >= 6) {
-        alert("최대 6개까지 선택할 수 있습니다.");
+        warning("최대 6개까지 선택할 수 있습니다.");
         return;
       }
       newMoods = [...currentMoods, hashtagName];

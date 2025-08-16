@@ -3,6 +3,8 @@ export const lightTheme = {
     // Primary
     primary: "#ff8b55",
     primaryLight: "#ffaa7a",
+    primaryDark: "#e67742",
+    primaryHover: "#ff9d6e",
     secondary: "#ff9e6e",
     secondaryLight: "#ffd4b8",
     tertiary: "#FFE6A7",
@@ -10,9 +12,24 @@ export const lightTheme = {
 
     // Status colors
     success: "#23d17a",
+    successLight: "#70e5a8",
     danger: "#e53935",
     warning: "#e53935",
+    warningLight: "#f4aa47",
     info: "#3B82F6",
+    error: "#e53935",
+    errorLight: "#f4aa8a",
+    errorDark: "#d12c2c",
+    errorBg: "#fef2f2",
+
+    // Additional colors
+    orange: "#ff8b55",
+    orange500: "#ff8b55",
+    orange600: "#e67742",
+    blue: "#3B82F6",
+    yellow: "#f59e0b",
+    green: "#10b981",
+    red: "#e53935",
 
     // Verification colors (from MyPage VerificationBadge)
     phoneVerified: "#1E40AF", // 번호 인증 - 파란색
@@ -37,13 +54,19 @@ export const lightTheme = {
     black: "#000000",
 
     // Background
-    background: "#FFF7F0", // 전체 배경
+    background: {
+      primary: "#FFFFFF",
+      secondary: "#F9F6F2",
+    },
+    backgroundAlt: "#F9F6F2",
     surface: "#FFFFFF", // 카드, 입력창 등
     card: "#F9F6F2", // 카드 배경
     input: "#FFFFFF", // 입력 필드 배경
 
     // Border
-    border: "#E5E1DC",
+    border: {
+      light: "#E5E1DC",
+    },
     divider: "#F3EEE7",
 
     // Text
@@ -54,13 +77,15 @@ export const lightTheme = {
       inverse: "#FFFFFF", // 다크배경 위 텍스트
       placeholder: "#A8A29E", // 입력창 플레이스홀더
     },
+    textSecondary: "#78716C",
+    textTertiary: "#A8A29E",
 
     // Legacy support
     light: "#FFF7F0",
     dark: "#1C1917",
   },
   fonts: {
-    primary: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    primary: `'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`,
     mono: `ui-monospace, SFMono-Regular, 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace`,
   },
@@ -106,6 +131,8 @@ export const darkTheme = {
     // Primary
     primary: "#ff8b55", // 버튼, 액티브 등
     primaryLight: "#ffaa7a", // primary보다 밝은 톤
+    primaryDark: "#e67742",
+    primaryHover: "#ff9d6e",
     secondary: "#ffb899", // 서브 포인트 (기존보다 진한 톤)
     secondaryLight: "#ffd4b8", // secondary보다 밝은 톤
     tertiary: "#FFD580", // 기존 secondary 색상
@@ -113,9 +140,24 @@ export const darkTheme = {
 
     // Status colors
     success: "#10B981",
+    successLight: "#34d399",
     danger: "#EF4444",
     warning: "#F59E0B",
+    warningLight: "#fbbf24",
     info: "#60A5FA",
+    error: "#EF4444",
+    errorLight: "#f87171",
+    errorDark: "#dc2626",
+    errorBg: "#450a0a",
+
+    // Additional colors
+    orange: "#ff8b55",
+    orange500: "#ff8b55",
+    orange600: "#e67742",
+    blue: "#60A5FA",
+    yellow: "#F59E0B",
+    green: "#10B981",
+    red: "#EF4444",
 
     // Verification colors (from MyPage VerificationBadge)
     phoneVerified: "#60A5FA", // 번호 인증 - 파란색 (다크모드)
@@ -140,13 +182,19 @@ export const darkTheme = {
     black: "#000000",
 
     // Background
-    background: "#18191D", // 전체 배경
+    background: {
+      primary: "#23242A",
+      secondary: "#18191D",
+    },
+    backgroundAlt: "#18191D",
     surface: "#23242A", // 카드, 입력창 등
     card: "#23242A", // 카드 배경
     input: "#23242A", // 입력 필드 배경
 
     // Border
-    border: "#35363C",
+    border: {
+      light: "#35363C",
+    },
     divider: "#2C2D33",
 
     // Text
@@ -157,13 +205,15 @@ export const darkTheme = {
       inverse: "#18191D", // 다크배경 위 텍스트
       placeholder: "#5A5B60", // 입력창 플레이스홀더
     },
+    textSecondary: "#A0A1A6",
+    textTertiary: "#5A5B60",
 
     // Legacy support
     light: "#23242A",
     dark: "#F9FAFB",
   },
   fonts: {
-    primary: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    primary: `'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`,
     mono: `ui-monospace, SFMono-Regular, 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace`,
   },

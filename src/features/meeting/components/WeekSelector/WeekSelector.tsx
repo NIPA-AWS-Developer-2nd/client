@@ -113,8 +113,8 @@ const DayCard = styled.button<{
   }};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "16px 8px" : "20px 10px")};
-  cursor: ${({ $isPast }) => ($isPast ? "not-allowed" : "pointer")};
-  opacity: ${({ $isPast }) => ($isPast ? 0.3 : 1)};
+  cursor: pointer;
+  opacity: 1;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -125,13 +125,13 @@ const DayCard = styled.button<{
     return "0 1px 4px rgba(0, 0, 0, 0.04)";
   }};
 
-  &:hover:not(:disabled) {
+  &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
 
-  &:disabled {
-    cursor: not-allowed;
-    transform: none;
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -229,9 +229,6 @@ const WeekSelector: React.FC<WeekSelectorProps> = ({
   };
 
   const handleDayClick = (day: Date) => {
-    if (day < new Date(new Date().setHours(0, 0, 0, 0))) {
-      return; // 과거 날짜는 선택 불가
-    }
     setSelectedDay(day);
     onDayChange?.(day);
   };
@@ -292,7 +289,6 @@ const WeekSelector: React.FC<WeekSelectorProps> = ({
               $hasEvents={eventCount > 0}
               $isMobile={isMobile}
               onClick={() => handleDayClick(day)}
-              disabled={past}
             >
               {today && <TodayIndicator $isSelected={isSelected} />}
               <DayWeekday $isSelected={isSelected} $isMobile={isMobile}>

@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { X, FileText, Shield, Bell } from "lucide-react";
+import { useAlert } from "../../hooks/useAlert";
 
 const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
@@ -174,6 +175,7 @@ export const AppInfoModal: React.FC<AppInfoModalProps> = ({
   onClose,
   isMobile = false,
 }) => {
+  const { info } = useAlert();
   // 모달 외부 클릭시 닫기
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -201,19 +203,15 @@ export const AppInfoModal: React.FC<AppInfoModalProps> = ({
   }, [isOpen, onClose]);
 
   const handleTermsClick = () => {
-    alert("이용약관\n\n서비스 이용에 관한 약관을 확인할 수 있습니다.\n");
+    info("서비스 이용에 관한 약관을 확인할 수 있습니다.", "이용약관");
   };
 
   const handlePrivacyClick = () => {
-    alert(
-      "개인정보처리방침\n\n개인정보 수집, 이용, 관리에 관한 정책을 확인할 수 있습니다.\n"
-    );
+    info("개인정보 수집, 이용, 관리에 관한 정책을 확인할 수 있습니다.", "개인정보처리방침");
   };
 
   const handleNoticesClick = () => {
-    alert(
-      "공지사항\n\n서비스 업데이트 및 중요 공지사항을 확인할 수 있습니다.\n"
-    );
+    info("서비스 업데이트 및 중요 공지사항을 확인할 수 있습니다.", "공지사항");
   };
 
   return (

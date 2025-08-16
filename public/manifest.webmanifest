@@ -1,6 +1,6 @@
 {
-  "name": "Halsaram",
-  "short_name": "Halsaram",
+  "name": "할사람",
+  "short_name": "할사람",
   "description": "지역 기반 번개모임 커뮤니티",
   "start_url": "/",
   "display": "standalone",

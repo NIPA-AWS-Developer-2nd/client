@@ -69,7 +69,13 @@ export interface CompleteUserInfo {
   phoneVerifiedAt?: string;
   onboardingCompletedAt?: string;
   lastLoginAt?: string;
+  lastLocationVerificationAt?: string;
   districtVerifiedAt?: string;
+  currentDistrict?: {
+    id: string;
+    districtName: string;
+    city: string;
+  };
   profile?: {
     nickname?: string;
     profileImageUrl?: string;
@@ -120,6 +126,8 @@ export interface District {
   districtName: string;
   regionCode: string;
   city: string;
+  latitude?: number | string;
+  longitude?: number | string;
   isActive: boolean;
 }
 
@@ -144,6 +152,36 @@ export interface ActivityStats {
   reviewCount: number;
   hostedMeetingCount: number;
   completedMissionCount: number;
+}
+
+// 위치 인증 요청 타입
+export interface LocationVerificationRequest {
+  latitude: number;
+  longitude: number;
+  districtId: string;
+}
+
+// 위치 인증 응답 타입
+export interface LocationVerificationResponse {
+  isVerified: boolean;
+  district: {
+    id: string;
+    districtName: string;
+    city: string;
+  };
+  distance: number;
+  message?: string;
+}
+
+// 위치 인증 상태 응답 타입
+export interface LocationVerificationStatusResponse {
+  isVerified: boolean;
+  lastVerificationAt?: string;
+  currentDistrict?: {
+    id: string;
+    districtName: string;
+    city: string;
+  };
 }
 
 class UserApiService {
@@ -393,6 +431,172 @@ class UserApiService {
 
     if (!apiResponse.result) {
       throw new Error(apiResponse.message || "Failed to get user hashtags");
+    }
+
+    return apiResponse.data;
+  }
+
+  /**
+   * 위치 인증 상태 확인
+   */
+  async getLocationVerificationStatus(): Promise<LocationVerificationStatusResponse> {
+    const response = await authFetch(apiUrl("/user/location-verification-status"), {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const apiResponse: ApiResponse<LocationVerificationStatusResponse> = await response.json();
+
+    if (!apiResponse.result) {
+      throw new Error(apiResponse.message || "Failed to get location verification status");
+    }
+
+    return apiResponse.data;
+  }
+
+  /**
+   * 위치 인증 실행
+   */
+  async verifyLocation(data: LocationVerificationRequest): Promise<LocationVerificationResponse> {
+    const response = await authFetch(apiUrl("/user/verify-location"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const apiResponse: ApiResponse<LocationVerificationResponse> = await response.json();
+
+    // 위치 인증은 실패해도 응답이 오므로 API 응답의 result를 체크하지 않고
+    // 실제 인증 결과는 data.isVerified로 판단
+    return apiResponse.data;
+  }
+
+  /**
+   * 활성 지역 목록 조회 (위치 인증용)
+   */
+  async getActiveDistricts(): Promise<District[]> {
+    const response = await authFetch(apiUrl("/user/districts"), {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const apiResponse: ApiResponse<District[]> = await response.json();
+
+    if (!apiResponse.result) {
+      throw new Error(apiResponse.message || "Failed to get active districts");
+    }
+
+    return apiResponse.data;
+  }
+
+  /**
+   * 다른 사용자 프로필 조회
+   */
+  async getOtherUserProfile(userId: string): Promise<{
+    id: string;
+    profile: {
+      nickname: string;
+      bio?: string;
+      profileImageUrl?: string;
+      interests: string[];
+      hashtags: string[];
+      mbti?: string;
+      level: number;
+    };
+    stats: ActivityStats;
+  }> {
+    const response = await authFetch(apiUrl(`/user/${userId}/profile`), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const apiResponse: ApiResponse<{
+      id: string;
+      profile: {
+        nickname: string;
+        bio?: string;
+        profileImageUrl?: string;
+        interests: string[];
+        hashtags: string[];
+        mbti?: string;
+        level: number;
+      };
+      stats: ActivityStats;
+    }> = await response.json();
+
+    if (!apiResponse.result) {
+      throw new Error(apiResponse.message || "Failed to get user profile");
+    }
+
+    return apiResponse.data;
+  }
+
+  /**
+   * 테스트용: 모든 사용자 목록 조회 (개발 환경에서만)
+   */
+  async getAllUsers(): Promise<Array<{
+    id: string;
+    phoneNumber?: string;
+    status: string;
+    onboardingCompleted: boolean;
+    nickname?: string;
+    profileImageUrl?: string;
+  }>> {
+    const response = await authFetch(apiUrl("/user/list"), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: "Network error" }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+
+    const apiResponse: ApiResponse<Array<{
+      id: string;
+      phoneNumber?: string;
+      status: string;
+      onboardingCompleted: boolean;
+      nickname?: string;
+      profileImageUrl?: string;
+    }>> = await response.json();
+
+    if (!apiResponse.result) {
+      throw new Error(apiResponse.message || "Failed to get users list");
     }
 
     return apiResponse.data;

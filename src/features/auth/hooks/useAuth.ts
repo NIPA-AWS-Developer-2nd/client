@@ -21,7 +21,7 @@ export interface User {
   birthYear?: number;
   gender?: "male" | "female";
   bio?: string;
-  profile_image_url?: string;
+  profileImageUrl?: string;
   interests?: string[];
   hashtags?: number[];
   mbti?: string;

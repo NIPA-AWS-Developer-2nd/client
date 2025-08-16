@@ -1,0 +1,1 @@
+export { RecruitmentDeadlineNotice } from './RecruitmentDeadlineNotice';

@@ -62,7 +62,7 @@ export interface TraitSelectorProps {
   maxSelection: number;
 }
 
-export type Difficulty = "EASY" | "MEDIUM" | "HARD";
+export type Difficulty = "very_easy" | "easy" | "medium" | "hard" | "very_hard";
 
 // User type is now defined in features/auth/hooks/useAuth.ts
 // Import from there when needed: import type { User } from "../features/auth/hooks/useAuth";

@@ -218,7 +218,7 @@ export const CreateMeetingForm: React.FC<CreateMeetingFormProps> = ({
           </MetaItem>
           <MetaItem>
             <Users size={12} />
-            {mission.minParticipants}-{mission.maxParticipants}명
+            최대 {mission.participants}명
           </MetaItem>
           <MetaItem>
             <UserCheck size={12} />

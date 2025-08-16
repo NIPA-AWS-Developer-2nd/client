@@ -9,8 +9,8 @@ import {
   Step3Interests,
   Step4Location,
 } from "./components";
-import { AccountMergeModal } from "../../shared/components/common/AccountMergeModal";
 import type { User } from "../auth/hooks/useAuth";
+import { useAlert } from "../../shared/hooks";
 
 // 모달 스타일 컨테이너
 const ModalOverlay = styled.div`
@@ -183,18 +183,20 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 }) => {
   const [searchParams] = useSearchParams();
   const [showValidation, setShowValidation] = React.useState(false);
+  const { success } = useAlert();
 
   const {
     currentStep,
     formData,
     isSubmitting,
-    showAccountMergeModal,
+    accountMerged,
+    existingUserInfo,
+    _onboardingCompleted,
     setCurrentStep,
     loadStaticData,
     submitOnboarding,
     updateFormData,
     reset,
-    closeAccountMergeModal,
   } = useOnboardingStore();
 
   // 컴포넌트 마운트 시 정적 데이터 로드 및 초기화
@@ -208,16 +210,35 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
       birthYear: user?.birthYear?.toString() || "",
       gender: user?.gender || "",
       bio: user?.bio || "",
-      profileImageUrl: user?.profile_image_url || "",
+      profileImageUrl: user?.profileImageUrl || "",
       interests: user?.interests || [],
       mbti: user?.mbti || "",
-      districtId: "",
+      districtId: user?.districtId || "",
     });
 
     return () => {
       reset();
     };
   }, [user, searchParams, loadStaticData, updateFormData, reset]);
+
+  // 계정 통합 처리
+  useEffect(() => {
+    if (accountMerged && existingUserInfo) {
+      if (_onboardingCompleted) {
+        // 온보딩이 완료된 기존 사용자와 통합된 경우
+        success("기존 계정으로 통합 로그인 됩니다.", "계정 통합 완료");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      } else {
+        // 온보딩이 필요한 기존 사용자와 통합된 경우
+        success(
+          "기존 계정과 통합되었습니다. 온보딩을 계속 진행해주세요.",
+          "계정 통합 완료"
+        );
+      }
+    }
+  }, [accountMerged, existingUserInfo, _onboardingCompleted, success]);
 
   const handleNext = () => {
     if (!canProceed()) {
@@ -356,12 +377,6 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
           </Footer>
         </ModalContent>
       </ModalOverlay>
-
-      {/* 계정 통합 모달 */}
-      <AccountMergeModal
-        show={showAccountMergeModal}
-        onClose={closeAccountMergeModal}
-      />
     </>
   );
 };

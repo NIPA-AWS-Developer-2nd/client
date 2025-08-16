@@ -1,9 +1,9 @@
 export const BRANDING = {
-  title: "Halsaram",
+  title: "할사람?",
   subtitle: "지역 기반 번개모임으로\n새로운 사람들과 만나보세요",
   description: "",
   icon: "",
-  korean: "Halsaram",
+  korean: "할사람?",
 } as const;
 
 export const SPLASH_CONFIG = {

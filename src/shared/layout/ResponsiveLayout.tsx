@@ -15,11 +15,21 @@ import {
   Share2,
   ChevronDown,
   Target,
+  // Heart,
+  HandHeart,
 } from "lucide-react";
 import { InstallPrompt, BrandingContent } from "../components/common";
+import { useAlert } from "../hooks/useAlert";
 import { HelpModal } from "../components/common/HelpModal";
+import { LocationVerificationModal } from "../../features/mission/components/LocationVerificationModal";
+import { ActivityLogModal } from "../../features/home/components";
 import { deviceDetection, viewportManager } from "../utils";
+import { useLocationVerification } from "../hooks";
+import { useHomeData } from "../../features/home/hooks";
+import { useHomeStore } from "../../shared/store/homeStore";
+import { useLocationStore } from "../store/locationStore";
 import { ROUTES } from "../constants/routes";
+import { PointBalance } from "../../features/point/components/PointBalance";
 
 // 최상위 고정 컨테이너
 const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
@@ -112,7 +122,11 @@ const DesktopSidebar = styled.div<{ $show: boolean }>`
 `;
 
 // 앱 영역
-const AppArea = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
+const AppArea = styled.div<{
+  $isMobile: boolean;
+  $keyboardVisible?: boolean;
+  $fullWidth?: boolean;
+}>`
   flex: 1;
   height: 100%;
   background-color: ${({ theme }) => theme.colors.white};
@@ -120,8 +134,10 @@ const AppArea = styled.div<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
-  max-width: ${({ $isMobile }) => ($isMobile ? "100vw" : "800px")};
+  width: ${({ $isMobile, $fullWidth }) =>
+    $isMobile ? "100vw" : $fullWidth ? "100%" : "800px"};
+  max-width: ${({ $isMobile, $fullWidth }) =>
+    $isMobile ? "100vw" : $fullWidth ? "100%" : "800px"};
 
   /* 키보드가 열렸을 때 전체 높이 확장 */
   ${({ $keyboardVisible, $isMobile }) =>
@@ -279,10 +295,11 @@ const AppMain = styled.main<{
   $keyboardVisible?: boolean;
   $noPadding?: boolean;
   $noScroll?: boolean;
+  $fullWidth?: boolean;
 }>`
   flex: 1;
-  padding: ${({ $isMobile, $noPadding }) =>
-    $noPadding ? "0" : $isMobile ? "0" : "24px 32px"};
+  padding: ${({ $isMobile, $noPadding, $fullWidth }) =>
+    $noPadding || $fullWidth ? "0" : $isMobile ? "0" : "24px 32px"};
   overflow-y: ${({ $noScroll }) => ($noScroll ? "hidden" : "auto")};
   overflow-x: hidden;
   background-color: ${({ theme }) => theme.colors.white};
@@ -419,6 +436,12 @@ const TabItem = styled(Link)<{ $isActive: boolean }>`
     transform: scale(0.95);
     transition: transform 0.1s ease;
   }
+
+  /* 비활성화 상태 스타일 */
+  &[href="#"] {
+    opacity: 0.6;
+    pointer-events: auto; /* 클릭 이벤트는 허용 */
+  }
 `;
 
 const TabIcon = styled.div`
@@ -496,7 +519,7 @@ interface ResponsiveLayoutProps {
 
 export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   children,
-  title = "Halsaram",
+  title = "할사람?",
   showInstallPrompt = true,
   showBanner = true,
   customHeaderTitle,
@@ -507,14 +530,27 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   noScroll: _noScroll = false,
   hideHeaderActions = false,
 }) => {
+  const { info } = useAlert();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showActivityLogModal, setShowActivityLogModal] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
-  // Mock 지역 인증 상태 - 실제로는 auth store나 context에서 가져와야 함
-  const [isLocationVerified] = useState(true); // false로 변경하면 인증 안됨 상태
-  const [userLocation] = useState("송파구"); // 사용자 지역 정보
+  // 위치 인증 상태 관리
+  const {
+    isVerified: isLocationVerified,
+    currentDistrict,
+    refreshStatus: refreshLocationStatus,
+    isLoading: isLocationLoading,
+  } = useLocationVerification();
+
+  // 위치 인증 스토어
+  const { setVerified } = useLocationStore();
+
+  // 사용자 위치 정보 - currentDistrict에서 가져오거나 기본값 사용
+  const userLocation = currentDistrict?.districtName || "지역 선택";
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -528,18 +564,36 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       isMyPage: pathname === ROUTES.MY_PAGE,
       isMySettingsPage: pathname === "/my/settings",
       isMissionDetail: pathname.startsWith("/missions/"),
-      isMeetingDetail: pathname.startsWith("/meetings/"),
+      isMeetingDetail:
+        pathname.startsWith("/meetings/") &&
+        !pathname.includes("/channel") &&
+        pathname !== "/meetings/new",
+      isMeetingChannel:
+        pathname.includes("/meetings/") && pathname.includes("/channel"),
+      isMeetingCreate: pathname === "/meetings/new",
       isMainTab: (
         [
           ROUTES.HOME,
           ROUTES.MISSIONS,
           ROUTES.MEETINGS,
           ROUTES.MARKET,
+          "/donation",
           ROUTES.MY_PAGE,
         ] as string[]
       ).includes(pathname),
     };
   }, [location.pathname]);
+
+  // 홈 데이터 가져오기 (활동 로그용)
+  const { data: homeData } = useHomeData({ limit: 20 });
+
+  // 모임 채널 페이지에서 호스트 여부 확인
+  const { getMeetingDetail } = useHomeStore();
+  const meetingId = routeInfo.isMeetingChannel
+    ? location.pathname.split("/")[2]
+    : null;
+  const meetingDetail = meetingId ? getMeetingDetail(meetingId) : null;
+  const isHostInChannel = meetingDetail?.host?.id === "current-user-id"; // TODO: 실제 사용자 ID와 비교
 
   // DOM 쿼리를 초기화 시에만 실행하고 ref로 캐싱
   useEffect(() => {
@@ -727,6 +781,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         showLocation: false,
       },
       {
+        path: "/donation",
+        icon: HandHeart,
+        label: "기부하기",
+        title: "기부하기",
+        showLocation: false,
+      },
+      {
         path: "/my",
         icon: User,
         label: "마이페이지",
@@ -742,14 +803,41 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       },
     ];
 
+    // 포인트 내역 페이지
+    if (location.pathname === "/points/history") {
+      return { title: "포인트 내역", label: "", showLocation: false };
+    }
+
     // 미션 상세페이지
     if (location.pathname.startsWith("/missions/")) {
       return { title: "미션 상세", label: "", showLocation: false };
     }
 
+    // 모임 채널 페이지
+    if (
+      location.pathname.includes("/meetings/") &&
+      location.pathname.includes("/channel")
+    ) {
+      return { title: "모임 채널", label: "", showLocation: false };
+    }
+
+    // 모임 생성 페이지
+    if (location.pathname === "/meetings/new") {
+      return { title: "번개모임 생성", label: "", showLocation: false };
+    }
+
     // 모임 상세페이지
     if (location.pathname.startsWith("/meetings/")) {
       return { title: "번개모임 정보", label: "", showLocation: false };
+    }
+
+    // 사용자 프로필 페이지
+    if (location.pathname.startsWith("/user/")) {
+      return {
+        title: customHeaderTitle || "사용자 프로필",
+        label: "",
+        showLocation: false,
+      };
     }
 
     const currentTab = tabs.find((tab) => tab.path === location.pathname);
@@ -769,21 +857,44 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
   // 헤더 액션 핸들러들
   const handleBack = () => {
-    navigate(-1);
+    // 모임 채널 페이지에서는 홈으로 이동
+    if (routeInfo.isMeetingChannel) {
+      navigate("/");
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleSearch = () => {
-    alert("검색 기능을 준비 중입니다.");
+    info("검색 기능을 준비 중입니다.");
   };
 
   const handleNotifications = () => {
-    alert("알림 기능을 준비 중입니다.");
+    setShowActivityLogModal(true);
   };
 
-  const handleShare = () => {
-    // ShareModal을 열기 위한 이벤트 디스패치
-    const shareEvent = new CustomEvent("openShareModal");
-    window.dispatchEvent(shareEvent);
+  const handleShare = async () => {
+    if (routeInfo.isMissionDetail) {
+      // ShareModal을 열기 위한 이벤트 디스패치 (미션 상세)
+      const shareEvent = new CustomEvent("openShareModal");
+      window.dispatchEvent(shareEvent);
+    } else if (routeInfo.isMeetingDetail) {
+      // 모임 상세 공유
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "번개모임",
+            text: "함께 참여해요!",
+            url: window.location.href,
+          });
+        } catch (_error) {
+          // User cancelled
+        }
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        info("링크가 복사되었습니다!");
+      }
+    }
   };
 
   const handleHelpClick = () => {
@@ -794,16 +905,68 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     setShowHelpModal(false);
   };
 
+  // 위치 인증이 필요한 경우 자동으로 모달 띄우기 (한 번만)
+  const [hasShownModal, setHasShownModal] = useState(false);
+
+  useEffect(() => {
+    if (
+      !isLocationLoading &&
+      !isLocationVerified &&
+      !isLocationModalOpen &&
+      !hasShownModal
+    ) {
+      setIsLocationModalOpen(true);
+      setHasShownModal(true);
+    }
+  }, [
+    isLocationLoading,
+    isLocationVerified,
+    isLocationModalOpen,
+    hasShownModal,
+  ]);
+
   const handleLocationClick = () => {
-    console.log("Location setting clicked");
-    // 실제로는 지역 설정 모달을 열거나 페이지로 이동
+    setIsLocationModalOpen(true);
+  };
+
+  const handleLocationModalClose = () => {
+    setIsLocationModalOpen(false);
+    navigate("/"); // 홈으로 이동
+  };
+
+  const handleVerificationComplete = async (isVerified: boolean) => {
+    if (isVerified) {
+      console.log("✅ 위치 인증 성공 - 스토어 상태 업데이트");
+
+      // 스토어 상태 즉시 업데이트
+      setVerified(true);
+
+      // 위치 인증 상태 새로고침
+      await refreshLocationStatus();
+
+      setHasShownModal(false); // 인증 성공 시 자동 모달 상태 리셋
+      // 인증 완료 후 모달 자동으로 닫기
+      setIsLocationModalOpen(false);
+    } else {
+      console.log("❌ 위치 인증 실패");
+    }
   };
 
   const tabs = [
     { path: "/", icon: Home, label: "홈" },
-    { path: "/missions", icon: Target, label: "미션" },
-    { path: "/meetings", icon: Zap, label: "번개" },
-    { path: "/market", icon: ShoppingBag, label: "마켓" },
+    {
+      path: "/missions",
+      icon: Target,
+      label: "미션",
+      requiresLocationVerification: true,
+    },
+    {
+      path: "/meetings",
+      icon: Zap,
+      label: "번개",
+      requiresLocationVerification: true,
+    },
+    { path: "/donation", icon: HandHeart, label: "기부" },
     { path: "/my", icon: User, label: "마이" },
   ];
 
@@ -820,14 +983,24 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         </DesktopSidebar>
 
         {/* 앱 영역 */}
-        <AppArea $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
+        <AppArea
+          $isMobile={isMobile}
+          $keyboardVisible={keyboardVisible}
+          $fullWidth={_fullWidth}
+        >
           <AppHeader $isMobile={isMobile}>
             <HeaderLeft>
               <BackButton $show={!routeInfo.isMainTab} onClick={handleBack}>
-                <ArrowLeft size={18} />
+                {routeInfo.isMeetingChannel ? (
+                  <Home size={18} />
+                ) : (
+                  <ArrowLeft size={18} />
+                )}
               </BackButton>
               <TitleContainer>
-                <PageName $isMobile={isMobile}>{currentPage.title}</PageName>
+                <PageName $isMobile={isMobile} data-header-title>
+                  {currentPage.title}
+                </PageName>
                 {currentPage.showLocation && (
                   <LocationButton
                     $hasError={!isLocationVerified}
@@ -851,11 +1024,23 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             <HeaderRight>
               {customHeaderActions || (
                 <>
+                  {/* 포인트 표시 - 모든 페이지에서 표시 */}
+                  {!hideHeaderActions && (
+                    <PointBalance
+                      size="sm"
+                      showLabel={false}
+                      onClick={() => navigate("/points/history")}
+                    />
+                  )}
+
                   {!hideHeaderActions && (
                     <>
+                      {/* 검색 버튼 - 미션/모임 상세 페이지와 마이페이지, 모임 생성 페이지 제외 */}
                       {!routeInfo.isMyPage &&
                         !routeInfo.isMySettingsPage &&
-                        !routeInfo.isMissionDetail && (
+                        !routeInfo.isMissionDetail &&
+                        !routeInfo.isMeetingDetail &&
+                        !routeInfo.isMeetingCreate && (
                           <HeaderIconButton
                             $isMobile={isMobile}
                             onClick={handleSearch}
@@ -863,14 +1048,20 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                             <Search size={isMobile ? 18 : 20} />
                           </HeaderIconButton>
                         )}
-                      {!routeInfo.isMyPage && !routeInfo.isMySettingsPage && (
-                        <HeaderIconButton
-                          $isMobile={isMobile}
-                          onClick={handleNotifications}
-                        >
-                          <Bell size={isMobile ? 18 : 20} />
-                        </HeaderIconButton>
-                      )}
+
+                      {/* 알림 버튼 - 마이페이지/설정/모임생성 제외 모든 페이지 */}
+                      {!routeInfo.isMyPage &&
+                        !routeInfo.isMySettingsPage &&
+                        !routeInfo.isMeetingCreate && (
+                          <HeaderIconButton
+                            $isMobile={isMobile}
+                            onClick={handleNotifications}
+                          >
+                            <Bell size={isMobile ? 18 : 20} />
+                          </HeaderIconButton>
+                        )}
+
+                      {/* 미션 상세 페이지 - 공유 버튼 */}
                       {routeInfo.isMissionDetail && (
                         <HeaderIconButton
                           $isMobile={isMobile}
@@ -879,8 +1070,30 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                           <Share2 size={isMobile ? 18 : 20} />
                         </HeaderIconButton>
                       )}
+
+                      {/* 모임 상세 페이지 - 공유 버튼 */}
+                      {routeInfo.isMeetingDetail && (
+                        <HeaderIconButton
+                          $isMobile={isMobile}
+                          onClick={handleShare}
+                        >
+                          <Share2 size={isMobile ? 18 : 20} />
+                        </HeaderIconButton>
+                      )}
+
+                      {/* 모임 채널 페이지 - 호스트 설정 버튼 */}
+                      {routeInfo.isMeetingChannel && isHostInChannel && (
+                        <HeaderIconButton
+                          $isMobile={isMobile}
+                          onClick={() => console.log("설정 페이지 준비 중...")} // TODO: 설정 페이지 구현
+                        >
+                          <Settings size={isMobile ? 18 : 20} />
+                        </HeaderIconButton>
+                      )}
                     </>
                   )}
+
+                  {/* 마이페이지 - 알림, 설정 버튼 */}
                   {routeInfo.isMyPage && !hideHeaderActions && (
                     <>
                       <HeaderIconButton
@@ -907,6 +1120,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             $keyboardVisible={keyboardVisible}
             $noPadding={_noPadding}
             $noScroll={_noScroll}
+            $fullWidth={_fullWidth}
             data-scroll-container
           >
             {children}
@@ -917,11 +1131,24 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             <TabBar $isMobile={isMobile} $keyboardVisible={keyboardVisible}>
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
+                const isRestricted =
+                  tab.requiresLocationVerification && !isLocationVerified;
+
+                const handleTabClick = (e: React.MouseEvent) => {
+                  if (isRestricted) {
+                    e.preventDefault();
+                    if (!isLocationModalOpen) {
+                      setIsLocationModalOpen(true);
+                    }
+                  }
+                };
+
                 return (
                   <TabItem
                     key={tab.path}
-                    to={tab.path}
+                    to={isRestricted ? "#" : tab.path}
                     $isActive={location.pathname === tab.path}
+                    onClick={handleTabClick}
                   >
                     <TabIcon>
                       <IconComponent size={20} />
@@ -942,6 +1169,20 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         isOpen={showHelpModal}
         onClose={handleHelpClose}
         isMobile={isMobile}
+      />
+
+      {/* 활동 로그 모달 */}
+      <ActivityLogModal
+        isOpen={showActivityLogModal}
+        onClose={() => setShowActivityLogModal(false)}
+        activityLogs={homeData?.activityLogs || []}
+      />
+
+      {/* 위치 인증 모달 */}
+      <LocationVerificationModal
+        isOpen={isLocationModalOpen}
+        onClose={handleLocationModalClose}
+        onVerificationComplete={handleVerificationComplete}
       />
     </AppContainer>
   );

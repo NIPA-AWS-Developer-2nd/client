@@ -1,2 +1,2 @@
 export { ResponsiveLayout } from './ResponsiveLayout';
-export { PWALayout } from './PWALayout';
+export { PWALayout, type HeaderAction } from './PWALayout';

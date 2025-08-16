@@ -11,6 +11,12 @@ import {
   Gift,
 } from "lucide-react";
 import { deviceDetection } from "../../../../shared/utils";
+import { HomeSkeleton } from "../../components/HomeSkeleton";
+import { useHomeData } from "../../hooks/useHomeData";
+import { useAuth } from "../../../auth/hooks/useAuth";
+import { useAlert } from "../../../../shared/components/common";
+import { useLocationVerification } from "../../../../shared/hooks";
+import { createLocationGuard } from "../../../../shared/utils/navigationGuards";
 
 // 컨테이너 스타일들
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
@@ -175,6 +181,27 @@ const ActivityTime = styled.div<{ $isMobile?: boolean }>`
 export const HomePage: React.FC = () => {
   const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
   const navigate = useNavigate();
+  const { data: homeData, loading, error } = useHomeData();
+  const { user: _user } = useAuth();
+  const { warning } = useAlert();
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
+  
+  // 디버깅용 로그
+  React.useEffect(() => {
+    console.log('🏠 HomePage - 위치 인증 상태:', {
+      isLocationVerified,
+      isLocationLoading
+    });
+  }, [isLocationVerified, isLocationLoading]);
+
+  // 지역 인증 가드 생성
+  const locationGuard = createLocationGuard({
+    isLocationVerified,
+    isLocationLoading,
+    showWarning: warning,
+    navigate,
+  });
+
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -185,13 +212,77 @@ export const HomePage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // 로딩 상태일 때 스켈레톤 표시
+  if (loading) {
+    return <HomeSkeleton />;
+  }
+
+  // 에러 상태일 때 에러 메시지 표시
+  if (error) {
+    return (
+      <PageContainer $isMobile={isMobile}>
+        <div>데이터를 불러오는데 실패했습니다: {error}</div>
+      </PageContainer>
+    );
+  }
+
+  // 실제 데이터가 있으면 사용하고, 없으면 기본값 사용
   const userStats = {
     points: 1250,
     completedMissions: 8,
-    activeMeetings: 3,
+    activeMeetings: homeData?.myMeetings?.filter(m => m.status === 'active').length || 3,
   };
 
-  const recentActivities = [
+  // 실제 활동 로그 데이터 사용 (최대 3개)
+  const recentActivities = homeData?.activityLogs?.slice(0, 3).map(log => {
+    const getActivityIcon = (type: string) => {
+      switch (type) {
+        case 'meeting_joined':
+          return Users;
+        case 'meeting_created':
+          return Check;
+        case 'photo_verification_approved':
+          return Gift;
+        default:
+          return Check;
+      }
+    };
+
+    const getActivityText = (log: typeof homeData.activityLogs[0]) => {
+      switch (log.type) {
+        case 'meeting_joined':
+          return `${log.meeting?.title || '모임'}에 참여했습니다`;
+        case 'meeting_created':
+          return `${log.meeting?.title || '모임'}을 생성했습니다`;
+        case 'photo_verification_approved':
+          return '사진 인증이 승인되었습니다';
+        default:
+          return '활동을 완료했습니다';
+      }
+    };
+
+    const getTimeAgo = (createdAt: string) => {
+      const now = new Date();
+      const created = new Date(createdAt);
+      const diffInMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
+      
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes}분 전`;
+      } else if (diffInMinutes < 60 * 24) {
+        const hours = Math.floor(diffInMinutes / 60);
+        return `${hours}시간 전`;
+      } else {
+        const days = Math.floor(diffInMinutes / (60 * 24));
+        return `${days}일 전`;
+      }
+    };
+
+    return {
+      icon: getActivityIcon(log.type),
+      text: getActivityText(log),
+      time: getTimeAgo(log.createdAt),
+    };
+  }) || [
     {
       icon: Check,
       text: "카페에서 새로운 친구 만나기 미션 완료",
@@ -216,7 +307,7 @@ export const HomePage: React.FC = () => {
         <QuickActionsGrid $isMobile={isMobile}>
           <ActionButton
             $isMobile={isMobile}
-            onClick={() => navigate("/missions")}
+            onClick={locationGuard.toMissions}
           >
             <ActionIcon $isMobile={isMobile}>
               <Zap size={isMobile ? 20 : 24} />
@@ -225,7 +316,7 @@ export const HomePage: React.FC = () => {
           </ActionButton>
           <ActionButton
             $isMobile={isMobile}
-            onClick={() => navigate("/meetings")}
+            onClick={locationGuard.toMeetings}
           >
             <ActionIcon $isMobile={isMobile}>
               <Calendar size={isMobile ? 20 : 24} />
