@@ -15,3 +15,4 @@ export { CustomSelect } from './CustomSelect';
 export { MissionCard } from './MissionCard';
 export { QRCodeScanner } from './QRCodeScanner';
 export { QRCodeGenerator } from './QRCodeGenerator';
+export { NotificationPermissionModal } from './NotificationPermissionModal';
