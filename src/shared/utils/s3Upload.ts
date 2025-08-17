@@ -15,6 +15,21 @@ interface PresignedUrlResponse {
   };
 }
 
+interface MissionVerificationPresignedUrlResponse {
+  status: number;
+  message: string;
+  result: boolean;
+  data: {
+    uploadUrl: string;
+    key: string;
+    publicUrl: string;
+    expiresIn: number;
+    metadata: {
+      [key: string]: string;
+    };
+  };
+}
+
 /**
  * S3 URL을 CloudFront CDN URL로 변환
  */
@@ -107,6 +122,65 @@ export const uploadToS3 = async (
 
   if (!uploadResponse.ok) {
     throw new Error("Failed to upload image to S3");
+  }
+
+  // S3 URL을 CDN URL로 변환하여 반환
+  return convertToCdnUrl(publicUrl);
+};
+
+export const uploadMissionVerificationToS3 = async (
+  file: File,
+  missionId: string,
+  meetingId: string,
+  stepIndex: number
+): Promise<string> => {
+  const contentType = file.type || 'image/jpeg';
+
+  // 미션 인증 사진용 Presigned URL 요청
+  const response = await authFetch(apiUrl("/s3/mission-verification-presigned-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ 
+      missionId,
+      meetingId,
+      stepIndex,
+      contentType,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get mission verification presigned URL: ${response.status} ${errorText}`);
+  }
+
+  const result: MissionVerificationPresignedUrlResponse = await response.json();
+
+  if (!result.result) {
+    throw new Error(result.message || "Failed to generate mission verification presigned URL");
+  }
+
+  const { uploadUrl, publicUrl, metadata } = result.data;
+
+  // S3 업로드 (메타데이터 헤더 포함)
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+  };
+
+  // 메타데이터 헤더 추가
+  Object.entries(metadata).forEach(([key, value]) => {
+    headers[key] = value;
+  });
+
+  const uploadResponse = await fetch(uploadUrl, {
+    method: "PUT",
+    body: file,
+    headers,
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error("Failed to upload mission verification image to S3");
   }
 
   // S3 URL을 CDN URL로 변환하여 반환

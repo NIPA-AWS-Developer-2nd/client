@@ -186,7 +186,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
   const {
     formData,
     updateFormData,
-    // sendVerificationCode, // TODO: 인증 로직 활성화 시 주석 해제
+    sendVerificationCode,
     verifyCode: _verifyCode,
     isSendingCode,
     isVerifyingCode,
@@ -230,19 +230,16 @@ export const Step1BasicInfo: React.FC<Props> = ({
 
   const handleSendCode = async () => {
     if (!formData.phoneNumber) return;
-    // SMS 인증 임시 주석 처리 - 콘솔에서 확인 후 직접 입력
-    console.log("SMS 인증 코드 (개발용):", "123456");
-    updateFormData({ phoneVerified: true });
     
-    // try {
-    //   await sendVerificationCode(formData.phoneNumber);
-    //   setTimeLeft(300);
-    //   setTimerActive(true);
-    //   // 재전송 시 에러 상태 초기화하여 info 메시지가 다시 나오도록
-    //   updateFormData({ verificationCode: "" });
-    // } catch (error) {
-    //   console.error("Failed to send code:", error);
-    // }
+    try {
+      await sendVerificationCode(formData.phoneNumber);
+      setTimeLeft(300);
+      setTimerActive(true);
+      // 재전송 시 에러 상태 초기화하여 info 메시지가 다시 나오도록
+      updateFormData({ verificationCode: "" });
+    } catch (error) {
+      console.error("Failed to send code:", error);
+    }
   };
 
   const handleVerifyCode = async () => {

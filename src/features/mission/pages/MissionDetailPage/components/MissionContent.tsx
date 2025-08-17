@@ -347,16 +347,27 @@ export const MissionContent: React.FC<MissionContentProps> = ({
   mission,
   isMobile,
 }) => {
-  // 샘플 이미지 데이터 (실제로는 mission.context.sampleImages에서 가져올 예정)
-  // TODO: mission.context.sampleImages || [] 로 교체 필요
-  const sampleImages = [
-    "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg", 
-    "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg",
-    "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"
-  ];
+  // 실제 미션 샘플 사진 URL 사용
+  const parseSampleImages = (sampleImages?: string[] | string): string[] => {
+    if (!sampleImages) return [];
+    
+    if (Array.isArray(sampleImages)) {
+      return sampleImages.filter(url => url && url.trim());
+    }
+    
+    // 문자열이 "{url1,url2}" 형태로 오는 경우 처리
+    if (typeof sampleImages === 'string') {
+      const cleanedString = sampleImages.replace(/^\{|\}$/g, ''); // 양 끝의 중괄호 제거
+      return cleanedString
+        .split(',')
+        .map(url => url.trim())
+        .filter(url => url && url.startsWith('http'));
+    }
+    
+    return [];
+  };
+  
+  const sampleImages = parseSampleImages(mission.context?.sampleImages);
 
   const { isOpen, currentIndex, openModal, closeModal } = 
     useImageModal(sampleImages.length);
@@ -422,7 +433,9 @@ export const MissionContent: React.FC<MissionContentProps> = ({
             {mission.context.photoGuide}
           </GuideText>
 
-          <GalleryContainer $isMobile={isMobile}>
+          {/* 샘플 이미지가 있을 때만 갤러리 표시 */}
+          {sampleImages.length > 0 && (
+            <GalleryContainer $isMobile={isMobile}>
             {/* 데스크톱 네비게이션 버튼 - 이전 */}
             {!isMobile && sampleImages.length > imagesPerPage && (
               <DesktopNavButton 
@@ -537,7 +550,8 @@ export const MissionContent: React.FC<MissionContentProps> = ({
                 ))}
               </IndicatorContainer>
             )}
-          </GalleryContainer>
+            </GalleryContainer>
+          )}
         </GuideSection>
       )}
 

@@ -31,6 +31,7 @@ export interface MissionWithDetails {
     id: string;
     missionId: string;
     photoGuide: string;
+    sampleImages?: string[] | string;
   };
   samplePhotos?: Array<{
     id: string;

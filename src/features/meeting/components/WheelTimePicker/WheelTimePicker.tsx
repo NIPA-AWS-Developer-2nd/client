@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { Clock } from "lucide-react";
 
@@ -171,18 +171,16 @@ const WheelTimePicker: React.FC<WheelTimePickerProps> = ({
     }, 100);
   }, [currentSelection, minutes, periods]);
 
-  // period 변경 시 시간 휠 업데이트
+  // period 변경 시 시간 휠 업데이트 (초기화 시에만)
   useEffect(() => {
     const availableHours = getAvailableHours(currentSelection.period);
     if (hourWheelRef.current && availableHours.includes(currentSelection.hour)) {
       scrollToItem(hourWheelRef, availableHours.indexOf(currentSelection.hour));
-    } else if (hourWheelRef.current) {
-      // 현재 선택된 시간이 유효하지 않으면 첫 번째 시간으로 이동
-      scrollToItem(hourWheelRef, 0);
     }
-  }, [currentSelection.period, currentSelection.hour]);
+  }, [currentSelection.period]);
 
-  const handleScroll = (
+  // 디바운스된 스크롤 핸들러
+  const handleScroll = useCallback((
     wheelRef: React.RefObject<HTMLDivElement | null>,
     items: (string | number)[],
     type: 'period' | 'hour' | 'minute'
@@ -198,10 +196,16 @@ const WheelTimePicker: React.FC<WheelTimePickerProps> = ({
     const newSelection = { ...currentSelection };
     
     if (type === 'period') {
-      newSelection.period = newValue as string;
-      // 기간이 변경되면 해당 기간의 첫 번째 시간으로 설정
-      const newAvailableHours = getAvailableHours(newValue as string);
-      newSelection.hour = newAvailableHours[0];
+      const newPeriod = newValue as string;
+      newSelection.period = newPeriod;
+      
+      // 현재 시간이 새로운 period에서 유효한지 확인
+      const newAvailableHours = getAvailableHours(newPeriod);
+      if (!newAvailableHours.includes(currentSelection.hour)) {
+        // 유효하지 않은 경우에만 조정 (가장 가까운 시간으로)
+        const closestHour = newAvailableHours.find(h => h >= currentSelection.hour) || newAvailableHours[0];
+        newSelection.hour = closestHour;
+      }
     } else if (type === 'hour') {
       newSelection.hour = newValue as number;
     } else if (type === 'minute') {
@@ -214,7 +218,7 @@ const WheelTimePicker: React.FC<WheelTimePickerProps> = ({
     const { hour, minute } = newSelection;
     const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     onTimeSelect(timeString);
-  };
+  }, [currentSelection, onTimeSelect]);
 
   const renderWheel = (
     items: (string | number)[],
