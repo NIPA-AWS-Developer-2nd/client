@@ -35,7 +35,7 @@ const ModalContent = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  background: #fff7f0;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -265,8 +265,8 @@ const NicknameInput = styled(Input)<{ $isMobile?: boolean }>`
 const GenerateButton = styled.button<{ $isMobile?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "10px 8px" : "12px 10px")};
   background: ${({ theme }) => theme.colors.gray200};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.text.primary};
+  border: 1px solid ${({ theme }) => theme.colors.border.primary};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};

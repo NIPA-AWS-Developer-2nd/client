@@ -80,16 +80,29 @@ export const PriorityBadge = styled.div<{
   font-size: ${({ $isMobile }) => ($isMobile ? '12px' : '13px')};
   font-weight: 500;
   border-radius: ${({ theme }) => theme.borderRadius.sm};
+  border: 1px solid;
   background-color: ${({ theme, $priority }) => {
     switch ($priority) {
       case 'high':
-        return theme.colors.error + '20';
+        return theme.colors.error + '15';
       case 'medium':
-        return theme.colors.warning + '20';
+        return theme.colors.warning + '15';
       case 'low':
-        return theme.colors.success + '20';
+        return theme.colors.success + '15';
       default:
-        return theme.colors.text.disabled + '20';
+        return theme.colors.card;
+    }
+  }};
+  border-color: ${({ theme, $priority }) => {
+    switch ($priority) {
+      case 'high':
+        return theme.colors.error + '40';
+      case 'medium':
+        return theme.colors.warning + '40';
+      case 'low':
+        return theme.colors.success + '40';
+      default:
+        return theme.colors.border.light;
     }
   }};
   color: ${({ theme, $priority }) => {

@@ -14,8 +14,9 @@ interface MissionCardProps {
 }
 
 const MissionCard = styled.div<{ $isMobile?: boolean; $isCompleted?: boolean; $isClickable?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border: 1px solid ${({ theme }) => theme.colors.border.primary};
   overflow: hidden;
   position: relative;
   ${({ $isCompleted, theme }) => 

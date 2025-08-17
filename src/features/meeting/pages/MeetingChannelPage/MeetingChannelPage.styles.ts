@@ -111,10 +111,10 @@ export const ComingSoon = styled.div<{ $isMobile: boolean }>`
 `;
 
 export const Section = styled.div`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 export const SectionTitle = styled.h3<{ $isMobile: boolean }>`
@@ -337,9 +337,9 @@ export const MapButton = styled.button<{ $isMobile: boolean }>`
   width: 100%;
   padding: 12px;
   margin-top: 12px;
-  border: 1px solid ${({ theme }) => theme.colors.gray200};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background-color: ${({ theme }) => theme.colors.white};
+  background-color: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text.secondary};
   font-size: 14px;
   font-weight: 500;
@@ -377,8 +377,8 @@ export const PrecautionItem = styled.div<{ $isMobile: boolean }>`
 `;
 
 export const BottomTabBar = styled.div<{ $isMobile: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
-  border-top: 1px solid ${({ theme }) => theme.colors.gray200};
+  background: ${({ theme }) => theme.colors.surface};
+  border-top: 1px solid ${({ theme }) => theme.colors.border.light};
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -430,7 +430,7 @@ export const TabLabel = styled.span<{ $isMobile: boolean }>`
 
 // 출석체크 관련 스타일
 export const AttendanceSection = styled.div<{ $isMobile: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? '16px' : '20px')};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? '16px' : '20px')};
@@ -465,12 +465,12 @@ export const AttendanceButton = styled.button<{
     if ($variant === 'host') {
       return css`
         background: ${theme.colors.primary};
-        color: ${theme.colors.white};
+        color: ${theme.colors.background.primary};
       `;
     } else {
       return css`
         background: ${theme.colors.primary};
-        color: ${theme.colors.white};
+        color: ${theme.colors.background.primary};
       `;
     }
   }}
@@ -532,7 +532,7 @@ export const QRModal = styled.div<{ $show: boolean }>`
 `;
 
 export const QRModalContent = styled.div<{ $isMobile: boolean; $show?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   padding: ${({ $isMobile }) => ($isMobile ? '24px' : '32px')};
   width: ${({ $isMobile }) => ($isMobile ? '90%' : '400px')};
@@ -669,7 +669,7 @@ export const QRRefreshButton = styled.button<{ $isMobile: boolean }>`
   height: 48px; /* 고정 높이 */
   padding: ${({ $isMobile }) => ($isMobile ? '12px' : '14px')};
   background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.background.primary};
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ $isMobile }) => ($isMobile ? '14px' : '15px')};
@@ -726,7 +726,7 @@ export const QRCodeSkeleton = styled.div`
   height: 200px;
   border: 2px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.md};
-  background: white;
+  background: ${({ theme }) => theme.colors.surface};
   position: relative;
   overflow: hidden;
   
@@ -862,7 +862,7 @@ export const CameraContainer = styled.div<{ $isMobile: boolean }>`
   position: relative;
   width: ${({ $isMobile }) => ($isMobile ? '90%' : '60%')};
   max-width: 500px;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -898,7 +898,7 @@ export const CameraHeader = styled.div<{ $isMobile: boolean }>`
 export const CameraCloseButton = styled.button`
   background: none;
   border: none;
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.background.primary};
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
@@ -976,7 +976,7 @@ export const ScanningText = styled.p<{ $isMobile: boolean }>`
 
 export const CameraInstructions = styled.div<{ $isMobile: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? '16px' : '20px')};
-  background: ${({ theme }) => theme.colors.gray50};
+  background: ${({ theme }) => theme.colors.background.secondary};
   text-align: center;
   
   p {
@@ -996,5 +996,71 @@ export const CameraInstructions = styled.div<{ $isMobile: boolean }>`
     p {
       font-size: 13px;
     }
+  `)}
+`;
+
+// 참가자 상태 배지 스타일
+export const ParticipantStatusBadge = styled.span<{ $status: 'joined' | 'no-show' }>`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid;
+  
+  ${({ $status, theme }) => {
+    switch ($status) {
+      case 'joined':
+        return `
+          color: ${theme.colors.blue};
+          background: ${theme.colors.blue}15;
+          border-color: ${theme.colors.blue}30;
+        `;
+      case 'no-show':
+        return `
+          color: ${theme.colors.danger};
+          background: ${theme.colors.danger}15;
+          border-color: ${theme.colors.danger}30;
+        `;
+      default:
+        return '';
+    }
+  }}
+`;
+
+// 카메라 촬영 버튼 스타일
+export const CameraCaptureButton = styled.button<{ $isMobile: boolean }>`
+  width: ${({ $isMobile }) => ($isMobile ? '50px' : '60px')};
+  height: ${({ $isMobile }) => ($isMobile ? '50px' : '60px')};
+  border-radius: 50%;
+  border: 2px solid ${({ theme }) => theme.colors.background.primary};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.background.primary};
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: ${({ $isMobile }) => ($isMobile ? '9px' : '11px')};
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.colors.primaryHover};
+    transform: scale(1.05);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  ${responsive.mobile(css`
+    width: 50px;
+    height: 50px;
+    font-size: 9px;
   `)}
 `;

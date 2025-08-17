@@ -176,13 +176,15 @@ const ReviewTextarea = styled.textarea<{ $isMobile?: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
   font-family: inherit;
   resize: vertical;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text.primary};
+  opacity: 0.9;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
     box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary + "20"};
+    opacity: 1;
   }
 
   &::placeholder {

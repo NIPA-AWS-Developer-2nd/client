@@ -324,37 +324,43 @@ export const DifficultyBadge = styled.span<{ $difficulty: string }>`
   border-radius: 12px;
   font-size: 11px;
   font-weight: 600;
-  ${({ $difficulty }) => {
+  ${({ $difficulty, theme }) => {
     switch ($difficulty?.toLowerCase()) {
       case "very_easy":
         return `
-          color: #059669;
-          background: #d1fae5;
+          color: ${theme.colors.success};
+          background: ${theme.colors.success}15;
+          border: 1px solid ${theme.colors.success}30;
         `;
       case "easy":
         return `
-          color: #0891b2;
-          background: #cffafe;
+          color: ${theme.colors.info};
+          background: ${theme.colors.info}15;
+          border: 1px solid ${theme.colors.info}30;
         `;
       case "medium":
         return `
-          color: #d97706;
-          background: #fef3c7;
+          color: ${theme.colors.warning};
+          background: ${theme.colors.warning}15;
+          border: 1px solid ${theme.colors.warning}30;
         `;
       case "hard":
         return `
-          color: #dc2626;
-          background: #fee2e2;
+          color: ${theme.colors.danger};
+          background: ${theme.colors.danger}15;
+          border: 1px solid ${theme.colors.danger}30;
         `;
       case "very_hard":
         return `
-          color: #7c2d12;
-          background: #fed7aa;
+          color: ${theme.colors.errorDark};
+          background: ${theme.colors.errorDark}15;
+          border: 1px solid ${theme.colors.errorDark}30;
         `;
       default:
         return `
-          color: #6b7280;
-          background: #f3f4f6;
+          color: ${theme.colors.text.secondary};
+          background: ${theme.colors.card};
+          border: 1px solid ${theme.colors.border.light};
         `;
     }
   }}
@@ -365,18 +371,38 @@ export const PointBadge = styled.span<{ $point: number }>`
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
-  color: white;
-  ${({ $point }) => {
+  border: 1px solid;
+  ${({ $point, theme }) => {
     if ($point < 500) {
-      return `background: linear-gradient(135deg, #9CA3AF, #6B7280);`;
+      return `
+        color: ${theme.colors.text.secondary};
+        background: ${theme.colors.card};
+        border-color: ${theme.colors.border.light};
+      `;
     } else if ($point < 1000) {
-      return `background: linear-gradient(135deg, #60A5FA, #3B82F6);`;
+      return `
+        color: ${theme.colors.info};
+        background: ${theme.colors.info}15;
+        border-color: ${theme.colors.info}40;
+      `;
     } else if ($point < 1500) {
-      return `background: linear-gradient(135deg, #34D399, #10B981);`;
+      return `
+        color: ${theme.colors.success};
+        background: ${theme.colors.success}15;
+        border-color: ${theme.colors.success}40;
+      `;
     } else if ($point < 2000) {
-      return `background: linear-gradient(135deg, #A78BFA, #8B5CF6);`;
+      return `
+        color: #8B5CF6;
+        background: #8B5CF615;
+        border-color: #8B5CF640;
+      `;
     } else {
-      return `background: linear-gradient(135deg, #FB923C, #EA580C);`;
+      return `
+        color: ${theme.colors.primary};
+        background: ${theme.colors.primary}15;
+        border-color: ${theme.colors.primary}40;
+      `;
     }
   }}
 `;
@@ -422,15 +448,15 @@ export const LikesContainer = styled.div`
 // My Meeting Card Components
 export const MyMeetingCard = styled.div<{ $isMobile: boolean; $isExpanded?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
-  background: rgba(240, 250, 252, 0.6);
+  background: ${({ theme }) => theme.colors.gray100};
   border-radius: ${({ theme, $isExpanded }) => 
     $isExpanded 
       ? `${theme.borderRadius.md} ${theme.borderRadius.md} 0 0`
       : theme.borderRadius.md
   };
   cursor: pointer;
-  border: 1px solid ${({ $isExpanded }) => 
-    $isExpanded ? 'rgba(180, 235, 242, 0.8)' : 'transparent'
+  border: 1px solid ${({ theme, $isExpanded }) => 
+    $isExpanded ? theme.colors.border.light : 'transparent'
   };
   border-bottom: ${({ $isExpanded }) => $isExpanded ? 'none' : '1px solid transparent'};
   margin-bottom: ${({ $isExpanded }) => $isExpanded ? '0' : '12px'};
@@ -442,8 +468,8 @@ export const MyMeetingCard = styled.div<{ $isMobile: boolean; $isExpanded?: bool
   }
 
   &:hover {
-    background: rgba(220, 245, 248, 0.8);
-    border-color: rgba(153, 228, 237, 0.3);
+    background: ${({ theme }) => theme.colors.gray200};
+    border-color: ${({ theme }) => theme.colors.primary}30;
   }
 
   ${responsive.mobile(css`
@@ -475,9 +501,9 @@ export const HostBadge = styled.span<{ $isMobile: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "4px 8px" : "5px 10px")};
   font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
   font-weight: 600;
-  color: rgb(0, 171, 191);
-  background: rgba(0, 171, 191, 0.08);
-  border: 1px solid rgba(0, 171, 191, 0.2);
+  color: ${({ theme }) => theme.colors.primary};
+  background: ${({ theme }) => theme.colors.primary}15;
+  border: 1px solid ${({ theme }) => theme.colors.primary}40;
   border-radius: ${({ theme }) => theme.borderRadius.sm};
 
   ${responsive.mobile(css`
@@ -492,31 +518,38 @@ export const StatusBadge = styled.span<{ $color: string; $isMobile: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
   font-weight: 700;
   border-radius: ${({ theme }) => theme.borderRadius.sm};
+  border: 1px solid;
   ${({ $color, theme }) => {
     switch ($color) {
       case "primary":
         return `
-          color: rgb(0, 171, 191);
-          background: rgba(0, 171, 191, 0.08);
+          color: ${theme.colors.primary};
+          background: ${theme.colors.primary}15;
+          border-color: ${theme.colors.primary}40;
         `;
       case "success":
         return `
-          color: rgb(0, 171, 191);
-          background: rgba(0, 171, 191, 0.08);
+          color: ${theme.colors.success};
+          background: ${theme.colors.success}15;
+          border-color: ${theme.colors.success}40;
         `;
       case "warning":
         return `
-          color: rgb(0, 140, 180);
-          background: rgba(0, 140, 180, 0.08);
+          color: ${theme.colors.warning};
+          background: ${theme.colors.warning}15;
+          border-color: ${theme.colors.warning}40;
         `;
       case "disabled":
         return `
           color: ${theme.colors.text.disabled};
-          background: ${theme.colors.gray100};
+          background: ${theme.colors.card};
+          border-color: ${theme.colors.border.light};
         `;
       default:
         return `
           color: ${theme.colors.text.secondary};
+          background: ${theme.colors.card};
+          border-color: ${theme.colors.border.light};
           background: ${theme.colors.gray100};
         `;
     }

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
-import { Camera, Star, Send, Info } from "lucide-react";
+import { Camera, Star, Send, Info, X } from "lucide-react";
 import { useAlert } from "../../../shared/components/common";
 import { authFetch, apiUrl } from "../../../shared/utils/api";
 
@@ -27,14 +27,14 @@ const PhotoUploadArea = styled.div<{ $hasPhoto?: boolean }>`
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 32px 16px;
   text-align: center;
-  background: ${({ theme }) => theme.colors.gray50};
+  background: ${({ theme }) => theme.colors.background.secondary};
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
-    background: ${({ theme }) => theme.colors.primary + "05"};
+    background: ${({ theme }) => theme.colors.primary + "08"};
   }
 `;
 
@@ -75,7 +75,7 @@ const PhotoItem = styled.div<{
   margin: 0 auto;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   overflow: hidden;
-  background: ${({ theme }) => theme.colors.gray100};
+  background: ${({ theme }) => theme.colors.background.tertiary};
   border: 2px solid
     ${({ theme, $verificationStatus }) => {
       if ($verificationStatus === "approved") return theme.colors.success;
@@ -171,13 +171,15 @@ const ReviewTextarea = styled.textarea<{ $isMobile?: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
   font-family: inherit;
   resize: vertical;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text.primary};
+  opacity: 0.9;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
     box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary + "20"};
+    opacity: 1;
   }
 
   &::placeholder {
@@ -267,7 +269,7 @@ const GuideContent = styled.div<{ $isMobile?: boolean }>`
 const LoadingOverlay = styled.div`
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: ${({ theme }) => theme.colors.surface + 'F0'};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -302,6 +304,56 @@ const LoadingSubtext = styled.p<{ $isMobile?: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "14px")};
   color: ${({ theme }) => theme.colors.text.secondary};
   margin: 4px 0 0 0;
+`;
+
+const PhotoModal = styled.div<{ $show: boolean }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: ${({ $show }) => ($show ? "flex" : "none")};
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const PhotoModalContent = styled.div<{ $isMobile?: boolean }>`
+  position: relative;
+  max-width: ${({ $isMobile }) => ($isMobile ? "90%" : "80%")};
+  max-height: ${({ $isMobile }) => ($isMobile ? "90%" : "80%")};
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: 8px;
+  overflow: hidden;
+`;
+
+const PhotoModalImage = styled.img`
+  width: 100%;
+  height: auto;
+  display: block;
+`;
+
+const PhotoModalCloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.9);
+  }
 `;
 
 const ErrorMessage = styled.div<{ $isMobile?: boolean }>`
@@ -358,6 +410,16 @@ interface PhotoUploadState {
   errorReason?: string;
 }
 
+interface ExistingVerification {
+  status: "approved" | "rejected" | "pending";
+  verifiedAt?: string;
+  photoUrl?: string;
+  rating?: number;
+  reviewText?: string;
+  reasoning?: string;
+  confidence?: number;
+}
+
 interface SinglePhotoVerificationProps {
   meetingId: string;
   isMobile?: boolean;
@@ -371,6 +433,9 @@ export const SinglePhotoVerification: React.FC<
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [missionInfo, setMissionInfo] = useState<Mission | null>(null);
+  const [existingVerification, setExistingVerification] = useState<ExistingVerification | null>(null);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(true);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [photoState, setPhotoState] = useState<PhotoUploadState>({
     file: null,
     localUrl: null,
@@ -562,6 +627,46 @@ export const SinglePhotoVerification: React.FC<
     }
   };
 
+  // 기존 인증 데이터 로드
+  const fetchExistingVerification = useCallback(async () => {
+    try {
+      setIsLoadingExisting(true);
+      const response = await authFetch(apiUrl(`/mission/verify/status?meetingId=${meetingId}`));
+      
+      if (response.ok) {
+        const data = await response.json();
+        const verificationData = data.data;
+        
+        if (verificationData && verificationData.status) {
+          setExistingVerification(verificationData);
+          
+          // 기존 데이터가 있으면 폼에 미리 채우기
+          if (verificationData.rating) {
+            setRating(verificationData.rating);
+          }
+          if (verificationData.reviewText) {
+            setReviewText(verificationData.reviewText);
+          }
+          if (verificationData.photoUrl) {
+            setPhotoState({
+              file: null,
+              localUrl: verificationData.photoUrl,
+              uploadedUrl: verificationData.photoUrl,
+              verificationStatus: verificationData.status,
+              isUploading: false,
+              isVerifying: false,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch existing verification:", err);
+      // 기존 인증 데이터 조회 실패는 에러로 표시하지 않음 (신규 인증일 수 있음)
+    } finally {
+      setIsLoadingExisting(false);
+    }
+  }, [meetingId]);
+
   // 미션 정보 로드
   useEffect(() => {
     const fetchMissionInfo = async () => {
@@ -594,10 +699,17 @@ export const SinglePhotoVerification: React.FC<
       }
     };
 
-    if (meetingId) {
-      fetchMissionInfo();
-    }
-  }, [meetingId, error]);
+    const loadData = async () => {
+      if (meetingId) {
+        await Promise.all([
+          fetchMissionInfo(),
+          fetchExistingVerification()
+        ]);
+      }
+    };
+
+    loadData();
+  }, [meetingId, error, fetchExistingVerification]);
 
   const getRatingText = (rating: number) => {
     switch (rating) {
@@ -616,8 +728,51 @@ export const SinglePhotoVerification: React.FC<
     }
   };
 
+  // 로딩 중일 때 표시
+  if (isLoadingExisting) {
+    return (
+      <FormContainer $isMobile={isMobile}>
+        <LoadingOverlay>
+          <LoadingSpinner />
+          <LoadingText $isMobile={isMobile}>기존 인증 데이터를 확인하고 있어요</LoadingText>
+          <LoadingSubtext $isMobile={isMobile}>잠시만 기다려주세요...</LoadingSubtext>
+        </LoadingOverlay>
+      </FormContainer>
+    );
+  }
+
   return (
     <FormContainer $isMobile={isMobile}>
+      {/* 기존 인증 완료 상태 표시 */}
+      {existingVerification && existingVerification.status === "approved" && (
+        <MissionGuideSection>
+          <GuideCard $isMobile={isMobile} style={{ background: "#f0fdf4", borderColor: "#16a34a" }}>
+            <GuideHeader>
+              <GuideIcon $isMobile={isMobile} style={{ color: "#16a34a" }}>
+                <Info size={isMobile ? 20 : 24} />
+              </GuideIcon>
+              <GuideTitle $isMobile={isMobile} style={{ color: "#16a34a" }}>
+                ✅ 인증 완료됨
+              </GuideTitle>
+            </GuideHeader>
+            <GuideContent $isMobile={isMobile}>
+              {existingVerification.verifiedAt && (
+                <p>인증 완료 시간: {new Date(existingVerification.verifiedAt).toLocaleString('ko-KR')}</p>
+              )}
+              {existingVerification.confidence && (
+                <p>AI 신뢰도: {existingVerification.confidence}%</p>
+              )}
+              {existingVerification.reasoning && (
+                <p>검증 결과: {existingVerification.reasoning}</p>
+              )}
+              <p style={{ marginTop: '12px', fontWeight: '600' }}>
+                아래에서 작성했던 별점과 후기를 확인할 수 있습니다.
+              </p>
+            </GuideContent>
+          </GuideCard>
+        </MissionGuideSection>
+      )}
+
       {/* 미션 기본 정보 */}
       {missionInfo && (
         <MissionGuideSection>
@@ -640,6 +795,11 @@ export const SinglePhotoVerification: React.FC<
       <PhotoUploadSection>
         <SectionTitle $isMobile={isMobile}>
           미션 인증 사진 <span style={{ color: "#ef4444" }}>*</span>
+          {existingVerification?.status === "approved" && (
+            <span style={{ marginLeft: "8px", fontSize: "14px", color: "#16a34a", fontWeight: "normal" }}>
+              (완료됨)
+            </span>
+          )}
         </SectionTitle>
         
         {/* 에러 메시지 표시 */}
@@ -663,15 +823,16 @@ export const SinglePhotoVerification: React.FC<
 
         <PhotoUploadArea
           onClick={() => {
-            if (!photoState.isUploading && !photoState.isVerifying) {
+            if (!photoState.isUploading && !photoState.isVerifying && existingVerification?.status !== "approved") {
               document.getElementById("photo-upload")?.click();
             }
           }}
           style={{
             cursor:
-              photoState.isUploading || photoState.isVerifying
+              photoState.isUploading || photoState.isVerifying || existingVerification?.status === "approved"
                 ? "not-allowed"
                 : "pointer",
+            opacity: existingVerification?.status === "approved" ? 0.7 : 1,
           }}
         >
           {/* 로딩 오버레이 */}
@@ -695,12 +856,14 @@ export const SinglePhotoVerification: React.FC<
             <Camera size={isMobile ? 20 : 24} />
           </UploadIcon>
           <UploadText $isMobile={isMobile}>
-            {photoState.verificationStatus === "approved"
+            {photoState.verificationStatus === "approved" || existingVerification?.status === "approved"
               ? "인증 완료됨"
               : "사진 1장을 업로드하세요"}
           </UploadText>
           <UploadSubtext $isMobile={isMobile}>
-            JPG, PNG, WEBP 형식 (최대 10MB)
+            {existingVerification?.status === "approved" 
+              ? "이미 인증이 완료되었습니다"
+              : "JPG, PNG, WEBP 형식 (최대 10MB)"}
           </UploadSubtext>
         </PhotoUploadArea>
 
@@ -710,14 +873,19 @@ export const SinglePhotoVerification: React.FC<
           accept="image/*"
           multiple={false}
           onChange={handlePhotoUpload}
-          disabled={photoState.isUploading || photoState.isVerifying}
+          disabled={photoState.isUploading || photoState.isVerifying || existingVerification?.status === "approved"}
         />
 
         {/* 사진 미리보기 */}
         {photoState.localUrl && (
           <PhotoPreview>
             <PhotoItem $verificationStatus={photoState.verificationStatus}>
-              <PhotoImage src={photoState.localUrl} alt="미션 인증 사진" />
+              <PhotoImage 
+                src={photoState.localUrl} 
+                alt="미션 인증 사진" 
+                onClick={() => setShowPhotoModal(true)}
+                style={{ cursor: "pointer" }}
+              />
               {photoState.verificationStatus && (
                 <VerificationStatus
                   $status={photoState.verificationStatus}
@@ -728,7 +896,7 @@ export const SinglePhotoVerification: React.FC<
                   {photoState.verificationStatus === "pending" && "검증중"}
                 </VerificationStatus>
               )}
-              {photoState.verificationStatus !== "approved" && (
+              {photoState.verificationStatus !== "approved" && !existingVerification?.status && (
                 <RemovePhotoButton onClick={removePhoto}>×</RemovePhotoButton>
               )}
             </PhotoItem>
@@ -747,7 +915,16 @@ export const SinglePhotoVerification: React.FC<
               key={star}
               $active={star <= rating}
               $isMobile={isMobile}
-              onClick={() => setRating(star)}
+              onClick={() => {
+                // 기존 인증이 있으면 클릭 불가
+                if (!existingVerification?.status) {
+                  setRating(star);
+                }
+              }}
+              style={{
+                cursor: existingVerification?.status ? "default" : "pointer",
+                opacity: existingVerification?.status ? 0.7 : 1,
+              }}
             >
               <Star fill={star <= rating ? "currentColor" : "none"} />
             </StarButton>
@@ -764,24 +941,59 @@ export const SinglePhotoVerification: React.FC<
         <ReviewTextarea
           $isMobile={isMobile}
           value={reviewText}
-          onChange={(e) => setReviewText(e.target.value)}
-          placeholder="자유롭게 미션을 수행하면서 느낀 점이나 경험을 공유해주세요"
+          onChange={(e) => {
+            // 기존 인증이 있으면 입력 불가
+            if (!existingVerification?.status) {
+              setReviewText(e.target.value);
+            }
+          }}
+          placeholder={
+            existingVerification?.status 
+              ? "작성된 후기를 확인할 수 있습니다"
+              : "자유롭게 미션을 수행하면서 느낀 점이나 경험을 공유해주세요"
+          }
           maxLength={500}
+          readOnly={!!existingVerification?.status}
+          style={{
+            cursor: existingVerification?.status ? "default" : "text",
+            backgroundColor: existingVerification?.status ? "#f9f9f9" : "white",
+          }}
         />
       </ReviewSection>
 
       <SubmitButton
         $isMobile={isMobile}
-        $disabled={photoState.verificationStatus !== "approved" || isSubmitting}
+        $disabled={
+          existingVerification?.status === "approved" ||
+          (photoState.verificationStatus !== "approved" && !existingVerification?.status) ||
+          isSubmitting
+        }
         onClick={handleSubmit}
       >
         <Send size={16} />
         {isSubmitting
           ? "제출 중..."
+          : existingVerification?.status === "approved"
+          ? "이미 인증 완료됨"
           : photoState.verificationStatus === "approved"
           ? "미션 인증 제출"
           : "사진 인증 완료 후 제출 가능"}
       </SubmitButton>
+
+      {/* 사진 확대 모달 */}
+      <PhotoModal 
+        $show={showPhotoModal} 
+        onClick={(e) => e.target === e.currentTarget && setShowPhotoModal(false)}
+      >
+        <PhotoModalContent $isMobile={isMobile}>
+          <PhotoModalCloseButton onClick={() => setShowPhotoModal(false)}>
+            <X size={16} />
+          </PhotoModalCloseButton>
+          {photoState.localUrl && (
+            <PhotoModalImage src={photoState.localUrl} alt="미션 인증 사진 (확대)" />
+          )}
+        </PhotoModalContent>
+      </PhotoModal>
     </FormContainer>
   );
 };

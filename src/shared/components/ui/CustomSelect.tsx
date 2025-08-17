@@ -254,17 +254,17 @@ const OptionItem = styled.div<{ $isSelected: boolean; $isMobile: boolean }>`
   color: ${({ $isSelected, theme }) =>
     $isSelected ? theme.colors.primary : theme.colors.text.primary};
   background: ${({ $isSelected, theme }) =>
-    $isSelected ? theme.colors.gray100 : "transparent"};
+    $isSelected ? theme.colors.gray200 : "transparent"};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
+    background: ${({ theme }) => theme.colors.gray200};
     color: ${({ theme }) => theme.colors.primary};
   }
 
   &:active {
-    background: ${({ theme }) => theme.colors.gray200};
+    background: ${({ theme }) => theme.colors.gray300};
   }
 `;
 

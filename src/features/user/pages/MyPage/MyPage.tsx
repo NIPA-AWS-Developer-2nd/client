@@ -34,13 +34,13 @@ const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
   padding: ${({ $isMobile }) => ($isMobile ? "20px 16px" : "0")};
-  background: white;
+  background: ${({ theme }) => theme.colors.background.primary};
   min-height: 100vh;
 `;
 
 const ProfileCard = styled.div<{ $isMobile?: boolean }>`
   position: relative;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "24px 20px" : "32px 24px")};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
@@ -48,7 +48,7 @@ const ProfileCard = styled.div<{ $isMobile?: boolean }>`
   flex-direction: column;
   align-items: center;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 const ProfileAvatar = styled.div<{ $isMobile?: boolean }>`
@@ -114,7 +114,7 @@ const BioSection = styled.div<{ $isMobile?: boolean }>`
   margin-top: 10px;
   padding: 12px 0;
   font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
-  color: #6b7280;
+  color: ${({ theme }) => theme.colors.text.secondary};
   line-height: 1.4;
   display: flex;
   align-items: flex-start;
@@ -128,11 +128,11 @@ const BioSection = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const RewardSection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "24px 20px" : "32px 24px")};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 const RewardTitle = styled.h3<{ $isMobile?: boolean }>`
@@ -170,24 +170,24 @@ const VerificationBadge = styled.div<{
     if ($isLocation) {
       if ($status === "APPROVED") {
         return `
-          color: #059669;
-          background: linear-gradient(135deg, #D1FAE5, #10B98120);
-          border: 1px solid #10B98130;
+          color: ${theme.colors.locationVerified};
+          background: ${theme.colors.locationVerifiedBg};
+          border: 1px solid ${theme.colors.locationVerified}40;
         `;
       } else {
         return `
-          color: #6B7280;
-          background: linear-gradient(135deg, #F3F4F6, #9CA3AF20);
-          border: 1px solid #9CA3AF30;
+          color: ${theme.colors.verificationPending};
+          background: ${theme.colors.verificationPendingBg};
+          border: 1px solid ${theme.colors.verificationPending}40;
         `;
       }
     }
 
     if ($status === "APPROVED") {
       return `
-        color: #1E40AF;
-        background: linear-gradient(135deg, #DBEAFE, #3B82F620);
-        border: 1px solid #3B82F630;
+        color: ${theme.colors.phoneVerified};
+        background: ${theme.colors.phoneVerifiedBg};
+        border: 1px solid ${theme.colors.phoneVerified}40;
       `;
     }
 
@@ -195,20 +195,20 @@ const VerificationBadge = styled.div<{
       case "PENDING":
         return `
           color: ${theme.colors.warning};
-          background: linear-gradient(135deg, #FEF3C7, ${theme.colors.warning}20);
-          border: 1px solid ${theme.colors.warning}30;
+          background: ${theme.colors.warning}15;
+          border: 1px solid ${theme.colors.warning}40;
         `;
       case "REJECTED":
         return `
           color: ${theme.colors.danger};
-          background: linear-gradient(135deg, #FEE2E2, ${theme.colors.danger}20);
-          border: 1px solid ${theme.colors.danger}30;
+          background: ${theme.colors.danger}15;
+          border: 1px solid ${theme.colors.danger}40;
         `;
       default:
         return `
-          color: ${theme.colors.text.secondary};
-          background: ${theme.colors.gray100};
-          border: 1px solid ${theme.colors.border};
+          color: ${theme.colors.verificationPending};
+          background: ${theme.colors.verificationPendingBg};
+          border: 1px solid ${theme.colors.verificationPending}40;
         `;
     }
   }}
@@ -262,11 +262,11 @@ const LevelProgressText = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const ActivitySection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "24px 20px" : "32px 24px")};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 const ActivityTitle = styled.h4<{ $isMobile?: boolean }>`
@@ -286,17 +286,17 @@ const ActivityGrid = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const ActivityCard = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.card};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
   text-align: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
-  border: 1px solid transparent;
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
 
   &:hover {
-    border: 1px solid ${({ theme }) => theme.colors.primary}15;
+    border: 1px solid ${({ theme }) => theme.colors.primary}40;
   }
 `;
 
@@ -340,8 +340,8 @@ const ProfileEditButton = styled.button<{ $isMobile?: boolean }>`
   align-items: center;
   gap: 6px;
   padding: ${({ $isMobile }) => ($isMobile ? "6px 12px" : "8px 14px")};
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   color: ${({ theme }) => theme.colors.text.primary};
   font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
@@ -357,11 +357,11 @@ const ProfileEditButton = styled.button<{ $isMobile?: boolean }>`
 `;
 
 const PreferenceSection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "24px 20px" : "32px 24px")};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 `;
 
 const PreferenceTitle = styled.h3<{ $isMobile?: boolean }>`
@@ -385,27 +385,19 @@ const CategoryTag = styled.div<{ $isMobile?: boolean }>`
   align-items: center;
   justify-content: center;
   padding: ${({ $isMobile }) => ($isMobile ? "10px 16px" : "12px 20px")};
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.colors.gray50},
-    ${({ theme }) => theme.colors.white}
-  );
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.card};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   color: ${({ theme }) => theme.colors.text.primary};
   font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
   font-weight: 600;
   transition: all 0.2s ease;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary}30;
-    background: linear-gradient(
-      135deg,
-      ${({ theme }) => theme.colors.primary}05,
-      ${({ theme }) => theme.colors.white}
-    );
+    border-color: ${({ theme }) => theme.colors.primary}40;
+    background: ${({ theme }) => theme.colors.primary}10;
   }
 `;
 
@@ -644,10 +636,8 @@ export const MyPage: React.FC = () => {
                   style={{
                     padding: isMobile ? "16px" : "20px",
                     textAlign: "center",
-                    background: "white",
+                    background: "transparent",
                     borderRadius: "12px",
-                    boxShadow:
-                      "0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)",
                   }}
                 >
                   <Skeleton
