@@ -1,25 +1,20 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useNotifications } from '../../../../shared/hooks/useNotifications';
-import { useNotificationStore } from '../../../../shared/store/notificationStore';
+import React from "react";
+import styled from "styled-components";
+import { Shield } from "lucide-react";
+import { useNotifications } from "../../../../shared/hooks/useNotifications";
+import { useNotificationStore } from "../../../../shared/store/notificationStore";
 
 const Container = styled.div`
   background: ${({ theme }) => theme.colors.background.secondary};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 24px;
-  margin: 16px;
-`;
-
-const Title = styled.h2`
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 20px 0;
+  margin: 0;
+  width: 100%;
 `;
 
 const Section = styled.div`
   margin-bottom: 24px;
-  
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -38,7 +33,7 @@ const SettingItem = styled.div`
   justify-content: space-between;
   padding: 12px 0;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border.light};
-  
+
   &:last-child {
     border-bottom: none;
   }
@@ -73,13 +68,13 @@ const Toggle = styled.input`
   position: relative;
   cursor: pointer;
   transition: background 0.2s ease;
-  
+
   &:checked {
     background: ${({ theme }) => theme.colors.primary};
   }
-  
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     width: 20px;
     height: 20px;
@@ -90,27 +85,29 @@ const Toggle = styled.input`
     transition: transform 0.2s ease;
     box-shadow: ${({ theme }) => theme.shadows.sm};
   }
-  
+
   &:checked::before {
     transform: translateX(24px);
   }
 `;
 
-const StatusBadge = styled.div<{ $status: 'granted' | 'denied' | 'default' | 'subscribed' }>`
+const StatusBadge = styled.div<{
+  $status: "granted" | "denied" | "default" | "subscribed";
+}>`
   padding: 4px 8px;
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   font-size: ${({ theme }) => theme.typography.fontSize.xs};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  
+
   ${({ $status, theme }) => {
     switch ($status) {
-      case 'granted':
-      case 'subscribed':
+      case "granted":
+      case "subscribed":
         return `
           background: ${theme.colors.success}20;
           color: ${theme.colors.success};
         `;
-      case 'denied':
+      case "denied":
         return `
           background: ${theme.colors.error}20;
           color: ${theme.colors.error};
@@ -124,7 +121,7 @@ const StatusBadge = styled.div<{ $status: 'granted' | 'denied' | 'default' | 'su
   }}
 `;
 
-const Button = styled.button<{ $variant: 'primary' | 'secondary' }>`
+const Button = styled.button<{ $variant: "primary" | "secondary" }>`
   padding: 8px 16px;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
@@ -133,7 +130,9 @@ const Button = styled.button<{ $variant: 'primary' | 'secondary' }>`
   transition: all 0.2s ease;
   border: none;
 
-  ${({ $variant, theme }) => $variant === 'primary' ? `
+  ${({ $variant, theme }) =>
+    $variant === "primary"
+      ? `
     background: ${theme.colors.primary};
     color: ${theme.colors.background.primary};
     
@@ -141,7 +140,8 @@ const Button = styled.button<{ $variant: 'primary' | 'secondary' }>`
       background: ${theme.colors.primaryDark};
       transform: translateY(-1px);
     }
-  ` : `
+  `
+      : `
     background: transparent;
     color: ${theme.colors.text.secondary};
     border: 1px solid ${theme.colors.border.primary};
@@ -165,20 +165,58 @@ const ButtonGroup = styled.div`
   margin-top: 16px;
 `;
 
+const InfoMessage = styled.div`
+  background: ${({ theme }) => theme.colors.background.tertiary};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  padding: 16px;
+  margin-top: 16px;
+`;
+
+const InfoTitle = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  color: ${({ theme }) => theme.colors.text.primary};
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const InfoDescription = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.text.secondary};
+  line-height: 1.5;
+`;
+
+const InfoSteps = styled.ol`
+  margin: 12px 0 0 0;
+  padding-left: 20px;
+
+  li {
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+`;
+
 interface NotificationSettingsProps {
   className?: string;
 }
 
-export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ className }) => {
-  const { 
-    permissionState, 
-    isSubscribed, 
-    isLoading, 
-    subscribe, 
+export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
+  className,
+}) => {
+  const {
+    permissionState,
+    isSubscribed,
+    isLoading,
+    subscribe,
     unsubscribe,
-    requestPermission 
+    requestPermission,
   } = useNotifications();
-  
+
   const { settings, updateSettings, addNotification } = useNotificationStore();
 
   const handleToggleSetting = (key: keyof typeof settings) => {
@@ -190,16 +228,16 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       const success = await subscribe();
       if (success) {
         addNotification({
-          title: '알림 구독 완료',
-          message: '푸시 알림을 받을 준비가 되었습니다.',
-          type: 'success',
+          title: "알림 구독 완료",
+          message: "푸시 알림을 받을 준비가 되었습니다.",
+          type: "success",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       addNotification({
-        title: '구독 실패',
-        message: '알림 구독에 실패했습니다. 다시 시도해주세요.',
-        type: 'error',
+        title: "구독 실패",
+        message: "알림 구독에 실패했습니다. 다시 시도해주세요.",
+        type: "error",
       });
     }
   };
@@ -209,39 +247,37 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
       const success = await unsubscribe();
       if (success) {
         addNotification({
-          title: '알림 구독 해제',
-          message: '푸시 알림 구독이 해제되었습니다.',
-          type: 'info',
+          title: "알림 구독 해제",
+          message: "푸시 알림 구독이 해제되었습니다.",
+          type: "info",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       addNotification({
-        title: '구독 해제 실패',
-        message: '구독 해제에 실패했습니다. 다시 시도해주세요.',
-        type: 'error',
+        title: "구독 해제 실패",
+        message: "구독 해제에 실패했습니다. 다시 시도해주세요.",
+        type: "error",
       });
     }
   };
 
   const getPermissionStatus = () => {
-    if (permissionState.permission === 'granted' && isSubscribed) {
-      return { status: 'subscribed' as const, text: '구독 중' };
+    if (permissionState.permission === "granted" && isSubscribed) {
+      return { status: "subscribed" as const, text: "구독 중" };
     }
-    if (permissionState.permission === 'granted') {
-      return { status: 'granted' as const, text: '허용됨' };
+    if (permissionState.permission === "granted") {
+      return { status: "granted" as const, text: "허용됨" };
     }
-    if (permissionState.permission === 'denied') {
-      return { status: 'denied' as const, text: '차단됨' };
+    if (permissionState.permission === "denied") {
+      return { status: "denied" as const, text: "차단됨" };
     }
-    return { status: 'default' as const, text: '대기 중' };
+    return { status: "default" as const, text: "대기 중" };
   };
 
   const permissionStatus = getPermissionStatus();
 
   return (
     <Container className={className}>
-      <Title>알림 설정</Title>
-
       <Section>
         <SectionTitle>푸시 알림 상태</SectionTitle>
         <SettingItem>
@@ -251,37 +287,24 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
               브라우저에서 알림을 받기 위한 권한 상태입니다.
             </SettingDescription>
           </SettingLabel>
-          <StatusBadge $status={permissionStatus.status}>
-            {permissionStatus.text}
-          </StatusBadge>
+          {permissionState.permission === "granted" ? (
+            <Toggle
+              type="checkbox"
+              checked={isSubscribed}
+              onChange={isSubscribed ? handleUnsubscribe : handleSubscribe}
+              disabled={isLoading}
+            />
+          ) : (
+            <StatusBadge $status={permissionStatus.status}>
+              {permissionStatus.text}
+            </StatusBadge>
+          )}
         </SettingItem>
 
-        {permissionState.permission === 'granted' && (
+        {permissionState.permission === "default" && (
           <ButtonGroup>
-            {!isSubscribed ? (
-              <Button 
-                $variant="primary" 
-                onClick={handleSubscribe}
-                disabled={isLoading}
-              >
-                알림 구독하기
-              </Button>
-            ) : (
-              <Button 
-                $variant="secondary" 
-                onClick={handleUnsubscribe}
-                disabled={isLoading}
-              >
-                구독 해제
-              </Button>
-            )}
-          </ButtonGroup>
-        )}
-
-        {permissionState.permission === 'default' && (
-          <ButtonGroup>
-            <Button 
-              $variant="primary" 
+            <Button
+              $variant="primary"
               onClick={requestPermission}
               disabled={isLoading}
             >
@@ -289,11 +312,28 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             </Button>
           </ButtonGroup>
         )}
+
+        {permissionState.permission === "denied" && (
+          <InfoMessage>
+            <InfoTitle>
+              <Shield size={16} />
+              알림 권한이 차단되어 있습니다
+            </InfoTitle>
+            <InfoDescription>
+              푸시 알림을 받으려면 브라우저 설정에서 알림을 허용해주세요.
+            </InfoDescription>
+            <InfoSteps>
+              <li>브라우저 주소창 왼쪽의 자물쇠 아이콘 클릭</li>
+              <li>알림 설정을 "허용"으로 변경</li>
+              <li>페이지 새로고침</li>
+            </InfoSteps>
+          </InfoMessage>
+        )}
       </Section>
 
       <Section>
         <SectionTitle>알림 유형</SectionTitle>
-        
+
         <SettingItem>
           <SettingLabel htmlFor="meetingReminders">
             <SettingTitle>미팅 알림</SettingTitle>
@@ -305,7 +345,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             id="meetingReminders"
             type="checkbox"
             checked={settings.meetingReminders}
-            onChange={() => handleToggleSetting('meetingReminders')}
+            onChange={() => handleToggleSetting("meetingReminders")}
           />
         </SettingItem>
 
@@ -320,7 +360,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             id="missionUpdates"
             type="checkbox"
             checked={settings.missionUpdates}
-            onChange={() => handleToggleSetting('missionUpdates')}
+            onChange={() => handleToggleSetting("missionUpdates")}
           />
         </SettingItem>
 
@@ -335,7 +375,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             id="systemNotices"
             type="checkbox"
             checked={settings.systemNotices}
-            onChange={() => handleToggleSetting('systemNotices')}
+            onChange={() => handleToggleSetting("systemNotices")}
           />
         </SettingItem>
 
@@ -350,14 +390,14 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             id="friendRequests"
             type="checkbox"
             checked={settings.friendRequests}
-            onChange={() => handleToggleSetting('friendRequests')}
+            onChange={() => handleToggleSetting("friendRequests")}
           />
         </SettingItem>
       </Section>
 
       <Section>
         <SectionTitle>알림 방식</SectionTitle>
-        
+
         <SettingItem>
           <SettingLabel htmlFor="soundEnabled">
             <SettingTitle>소리 알림</SettingTitle>
@@ -369,7 +409,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             id="soundEnabled"
             type="checkbox"
             checked={settings.soundEnabled}
-            onChange={() => handleToggleSetting('soundEnabled')}
+            onChange={() => handleToggleSetting("soundEnabled")}
           />
         </SettingItem>
 
@@ -384,7 +424,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ clas
             id="vibrationEnabled"
             type="checkbox"
             checked={settings.vibrationEnabled}
-            onChange={() => handleToggleSetting('vibrationEnabled')}
+            onChange={() => handleToggleSetting("vibrationEnabled")}
           />
         </SettingItem>
       </Section>
