@@ -9,4 +9,6 @@ export * from "./SimpleFeedbackModal";
 export * from "./ThemeProvider";
 export * from "./AlertModal";
 export * from "./AlertProvider";
+export * from "./NotificationSettings";
+export * from "./NotificationListModal";
 export { useAlert } from "../../hooks/useAlert";
