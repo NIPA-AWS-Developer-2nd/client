@@ -17,7 +17,6 @@ import { useAuth } from "../../../auth/hooks/useAuth";
 import { useAlert } from "../../../../shared/components/common";
 import { useLocationVerification } from "../../../../shared/hooks";
 import { createLocationGuard } from "../../../../shared/utils/navigationGuards";
-import mainBannerImage from "../../../../assets/images/main-banner_800x300.png?url";
 
 // 컨테이너 스타일들
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
@@ -39,14 +38,6 @@ const BannerContainer = styled.div<{ $isMobile?: boolean }>`
     ${({ theme }) => theme.colors.gray400}
   );
   box-shadow: ${({ theme }) => theme.shadows.sm};
-`;
-
-const BannerImage = styled.img<{ $isMobile?: boolean }>`
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  object-position: center;
 `;
 
 const QuickActionsCard = styled.div<{ $isMobile?: boolean }>`
