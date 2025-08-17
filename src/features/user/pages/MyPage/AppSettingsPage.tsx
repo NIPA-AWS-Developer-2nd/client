@@ -27,6 +27,8 @@ import {
   AppInfoModal,
   SimpleFeedbackModal,
 } from "../../../../shared/components/common";
+import { Modal } from "../../../../shared/components/ui";
+import { NotificationSettings } from "../../../notification/components/NotificationSettings";
 import type { ThemeMode } from "../../../../shared/styles/theme";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
@@ -317,6 +319,7 @@ export const AppSettingsPage: React.FC = () => {
   const [showAppInfoModal, setShowAppInfoModal] = React.useState(false);
   const [showSimpleFeedbackModal, setShowSimpleFeedbackModal] =
     React.useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = React.useState(false);
   const [isThemeExpanded, setIsThemeExpanded] = React.useState(false);
 
   // package.json에서 가져온 앱 버전
@@ -421,7 +424,7 @@ export const AppSettingsPage: React.FC = () => {
     {
       icon: Bell,
       label: "알림 설정",
-      onClick: () => info("알림 설정 기능을 준비 중입니다."),
+      onClick: () => setShowNotificationSettings(true),
     },
     {
       icon: Shield,
@@ -587,6 +590,17 @@ export const AppSettingsPage: React.FC = () => {
         onClose={() => setShowSimpleFeedbackModal(false)}
         isMobile={isMobile}
       />
+      
+      {/* 알림 설정 모달 */}
+      <Modal
+        isOpen={showNotificationSettings}
+        onClose={() => setShowNotificationSettings(false)}
+        title="알림 설정"
+        maxWidth={isMobile ? "90%" : "600px"}
+        showCloseButton={true}
+      >
+        <NotificationSettings />
+      </Modal>
     </PageContainer>
   );
 };
