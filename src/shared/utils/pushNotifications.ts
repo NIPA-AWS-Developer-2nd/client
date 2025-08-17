@@ -36,11 +36,29 @@ export class PushNotificationManager {
     }
 
     try {
-      this.registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-      });
+      // iOS Safari에서는 먼저 ready를 기다린 후 register를 시도
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-      console.log('Service Worker registered successfully:', this.registration);
+      if (isIOS) {
+        // iOS에서 이미 등록된 SW 확인
+        const existingRegistration = await navigator.serviceWorker.getRegistration('/');
+        if (existingRegistration) {
+          this.registration = existingRegistration;
+          console.log('Using existing Service Worker registration:', this.registration);
+        } else {
+          this.registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+            updateViaCache: 'none'
+          });
+          console.log('New Service Worker registered for iOS:', this.registration);
+        }
+      } else {
+        this.registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/',
+        });
+        console.log('Service Worker registered successfully:', this.registration);
+      }
 
       await navigator.serviceWorker.ready;
       console.log('Service Worker is ready');
@@ -80,6 +98,22 @@ export class PushNotificationManager {
 
     if (Notification.permission === 'denied') {
       throw new Error('Notification permission is denied');
+    }
+
+    // iOS Safari 16.4+ 에서는 사용자 제스처가 필요함
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIOS && 'PushManager' in window) {
+      // iOS에서는 Promise 방식 사용
+      try {
+        const permission = await Notification.requestPermission();
+        console.log('iOS Safari notification permission:', permission);
+        return permission;
+      } catch (error) {
+        console.error('iOS Safari permission request failed:', error);
+        throw error;
+      }
     }
 
     const permission = await Notification.requestPermission();

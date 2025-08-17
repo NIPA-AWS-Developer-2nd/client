@@ -30,6 +30,7 @@ import { useNotificationHistory } from "../hooks/useNotificationHistory";
 import { useLocationStore } from "../store/locationStore";
 import { ROUTES } from "../constants/routes";
 import { PointBalance } from "../../features/point/components/PointBalance";
+import { useAuth } from "../../features/auth/hooks/useAuth";
 
 // 최상위 고정 컨테이너
 const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
@@ -569,6 +570,9 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
   // 위치 인증 스토어
   const { setVerified } = useLocationStore();
+
+  // 사용자 정보 가져오기 (온보딩에서 선택한 지역 정보 포함)
+  const { user } = useAuth();
 
   // 사용자 위치 정보 - currentDistrict에서 가져오거나 기본값 사용
   const userLocation = currentDistrict?.districtName || "지역 선택";
@@ -1200,6 +1204,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         isOpen={isLocationModalOpen}
         onClose={handleLocationModalClose}
         onVerificationComplete={handleVerificationComplete}
+        districtId={user?.districtId}
       />
     </AppContainer>
   );
