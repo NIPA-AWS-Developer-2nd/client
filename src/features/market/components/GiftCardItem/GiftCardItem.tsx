@@ -75,7 +75,7 @@ const ContentContainer = styled.div<{ $isMobile?: boolean }>`
 const InfoSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 15px;
 `;
 
 const Brand = styled.div<{ $isMobile?: boolean }>`
@@ -164,7 +164,7 @@ export const GiftCardItem: React.FC<GiftCardItemProps> = ({
         </InfoSection>
         <PriceSection>
           <Points $isMobile={isMobile}>
-            {giftCard.points.toLocaleString()}포인트
+            {giftCard.points.toLocaleString()}P
           </Points>
         </PriceSection>
       </ContentContainer>

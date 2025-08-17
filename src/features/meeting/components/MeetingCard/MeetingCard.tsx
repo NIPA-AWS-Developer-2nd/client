@@ -7,6 +7,7 @@ import { AlertModal } from "../../../../shared/components/common";
 import { useAuth } from "../../../auth/hooks/useAuth";
 import { useLocationVerification } from "../../../../shared/hooks";
 import { useAlert } from "../../../../shared/hooks/useAlert";
+import { formatLevel } from "../../../../shared/utils";
 import * as S from "./MeetingCard.styles";
 
 interface MeetingCardProps {
@@ -297,7 +298,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onLikeUpdate }) => {
               >
                 {meeting.host?.nickname || "호스트"}
               </S.HostName>
-              <S.HostLevel>Lv.{meeting.host?.level || 1}</S.HostLevel>
+              <S.HostLevel>{formatLevel(meeting.host?.level, meeting.host?.points)}</S.HostLevel>
             </div>
             {meeting.host?.mbti && (
               <S.HostMbti>{meeting.host.mbti}</S.HostMbti>

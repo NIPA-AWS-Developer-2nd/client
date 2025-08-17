@@ -44,6 +44,7 @@ export interface HotMeeting {
     nickname: string;
     profileImageUrl: string;
     level?: number;
+    points?: number;
     mbti?: string;
     bio?: string;
   };

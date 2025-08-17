@@ -101,22 +101,9 @@ export const Chat: React.FC<ChatProps> = ({
     });
   };
 
-  // 시간 표시 여부 결정 (이전 메시지와 같은 분이면 표시하지 않음)
-  const shouldShowTime = (currentMessage: ChatMessage, index: number) => {
-    if (index === 0) return true; // 첫 번째 메시지는 항상 시간 표시
-
-    const prevMessage = messages[index - 1];
-    const currentTime = new Date(currentMessage.createdAt);
-    const prevTime = new Date(prevMessage.createdAt);
-
-    // 년, 월, 일, 시, 분이 모두 같으면 시간 표시 안 함
-    return !(
-      currentTime.getFullYear() === prevTime.getFullYear() &&
-      currentTime.getMonth() === prevTime.getMonth() &&
-      currentTime.getDate() === prevTime.getDate() &&
-      currentTime.getHours() === prevTime.getHours() &&
-      currentTime.getMinutes() === prevTime.getMinutes()
-    );
+  // 시간 표시 여부 결정 (모든 메시지에 시간 표시)
+  const shouldShowTime = (_currentMessage: ChatMessage, _index: number) => {
+    return true; // 모든 메시지에 시간 표시
   };
 
   // 안읽은 인원 수 계산 (단체 채팅방 로직)
