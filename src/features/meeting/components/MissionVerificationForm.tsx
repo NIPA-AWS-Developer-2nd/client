@@ -205,12 +205,13 @@ const SubmitButton = styled.button<{
   gap: 8px;
   transition: all 0.2s ease;
 
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.colors.primaryDark};
+  &:hover {
+    background: ${({ theme, $disabled }) =>
+      $disabled ? theme.colors.gray300 : theme.colors.primaryDark};
   }
 
-  &:active:not(:disabled) {
-    transform: scale(0.98);
+  &:active {
+    transform: ${({ $disabled }) => ($disabled ? "none" : "scale(0.98)")};
   }
 `;
 
@@ -358,7 +359,7 @@ export const MissionVerificationForm: React.FC<
       // 3. 업로드 완료 후 AI 인증 시작
       await verifyMissionPhoto(fileUrl);
       
-    } catch (err) {
+    } catch (_err) {
       error('사진 업로드에 실패했습니다. 다시 시도해주세요.');
       setPhotos([]);
       setPhotoUrls([]);
@@ -407,7 +408,7 @@ export const MissionVerificationForm: React.FC<
         // pending 상태인 경우 주기적으로 상태 확인
         setTimeout(() => checkVerificationStatus(), 3000);
       }
-    } catch (err) {
+    } catch (_err) {
       error("미션 인증 처리 중 오류가 발생했습니다.");
       setVerificationStatus("rejected");
     } finally {
@@ -473,7 +474,7 @@ export const MissionVerificationForm: React.FC<
       setRating(0);
       setReviewText("");
       setVerificationStatus(null);
-    } catch (err) {
+    } catch (_err) {
       error("미션 인증 제출에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);

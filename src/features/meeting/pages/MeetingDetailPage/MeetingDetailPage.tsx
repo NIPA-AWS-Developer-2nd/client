@@ -202,7 +202,7 @@ export const MeetingDetailPage: React.FC = () => {
   };
 
   // MeetingDetailDto를 MyMeetingDetail 형태로 변환
-  const convertToMyMeetingDetail = (data: any): any => {
+  const convertToMyMeetingDetail = useCallback((data: MeetingDetailDto): MeetingDetailDto => {
     // currentUserId가 없으면 기본값 사용
     if (!currentUserId) {
       console.log("⚠️ currentUserId가 없어서 기본값으로 변환");
@@ -226,7 +226,7 @@ export const MeetingDetailPage: React.FC = () => {
 
     const isHost = data.hostUserId === currentUserId;
     const isInParticipantList = data.participantList?.some(
-      (p: any) => p.userId === currentUserId
+      (p) => p.userId === currentUserId
     );
     const meJoined = isInParticipantList || isHost;
 
@@ -236,11 +236,11 @@ export const MeetingDetailPage: React.FC = () => {
       hostUserId: data.hostUserId,
       isHost,
       participantListCount: data.participantList?.length || 0,
-      participantUserIds: data.participantList?.map((p: any) => p.userId) || [],
+      participantUserIds: data.participantList?.map((p) => p.userId) || [],
       isInParticipantList,
       meJoined,
       isUserInParticipantList: data.participantList?.some(
-        (p: any) => p.userId === currentUserId
+        (p) => p.userId === currentUserId
       ),
       isUserHost: data.hostUserId === currentUserId,
     });
@@ -261,7 +261,7 @@ export const MeetingDetailPage: React.FC = () => {
       host: data.host,
       participants: data.participantList || [],
     };
-  };
+  }, [currentUserId]);
 
   // 출석 데이터 가져오기
   const fetchAttendanceData = async (meetingId: string) => {
@@ -326,13 +326,13 @@ export const MeetingDetailPage: React.FC = () => {
         // myMeetings 배열에서 해당 모임을 찾아서 업데이트
         if (Array.isArray(updatedHomeData.myMeetings)) {
           const meetingIndex = updatedHomeData.myMeetings.findIndex(
-            (m: any) => (m?.id || m?.meeting_id) === id
+            (m) => (m?.id || m?.meeting_id) === id
           );
 
           console.log("🔍 기존 모임 찾기 결과:", {
             meetingIndex,
             existingMeetingIds: updatedHomeData.myMeetings.map(
-              (m: any) => m?.id || m?.meeting_id
+              (m) => m?.id || m?.meeting_id
             ),
             targetMeetingId: id,
           });
@@ -395,12 +395,12 @@ export const MeetingDetailPage: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [id, currentUserId]);
+  }, [id, currentUserId, convertToMyMeetingDetail, homeData, setHomeData, setMeetingDetail]);
 
   // API에서 모임 데이터 가져오기
   useEffect(() => {
     fetchMeetingDetail();
-  }, [id, currentUserId]);
+  }, [fetchMeetingDetail]);
 
   useEffect(() => {
     const onResize = () => setIsMobile(deviceDetection.isMobile());

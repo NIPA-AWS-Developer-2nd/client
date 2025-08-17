@@ -205,7 +205,7 @@ export class PushNotificationManager {
     return window.btoa(binary);
   }
 
-  onMessage(callback: (data: any) => void): void {
+  onMessage(callback: (data: unknown) => void): void {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         callback(event.data);
