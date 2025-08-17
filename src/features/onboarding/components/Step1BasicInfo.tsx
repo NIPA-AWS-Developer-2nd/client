@@ -186,7 +186,7 @@ export const Step1BasicInfo: React.FC<Props> = ({
   const {
     formData,
     updateFormData,
-    sendVerificationCode,
+    // sendVerificationCode, // TODO: 인증 로직 활성화 시 주석 해제
     verifyCode: _verifyCode,
     isSendingCode,
     isVerifyingCode,
