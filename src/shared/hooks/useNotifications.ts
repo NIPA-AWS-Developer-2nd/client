@@ -5,7 +5,8 @@ import {
   type NotificationPermissionState, 
   type PushSubscriptionData 
 } from '../utils/pushNotifications';
-import { apiUrl } from '../utils/api';
+import { apiUrl, authFetch } from '../utils/api';
+import { useAlert } from './useAlert';
 
 interface UseNotificationsReturn {
   permissionState: NotificationPermissionState;
@@ -13,7 +14,11 @@ interface UseNotificationsReturn {
   isLoading: boolean;
   error: string | null;
   subscription: PushSubscriptionData | null;
+  showPermissionModal: boolean;
   requestPermission: () => Promise<boolean>;
+  requestPermissionWithModal: () => void;
+  handlePermissionAccept: () => Promise<void>;
+  handlePermissionDecline: () => void;
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<boolean>;
   showLocalNotification: (title: string, options?: NotificationOptions) => Promise<void>;
@@ -32,9 +37,11 @@ export const useNotifications = (): UseNotificationsReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<PushSubscriptionData | null>(null);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [pushManager] = useState(() => PushNotificationManager.getInstance());
   
   const { isAuthenticated, user } = useAuth();
+  const alertService = useAlert();
 
   const updatePermissionState = useCallback(() => {
     const state = pushManager.getPermissionState();
@@ -124,9 +131,8 @@ export const useNotifications = (): UseNotificationsReturn => {
         return false;
       }
 
-      const response = await fetch(apiUrl('/notifications/subscribe'), {
+      const response = await authFetch(apiUrl('/notifications/subscribe'), {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -169,9 +175,8 @@ export const useNotifications = (): UseNotificationsReturn => {
 
       if (isAuthenticated) {
         try {
-          await fetch(apiUrl('/notifications/unsubscribe'), {
+          await authFetch(apiUrl('/notifications/unsubscribe'), {
             method: 'DELETE',
-            credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
             },
@@ -216,7 +221,62 @@ export const useNotifications = (): UseNotificationsReturn => {
     setError(null);
   }, []);
 
-  // 자동 구독 설정 함수
+  // 모달과 함께 권한 요청
+  const requestPermissionWithModal = useCallback(() => {
+    if (permissionState.permission === 'default') {
+      setShowPermissionModal(true);
+    } else if (permissionState.permission === 'granted') {
+      subscribe();
+    }
+  }, [permissionState.permission, subscribe]);
+
+  // 모달에서 허용 버튼 클릭 (수정: 사용자 제스처 컨텍스트 유지)
+  const handlePermissionAccept = useCallback(async () => {
+    setShowPermissionModal(false);
+    
+    // 이미 권한이 허용된 경우 바로 구독
+    if (permissionState.permission === 'granted') {
+      const success = await subscribe();
+      if (success) {
+        alertService.success('알림이 활성화되었습니다.');
+      }
+      return;
+    }
+    
+    // 권한 요청 (사용자 제스처 컨텍스트 내에서 즉시 실행)
+    const permission = await requestPermission();
+    
+    if (permission) {
+      // 권한 허용됨 - 구독 진행
+      const success = await subscribe();
+      if (success) {
+        alertService.success('알림이 활성화되었습니다.');
+      } else {
+        alertService.error('알림 구독에 실패했습니다. 다시 시도해주세요.');
+      }
+    } else if (permissionState.permission === 'denied') {
+      // 권한 거부됨 - 설정 가이드 제공
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const guide = isIOS 
+        ? '설정 > Safari > 알림에서 할사람 알림을 허용해주세요.'
+        : '브라우저 설정에서 알림 권한을 허용해주세요.';
+      
+      alertService.warning(
+        `알림 권한이 거부되었습니다.\n${guide}`,
+        '알림 설정'
+      );
+    }
+  }, [permissionState.permission, requestPermission, subscribe, alertService]);
+
+  // 모달에서 나중에 버튼 클릭
+  const handlePermissionDecline = useCallback(() => {
+    setShowPermissionModal(false);
+    // 로컬 스토리지에 거부 시간 저장 (24시간 후 다시 표시)
+    localStorage.setItem('notificationPromptDeclined', Date.now().toString());
+    alertService.info('언제든지 설정에서 알림을 활성화할 수 있습니다.');
+  }, [alertService]);
+
+  // 자동 구독 설정 함수 (수정: 모달 표시로 변경)
   const setupAutoSubscription = useCallback(async (): Promise<boolean> => {
     // 이미 구독되어 있다면 스킵
     if (isSubscribed) {
@@ -241,22 +301,37 @@ export const useNotifications = (): UseNotificationsReturn => {
         return false;
       }
 
-      // 권한 요청 (아직 요청하지 않은 경우만)
-      if (permissionState.permission === 'default') {
-        const permissionGranted = await requestPermission();
-        if (!permissionGranted) {
+      // 권한이 이미 허용된 경우 바로 구독
+      if (permissionState.permission === 'granted') {
+        const success = await subscribe();
+        return success;
+      }
+
+      // 최근에 거부했는지 확인 (24시간)
+      const lastDeclined = localStorage.getItem('notificationPromptDeclined');
+      if (lastDeclined) {
+        const declinedTime = parseInt(lastDeclined);
+        const dayInMs = 24 * 60 * 60 * 1000;
+        if (Date.now() - declinedTime < dayInMs) {
+          console.log('사용자가 최근에 알림을 거부했습니다.');
           return false;
         }
       }
 
-      // 구독 진행
-      const success = await subscribe();
-      return success;
+      // 모달 표시 (권한이 default인 경우)
+      if (permissionState.permission === 'default') {
+        setTimeout(() => {
+          setShowPermissionModal(true);
+        }, 2000); // 2초 후 모달 표시
+        return false; // 일단 false 반환 (모달에서 사용자가 선택)
+      }
+
+      return false;
     } catch (err) {
       console.error('자동 구독 설정 실패:', err);
       return false;
     }
-  }, [isSubscribed, isAuthenticated, user, permissionState, requestPermission, subscribe]);
+  }, [isSubscribed, isAuthenticated, user, permissionState, subscribe]);
 
   // 로그인 상태 변경시 자동 구독 시도
   useEffect(() => {
@@ -292,7 +367,11 @@ export const useNotifications = (): UseNotificationsReturn => {
     isLoading,
     error,
     subscription,
+    showPermissionModal,
     requestPermission,
+    requestPermissionWithModal,
+    handlePermissionAccept,
+    handlePermissionDecline,
     subscribe,
     unsubscribe,
     showLocalNotification,
