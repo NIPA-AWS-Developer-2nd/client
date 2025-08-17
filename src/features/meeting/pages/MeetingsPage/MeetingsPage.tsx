@@ -309,7 +309,7 @@ const FloatingRefreshButton = styled.button<{
   $isRefreshing: boolean;
 }>`
   position: fixed;
-  bottom: ${({ $isMobile }) => ($isMobile ? "100px" : "24px")};
+  bottom: ${({ $isMobile }) => ($isMobile ? "calc(100px + env(safe-area-inset-bottom))" : "24px")};
   right: 24px;
   width: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};
   height: ${({ $isMobile }) => ($isMobile ? "48px" : "56px")};

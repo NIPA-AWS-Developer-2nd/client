@@ -71,11 +71,6 @@ export const TransactionItem = styled.div<{ $isMobile: boolean }>`
   gap: 12px;
   padding: ${({ $isMobile }) => $isMobile ? '16px' : '16px 0'};
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
-  transition: background 0.2s ease;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.backgroundAlt};
-  }
 
   &:last-child {
     border-bottom: none;

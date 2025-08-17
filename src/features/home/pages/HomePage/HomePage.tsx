@@ -28,7 +28,7 @@ const PageContainer = styled.div<{ $isMobile?: boolean }>`
 const BannerContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border-radius: ${({ $isMobile, theme }) => ($isMobile ? "0" : theme.borderRadius.lg)};
   overflow: hidden;
   position: relative;
   height: ${({ $isMobile }) => ($isMobile ? "150px" : "200px")};

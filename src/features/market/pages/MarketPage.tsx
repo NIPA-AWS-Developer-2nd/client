@@ -31,7 +31,7 @@ const BannerContainer = styled.div<{ $isMobile?: boolean }>`
 const BannerImage = styled.img<{ $isMobile?: boolean }>`
   width: 100%;
   height: auto;
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border-radius: ${({ theme, $isMobile }) => $isMobile ? '0' : theme.borderRadius.lg};
   display: block;
 `;
 
