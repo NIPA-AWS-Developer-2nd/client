@@ -11,3 +11,4 @@ export { MeetingLeaveModal } from './MeetingLeaveModal';
 export { MeetingCancelModal } from './MeetingCancelModal';
 export { QRTestHelper } from './QRTestHelper';
 export { MissionVerificationForm } from './MissionVerificationForm';
+export { SinglePhotoVerification } from './SinglePhotoVerification';

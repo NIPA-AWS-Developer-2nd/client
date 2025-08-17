@@ -20,8 +20,8 @@ interface GiftCardItemProps {
 }
 
 const CardContainer = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid #d1d5db;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   overflow: hidden;
   cursor: pointer;
@@ -30,11 +30,11 @@ const CardContainer = styled.div<{ $isMobile?: boolean }>`
   flex-direction: row;
   height: ${({ $isMobile }) => ($isMobile ? "120px" : "140px")};
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.shadows.sm};
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: ${({ theme }) => theme.shadows.md};
     border-color: ${({ theme }) => theme.colors.primary};
   }
 
@@ -46,13 +46,13 @@ const CardContainer = styled.div<{ $isMobile?: boolean }>`
 const ImageContainer = styled.div<{ $isMobile?: boolean }>`
   width: ${({ $isMobile }) => ($isMobile ? "80px" : "100px")};
   height: 100%;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid ${({ theme }) => theme.colors.border.light};
 `;
 
 const GiftCardImage = styled.img<{ $isMobile?: boolean }>`
@@ -69,7 +69,7 @@ const ContentContainer = styled.div<{ $isMobile?: boolean }>`
   flex-direction: column;
   justify-content: space-between;
   min-width: 0;
-  background: ${({ theme }) => theme.colors.gray50};
+  background: ${({ theme }) => theme.colors.card};
 `;
 
 const InfoSection = styled.div`
@@ -111,7 +111,7 @@ const HeartButton = styled.button`
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  background: ${({ theme }) => theme.colors.surface}90;
   border: none;
   border-radius: 50%;
   width: 32px;
@@ -123,7 +123,7 @@ const HeartButton = styled.button`
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.white};
+    background: ${({ theme }) => theme.colors.surface};
     transform: scale(1.1);
   }
 `;

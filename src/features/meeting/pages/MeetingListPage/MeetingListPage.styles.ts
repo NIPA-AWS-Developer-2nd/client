@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 export const Container = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.background.primary};
 `;
 
 export const HeaderSection = styled.div<{ $isMobile?: boolean }>`
@@ -10,8 +10,8 @@ export const HeaderSection = styled.div<{ $isMobile?: boolean }>`
   align-items: center;
   justify-content: space-between;
   padding: ${({ $isMobile }) => ($isMobile ? "16px" : "20px 24px")};
-  background: ${({ theme }) => theme.colors.white};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray100};
+  background: ${({ theme }) => theme.colors.surface};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border.light};
   margin-bottom: 16px;
 `;
 
@@ -77,13 +77,13 @@ export const Subtitle = styled.p<{ $isMobile?: boolean }>`
 `;
 
 export const FilterSection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.xl};
   padding: ${({ $isMobile }) => $isMobile ? '16px' : '24px'};
   margin: 0 ${({ $isMobile }) => $isMobile ? '16px' : '24px'};
   margin-bottom: 24px;
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
 `;
 
 export const FilterTitle = styled.h3<{ $isMobile?: boolean }>`
@@ -140,7 +140,7 @@ export const FilterChip = styled.button<{ $active?: boolean; $variant?: 'status'
         default: return theme.colors.primary + '10';
       }
     }
-    return theme.colors.surface;
+    return theme.colors.card;
   }};
   color: ${({ theme, $active, $variant }) => {
     if ($active) {
@@ -177,10 +177,10 @@ export const SearchBar = styled.div`
 export const SearchInput = styled.input`
   width: 100%;
   padding: 14px 48px 14px 20px;
-  border: 2px solid ${({ theme }) => theme.colors.border};
+  border: 2px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   font-size: 15px;
-  background-color: ${({ theme }) => theme.colors.gray50};
+  background-color: ${({ theme }) => theme.colors.card};
   color: ${({ theme }) => theme.colors.text.primary};
   transition: all 0.2s ease;
 
@@ -191,7 +191,7 @@ export const SearchInput = styled.input`
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
-    background-color: ${({ theme }) => theme.colors.white};
+    background-color: ${({ theme }) => theme.colors.surface};
     box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
   }
 `;
@@ -206,7 +206,7 @@ export const SearchIcon = styled.div`
 `;
 
 export const ContentSection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.background.primary};
   border-radius: ${({ theme }) => theme.borderRadius.xl} ${({ theme }) => theme.borderRadius.xl} 0 0;
   margin-top: 0;
   padding: ${({ $isMobile }) => $isMobile ? '24px 16px' : '32px 24px'};
@@ -392,9 +392,9 @@ export const SortOptions = styled.div`
   
   select {
     padding: 8px 12px;
-    border: 1px solid ${({ theme }) => theme.colors.gray300};
+    border: 1px solid ${({ theme }) => theme.colors.border.light};
     border-radius: 8px;
-    background: white;
+    background: ${({ theme }) => theme.colors.surface};
     font-size: 14px;
     color: ${({ theme }) => theme.colors.text.primary};
     cursor: pointer;
@@ -485,7 +485,7 @@ export const FilterNotice = styled.div<{ $isMobile?: boolean }>`
   
   button {
     padding: 4px 12px;
-    background: ${({ theme }) => theme.colors.white};
+    background: ${({ theme }) => theme.colors.surface};
     border: 1px solid ${({ theme }) => theme.colors.primary + '30'};
     border-radius: ${({ theme }) => theme.borderRadius.sm};
     color: ${({ theme }) => theme.colors.primary};
@@ -519,7 +519,7 @@ export const PaginationButton = styled.button<{
     ${({ $isActive, theme }) =>
       $isActive ? theme.colors.primary : theme.colors.border};
   background: ${({ $isActive, theme }) =>
-    $isActive ? theme.colors.primary : theme.colors.white};
+    $isActive ? theme.colors.primary : theme.colors.surface};
   color: ${({ $isActive, theme }) =>
     $isActive ? theme.colors.white : theme.colors.text.primary};
   border-radius: ${({ theme }) => theme.borderRadius.md};
@@ -555,7 +555,7 @@ export const PageNumber = styled.button<{ $active?: boolean; $isMobile?: boolean
     ${({ $active, theme }) =>
       $active ? theme.colors.primary : theme.colors.border};
   background: ${({ $active, theme }) =>
-    $active ? theme.colors.primary : theme.colors.white};
+    $active ? theme.colors.primary : theme.colors.surface};
   color: ${({ $active, theme }) =>
     $active ? theme.colors.white : theme.colors.text.primary};
   border-radius: ${({ theme }) => theme.borderRadius.md};

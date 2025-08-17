@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { Camera, Star, Send, Info } from "lucide-react";
 import { useAlert } from "../../../shared/components/common";
+import {
+  parseMissionGuide,
+  areAllStepsCompleted,
+  getNextStepIndex,
+  type MissionStep,
+} from "../../../shared/utils/missionGuideParser";
 
 const FormContainer = styled.div<{ $isMobile?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "16px" : "24px")};
@@ -170,13 +176,15 @@ const ReviewTextarea = styled.textarea<{ $isMobile?: boolean }>`
   font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
   font-family: inherit;
   resize: vertical;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text.primary};
+  opacity: 0.9;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
     box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary + "20"};
+    opacity: 1;
   }
 
   &::placeholder {
@@ -263,49 +271,48 @@ const GuideContent = styled.div<{ $isMobile?: boolean }>`
   line-height: 1.5;
 `;
 
-const GuideList = styled.ul`
-  margin: 8px 0 0 0;
-  padding-left: 16px;
-`;
-
-const GuideItem = styled.li<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "13px" : "14px")};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin-bottom: 4px;
-  line-height: 1.4;
-`;
-
 interface Mission {
   id: string;
   title: string;
   description?: string;
   verificationGuide?: string[];
   location?: string;
+  photoVerificationGuide?: string;
+}
+
+interface StepUploadState {
+  stepIndex: number;
+  file: File | null;
+  localUrl: string | null;
+  uploadedUrl: string | null;
+  verificationStatus: "pending" | "approved" | "rejected" | null;
+  isUploading: boolean;
+  isVerifying: boolean;
 }
 
 interface MissionVerificationFormProps {
   meetingId: string;
+  missionId: string;
   isMobile?: boolean;
 }
 
 export const MissionVerificationForm: React.FC<
   MissionVerificationFormProps
-> = ({ meetingId, isMobile = false }) => {
+> = ({ meetingId, missionId: _missionId, isMobile = false }) => {
   const { success, error, info } = useAlert();
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [rating, setRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<
-    "pending" | "approved" | "rejected" | null
-  >(null);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [missionInfo, setMissionInfo] = useState<Mission | null>(null);
-  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null);
+  const [missionSteps, setMissionSteps] = useState<MissionStep[]>([]);
+  const [stepUploadStates, setStepUploadStates] = useState<StepUploadState[]>(
+    []
+  );
+  const [_currentStepIndex, setCurrentStepIndex] = useState<number>(0);
 
   const handlePhotoUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
+    stepIndex: number
   ) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
@@ -313,167 +320,264 @@ export const MissionVerificationForm: React.FC<
     const file = files[0]; // 1장만 처리
     const localUrl = URL.createObjectURL(file);
 
-    setPhotos([file]);
-    setPhotoUrls([localUrl]);
-    setVerificationStatus(null);
-    setUploadedPhotoUrl(null);
+    // 해당 단계의 상태 업데이트
+    setStepUploadStates((prev) =>
+      prev.map((state) =>
+        state.stepIndex === stepIndex
+          ? {
+              ...state,
+              file,
+              localUrl,
+              uploadedUrl: null,
+              verificationStatus: null,
+              isUploading: true,
+              isVerifying: false,
+            }
+          : state
+      )
+    );
 
     try {
-      setIsVerifying(true);
-      
-      // 1. presigned URL 요청
-      const presignedResponse = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileType: file.type,
-          category: 'mission-verification',
-        }),
-      });
-      
-      if (!presignedResponse.ok) {
-        throw new Error('Failed to get presigned URL');
-      }
-      
-      const presignedData = await presignedResponse.json();
-      const { uploadUrl, fileUrl } = presignedData.data;
-      
-      // 2. S3에 직접 업로드
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
-      
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload file to S3');
-      }
-      
-      setUploadedPhotoUrl(fileUrl);
-      
-      // 3. 업로드 완료 후 AI 인증 시작
-      await verifyMissionPhoto(fileUrl);
-      
+      // 파일 업로드 + Bedrock 검증을 한 번에 처리
+      await verifyMissionPhoto(file, stepIndex);
     } catch (_err) {
-      error('사진 업로드에 실패했습니다. 다시 시도해주세요.');
-      setPhotos([]);
-      setPhotoUrls([]);
-      setVerificationStatus(null);
-      setIsVerifying(false);
+      error("사진 업로드 및 인증에 실패했습니다. 다시 시도해주세요.");
+
+      // 실패 시 상태 초기화
+      setStepUploadStates((prev) =>
+        prev.map((state) =>
+          state.stepIndex === stepIndex
+            ? {
+                ...state,
+                file: null,
+                localUrl: null,
+                uploadedUrl: null,
+                verificationStatus: null,
+                isUploading: false,
+                isVerifying: false,
+              }
+            : state
+        )
+      );
+
+      // URL 메모리 해제
+      URL.revokeObjectURL(localUrl);
     }
   };
 
-  const removePhoto = (index: number) => {
-    // URL 메모리 해제
-    URL.revokeObjectURL(photoUrls[index]);
+  const removePhoto = (stepIndex: number) => {
+    setStepUploadStates((prev) =>
+      prev.map((state) => {
+        if (state.stepIndex === stepIndex) {
+          // URL 메모리 해제
+          if (state.localUrl) {
+            URL.revokeObjectURL(state.localUrl);
+          }
 
-    setPhotos([]);
-    setPhotoUrls([]);
-    setVerificationStatus(null);
+          return {
+            ...state,
+            file: null,
+            localUrl: null,
+            uploadedUrl: null,
+            verificationStatus: null,
+            isUploading: false,
+            isVerifying: false,
+          };
+        }
+        return state;
+      })
+    );
   };
 
-  const verifyMissionPhoto = async (photoUrl: string) => {
+  const verifyMissionPhoto = async (file: File, stepIndex: number) => {
     try {
-      // AI 인증 API 호출 (업로드된 사진 URL 전달)
-      const response = await fetch('/mission/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          photoUrl,
-          meetingId,
-        }),
+      // FormData로 파일 업로드 + Bedrock 검증 API 호출
+      const formData = new FormData();
+      formData.append("photo", file);
+      formData.append("meetingId", meetingId);
+
+      const response = await fetch("/mission/verify/photo", {
+        method: "POST",
+        body: formData,
       });
-      
+
       if (!response.ok) {
-        throw new Error('Verification API failed');
+        throw new Error("Verification API failed");
       }
-      
+
       const result = await response.json();
       const status = result.data.status; // 'approved' | 'rejected' | 'pending'
-      setVerificationStatus(status);
+      const confidence = result.data.confidence;
+      const reasoning = result.data.reasoning;
+
+      // 해당 단계의 인증 상태 업데이트
+      setStepUploadStates((prev) =>
+        prev.map((state) =>
+          state.stepIndex === stepIndex
+            ? {
+                ...state,
+                verificationStatus: status,
+                isUploading: false,
+                isVerifying: false,
+              }
+            : state
+        )
+      );
+
+      const step = missionSteps.find((s) => s.stepIndex === stepIndex);
+      const stepTitle = step ? step.title : `${stepIndex + 1}단계`;
 
       if (status === "approved") {
-        success("미션 인증이 승인되었습니다! 이제 제출할 수 있습니다.");
+        success(
+          `${stepTitle} 미션 인증이 승인되었습니다! (신뢰도: ${confidence}%)\n${reasoning}`
+        );
+
+        // 다음 단계가 있는지 확인하고 currentStepIndex 업데이트
+        const completedSteps = stepUploadStates
+          .filter(
+            (state) =>
+              state.verificationStatus === "approved" ||
+              state.stepIndex === stepIndex
+          )
+          .map((state) => state.stepIndex);
+
+        const nextStep = getNextStepIndex(missionSteps.length, completedSteps);
+        if (nextStep !== null) {
+          setCurrentStepIndex(nextStep);
+        }
       } else if (status === "rejected") {
-        error("미션 인증이 거부되었습니다. 다른 사진으로 다시 시도해주세요.");
+        error(
+          `${stepTitle} 미션 인증이 거부되었습니다.\n사유: ${reasoning}\n다른 사진으로 다시 시도해주세요.`
+        );
       } else {
-        info("미션 인증을 처리 중입니다. 잠시만 기다려주세요.");
+        info(`${stepTitle} 미션 인증을 처리 중입니다. 잠시만 기다려주세요.`);
         // pending 상태인 경우 주기적으로 상태 확인
-        setTimeout(() => checkVerificationStatus(), 3000);
+        setTimeout(() => checkVerificationStatus(stepIndex), 3000);
       }
     } catch (_err) {
       error("미션 인증 처리 중 오류가 발생했습니다.");
-      setVerificationStatus("rejected");
-    } finally {
-      setIsVerifying(false);
+
+      // 에러 시 상태 업데이트
+      setStepUploadStates((prev) =>
+        prev.map((state) =>
+          state.stepIndex === stepIndex
+            ? {
+                ...state,
+                verificationStatus: "rejected",
+                isVerifying: false,
+              }
+            : state
+        )
+      );
     }
   };
 
-  const checkVerificationStatus = async () => {
+  const checkVerificationStatus = async (stepIndex: number) => {
     try {
-      const response = await fetch(`/mission/verify/status?meetingId=${meetingId}`);
+      const response = await fetch(
+        `/mission/verify/status?meetingId=${meetingId}&stepIndex=${stepIndex}`
+      );
       if (response.ok) {
         const result = await response.json();
         const status = result.data.status;
-        setVerificationStatus(status);
-        
+
+        // 해당 단계의 상태 업데이트
+        setStepUploadStates((prev) =>
+          prev.map((state) =>
+            state.stepIndex === stepIndex
+              ? {
+                  ...state,
+                  verificationStatus: status,
+                  isVerifying: status === "pending",
+                }
+              : state
+          )
+        );
+
+        const step = missionSteps.find((s) => s.stepIndex === stepIndex);
+        const stepTitle = step ? step.title : `${stepIndex + 1}단계`;
+
         if (status === "approved") {
-          success("미션 인증이 승인되었습니다!");
+          success(`${stepTitle} 미션 인증이 승인되었습니다!`);
         } else if (status === "rejected") {
-          error("미션 인증이 거부되었습니다.");
+          error(`${stepTitle} 미션 인증이 거부되었습니다.`);
         } else if (status === "pending") {
           // 아직 처리 중이면 3초 후 다시 확인
-          setTimeout(() => checkVerificationStatus(), 3000);
+          setTimeout(() => checkVerificationStatus(stepIndex), 3000);
         }
       }
     } catch (err) {
-      console.error('Failed to check verification status:', err);
+      console.error("Failed to check verification status:", err);
     }
   };
 
   const handleSubmit = async () => {
-    if (verificationStatus !== "approved") {
-      error("승인된 미션 인증 사진이 필요합니다.");
+    // 모든 단계가 승인되었는지 확인
+    const completedSteps = stepUploadStates
+      .filter((state) => state.verificationStatus === "approved")
+      .map((state) => state.stepIndex);
+
+    const allStepsCompleted = areAllStepsCompleted(
+      missionSteps.length,
+      completedSteps
+    );
+
+    if (!allStepsCompleted) {
+      error("모든 단계의 미션 인증이 승인되어야 제출할 수 있습니다.");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      // 모든 단계의 업로드된 사진 URL 수집
+      const photoUrls = stepUploadStates
+        .filter(
+          (state) =>
+            state.verificationStatus === "approved" && state.uploadedUrl
+        )
+        .sort((a, b) => a.stepIndex - b.stepIndex)
+        .map((state) => state.uploadedUrl);
+
       // 미션 리뷰 제출 API 호출
       const submitData = {
         meetingId,
-        photoUrl: uploadedPhotoUrl,
+        photoUrls, // 단일 URL에서 배열로 변경
         rating: rating || null,
         reviewText: reviewText || null,
       };
 
-      const response = await fetch('/mission/submit', {
-        method: 'POST',
+      const response = await fetch("/mission/submit", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(submitData),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Submit API failed');
+        throw new Error("Submit API failed");
       }
 
       success("미션 인증이 최종 제출되었습니다!");
 
       // 폼 초기화
-      setPhotos([]);
-      setPhotoUrls([]);
       setRating(0);
       setReviewText("");
-      setVerificationStatus(null);
+
+      // 모든 단계 상태 초기화
+      setStepUploadStates((prev) =>
+        prev.map((state) => ({
+          ...state,
+          file: null,
+          localUrl: null,
+          uploadedUrl: null,
+          verificationStatus: null,
+          isUploading: false,
+          isVerifying: false,
+        }))
+      );
+
+      setCurrentStepIndex(0);
     } catch (_err) {
       error("미션 인증 제출에 실패했습니다. 다시 시도해주세요.");
     } finally {
@@ -493,39 +597,74 @@ export const MissionVerificationForm: React.FC<
         // 실제 API 호출
         const response = await fetch(`/meetings/${meetingId}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch meeting info: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch meeting info: ${response.status} ${response.statusText}`
+          );
         }
-        
+
         // Content-Type 확인하여 HTML 응답 감지
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('text/html')) {
-          throw new Error('백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.');
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("text/html")) {
+          throw new Error(
+            "백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요."
+          );
         }
-        
+
         const data = await response.json();
-        console.log('Meeting API response:', data); // 디버깅용 로그
+        console.log("🔍 Meeting API response:", data); // 디버깅용 로그
         // API 응답이 ApiResponseDto로 래핑된 경우와 직접 반환된 경우 모두 처리
         const mission = data.data?.mission || data.mission;
-        
+
+        console.log("🎯 Extracted mission:", mission);
+
         if (!mission) {
-          throw new Error('Mission data not found in response');
+          console.error("❌ Mission data not found in response");
+          throw new Error("Mission data not found in response");
         }
-        
+
+        console.log(
+          "📝 photoVerificationGuide:",
+          mission.photoVerificationGuide
+        );
+
         // photoVerificationGuide를 배열로 변환 (줄바꿈 기준으로 분리)
-        const verificationGuide = mission.photoVerificationGuide 
-          ? mission.photoVerificationGuide.split('\n').filter((item: string) => item.trim()) 
+        const verificationGuide = mission.photoVerificationGuide
+          ? mission.photoVerificationGuide
+              .split("\n")
+              .filter((item: string) => item.trim())
           : [];
-        
+
+        // photoVerificationGuide를 파싱하여 단계별 가이드 생성
+        const steps = parseMissionGuide(mission.photoVerificationGuide || "");
+        console.log("🔢 Parsed steps:", steps);
+        setMissionSteps(steps);
+
+        // 각 단계별 업로드 상태 초기화
+        const initialStates: StepUploadState[] = steps.map((step) => ({
+          stepIndex: step.stepIndex,
+          file: null,
+          localUrl: null,
+          uploadedUrl: null,
+          verificationStatus: null,
+          isUploading: false,
+          isVerifying: false,
+        }));
+        setStepUploadStates(initialStates);
+
+        // 첫 번째 단계를 현재 단계로 설정
+        setCurrentStepIndex(0);
+
         setMissionInfo({
           id: mission.id,
           title: mission.title,
           description: mission.description,
           verificationGuide,
           location: mission.district?.districtName || mission.district?.city,
+          photoVerificationGuide: mission.photoVerificationGuide,
         });
       } catch (err) {
-        console.error('Failed to fetch mission info:', err);
-        console.error('Meeting ID:', meetingId);
+        console.error("Failed to fetch mission info:", err);
+        console.error("Meeting ID:", meetingId);
         error("미션 정보를 불러오는데 실패했습니다.");
       }
     };
@@ -554,10 +693,10 @@ export const MissionVerificationForm: React.FC<
 
   return (
     <FormContainer $isMobile={isMobile}>
-      {/* 미션 인증 가이드 */}
+      {/* 미션 기본 정보 */}
       {missionInfo && (
         <MissionGuideSection>
-          <SectionTitle $isMobile={isMobile}>미션 인증 가이드</SectionTitle>
+          <SectionTitle $isMobile={isMobile}>미션 정보</SectionTitle>
           <GuideCard $isMobile={isMobile}>
             <GuideHeader>
               <GuideIcon $isMobile={isMobile}>
@@ -568,44 +707,33 @@ export const MissionVerificationForm: React.FC<
             <GuideContent $isMobile={isMobile}>
               {missionInfo.description}
             </GuideContent>
-            
-            {missionInfo.verificationGuide && missionInfo.verificationGuide.length > 0 && (
-              <>
-                <GuideContent $isMobile={isMobile} style={{ marginTop: '16px', fontWeight: 600 }}>
-                  📸 인증 사진에 포함되어야 할 요소:
-                </GuideContent>
-                <GuideList>
-                  {missionInfo.verificationGuide.map((guide, index) => (
-                    <GuideItem key={index} $isMobile={isMobile}>
-                      {guide}
-                    </GuideItem>
-                  ))}
-                </GuideList>
-              </>
-            )}
           </GuideCard>
         </MissionGuideSection>
       )}
-      
+
+      {/* 사진 인증 섹션 */}
       <PhotoUploadSection>
         <SectionTitle $isMobile={isMobile}>
-          미션 인증 <span style={{ color: "#ef4444" }}>*</span>
+          미션 인증 사진 <span style={{ color: "#ef4444" }}>*</span>
         </SectionTitle>
 
         <PhotoUploadArea
-          $hasPhotos={photos.length > 0}
-          onClick={() => document.getElementById("photo-upload")?.click()}
+          onClick={() => {
+            if (!isSubmitting) {
+              document.getElementById("photo-upload")?.click();
+            }
+          }}
+          style={{
+            cursor: isSubmitting ? "not-allowed" : "pointer",
+            opacity: isSubmitting ? 0.6 : 1,
+          }}
         >
           <UploadIcon $isMobile={isMobile}>
-            <Camera size={isMobile ? 24 : 32} />
+            <Camera size={isMobile ? 20 : 24} />
           </UploadIcon>
-          <UploadText $isMobile={isMobile}>
-            {isVerifying
-              ? "미션을 검증하고 있어요"
-              : "미션을 완료한 인증 사진을 업로드하세요"}
-          </UploadText>
+          <UploadText $isMobile={isMobile}>사진을 업로드하세요</UploadText>
           <UploadSubtext $isMobile={isMobile}>
-            {isVerifying ? "잠시만 기다려주세요" : "사진 1장을 업로드해주세요"}
+            JPG, PNG, WEBP 형식 (최대 10MB)
           </UploadSubtext>
         </PhotoUploadArea>
 
@@ -613,35 +741,45 @@ export const MissionVerificationForm: React.FC<
           id="photo-upload"
           type="file"
           accept="image/*"
-          onChange={handlePhotoUpload}
-          disabled={isVerifying}
+          multiple={false}
+          onChange={(e) => handlePhotoUpload(e, 0)}
+          disabled={isSubmitting}
         />
 
-        {photoUrls.length > 0 && (
+        {/* 사진 미리보기 */}
+        {stepUploadStates[0]?.localUrl && (
           <PhotoPreview>
-            {photoUrls.map((url, index) => (
-              <PhotoItem key={index} $verificationStatus={verificationStatus}>
-                <PhotoImage src={url} alt={`미션 인증 사진 ${index + 1}`} />
-                {verificationStatus && (
-                  <VerificationStatus
-                    $status={verificationStatus}
-                    $isMobile={isMobile}
-                  >
-                    {verificationStatus === "approved" && "승인됨"}
-                    {verificationStatus === "rejected" && "거부됨"}
-                    {verificationStatus === "pending" && "검증중"}
-                  </VerificationStatus>
-                )}
+            <PhotoItem
+              $verificationStatus={stepUploadStates[0]?.verificationStatus}
+            >
+              <PhotoImage
+                src={stepUploadStates[0].localUrl}
+                alt="미션 인증 사진"
+              />
+              {stepUploadStates[0]?.verificationStatus && (
+                <VerificationStatus
+                  $status={stepUploadStates[0].verificationStatus}
+                  $isMobile={isMobile}
+                >
+                  {stepUploadStates[0].verificationStatus === "approved" &&
+                    "승인됨"}
+                  {stepUploadStates[0].verificationStatus === "rejected" &&
+                    "거부됨"}
+                  {stepUploadStates[0].verificationStatus === "pending" &&
+                    "검증중"}
+                </VerificationStatus>
+              )}
+              {stepUploadStates[0]?.verificationStatus !== "approved" && (
                 <RemovePhotoButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    removePhoto(index);
+                    removePhoto(0);
                   }}
                 >
                   ×
                 </RemovePhotoButton>
-              </PhotoItem>
-            ))}
+              )}
+            </PhotoItem>
           </PhotoPreview>
         )}
       </PhotoUploadSection>
@@ -682,15 +820,17 @@ export const MissionVerificationForm: React.FC<
 
       <SubmitButton
         $isMobile={isMobile}
-        $disabled={verificationStatus !== "approved" || isSubmitting}
+        $disabled={
+          stepUploadStates[0]?.verificationStatus !== "approved" || isSubmitting
+        }
         onClick={handleSubmit}
       >
         <Send size={16} />
         {isSubmitting
           ? "제출 중..."
-          : verificationStatus === "approved"
+          : stepUploadStates[0]?.verificationStatus === "approved"
           ? "미션 인증 제출"
-          : "AI 인증 완료 후 제출 가능"}
+          : "사진 인증 완료 후 제출 가능"}
       </SubmitButton>
     </FormContainer>
   );

@@ -55,7 +55,7 @@ const AppContainer = styled.div<{ $keyboardVisible?: boolean }>`
   touch-action: none;
 
   @media (max-width: 1024px) {
-    background-color: ${({ theme }) => theme.colors.white};
+    background-color: ${({ theme }) => theme.colors.background.primary};
     justify-content: stretch;
     align-items: stretch;
 
@@ -87,7 +87,7 @@ const MainContainer = styled.div<{
   overflow: hidden; /* 확실한 스크롤 차단 */
   box-shadow: ${({ $isMobile, theme }) =>
     $isMobile ? "none" : theme.shadows.xl};
-  background-color: ${({ theme }) => theme.colors.white};
+  background-color: ${({ theme }) => theme.colors.surface};
   margin: 0;
   padding: 0;
 
@@ -130,7 +130,7 @@ const AppArea = styled.div<{
 }>`
   flex: 1;
   height: 100%;
-  background-color: ${({ theme }) => theme.colors.white};
+  background-color: ${({ theme }) => theme.colors.surface};
   display: flex;
   flex-direction: column;
   position: relative;
@@ -152,8 +152,8 @@ const AppArea = styled.div<{
 
 // 헤더
 const AppHeader = styled.header<{ $isMobile: boolean }>`
-  background-color: ${({ theme }) => theme.colors.white};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border.primary};
   padding: ${({ $isMobile }) => ($isMobile ? "12px 16px" : "16px 24px")};
   position: relative;
   z-index: 100;
@@ -322,7 +322,7 @@ const AppMain = styled.main<{
     $noPadding || $fullWidth ? "0" : $isMobile ? "0" : "24px 32px"};
   overflow-y: ${({ $noScroll }) => ($noScroll ? "hidden" : "auto")};
   overflow-x: hidden;
-  background-color: ${({ theme }) => theme.colors.white};
+  background-color: ${({ theme }) => theme.colors.background.primary};
 
   /* 키보드가 열렸을 때 하단 여백 제거하여 공간 활용 */
   ${({ $keyboardVisible, $isMobile }) =>
@@ -363,8 +363,8 @@ const AppMain = styled.main<{
 
 // 하단 탭 바 - 클릭 가능, 스크롤은 차단
 const TabBar = styled.nav<{ $isMobile: boolean; $keyboardVisible?: boolean }>`
-  background-color: ${({ theme }) => theme.colors.white};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-top: 1px solid ${({ theme }) => theme.colors.border.primary};
   padding: 8px 0;
   display: flex;
   justify-content: space-around;
@@ -434,7 +434,7 @@ const TabItem = styled(Link)<{ $isActive: boolean }>`
   padding: 8px 12px;
   cursor: pointer;
   color: ${({ $isActive, theme }) =>
-    $isActive ? theme.colors.primary : theme.colors.gray500};
+    $isActive ? theme.colors.primary : theme.colors.text.secondary};
   font-size: 11px;
   transition: ${({ theme }) => theme.transitions.fast};
   flex: 1;
@@ -449,7 +449,7 @@ const TabItem = styled(Link)<{ $isActive: boolean }>`
 
   &:hover {
     color: ${({ $isActive, theme }) =>
-      $isActive ? theme.colors.primary : theme.colors.gray500};
+      $isActive ? theme.colors.primary : theme.colors.text.secondary};
   }
 
   &:active {

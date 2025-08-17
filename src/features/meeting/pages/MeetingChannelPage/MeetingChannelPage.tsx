@@ -31,7 +31,7 @@ import jsQR from "jsqr";
 import { attendanceApi } from "../../api";
 import { QRTestHelper } from "../../components";
 import { Chat } from "../../components/Chat";
-import { MissionVerificationForm } from "../../components/MissionVerificationForm";
+import { SinglePhotoVerification } from "../../components/SinglePhotoVerification";
 import { Skeleton } from "../../../../shared/components/ui";
 import * as S from "./MeetingChannelPage.styles";
 
@@ -57,6 +57,7 @@ interface MeetingDetail {
   participants: Participant[];
   host?: { id: string };
   mission?: {
+    id?: string;
     location?: string;
     precautions?: string[];
   };
@@ -75,7 +76,6 @@ interface ApiError {
   };
   message?: string;
 }
-
 
 export const MeetingChannelPage: React.FC = () => {
   const { id: meetingId } = useParams<{ id: string }>();
@@ -98,7 +98,9 @@ export const MeetingChannelPage: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [showQRTestHelper, setShowQRTestHelper] = useState(false);
   const [_capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [meetingDetail, setMeetingDetail] = useState<MeetingDetail | null>(null);
+  const [meetingDetail, setMeetingDetail] = useState<MeetingDetail | null>(
+    null
+  );
   const [meetingLoading, setMeetingLoading] = useState(true);
   const [meetingError, setMeetingError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -114,28 +116,31 @@ export const MeetingChannelPage: React.FC = () => {
   const cachedMeetingDetail = getMeetingDetail(meetingId || "");
 
   // 사용자 노쇼 상태 확인 함수
-  const checkUserNoShowStatus = useCallback((meetingDetail: MeetingDetail, userId: string) => {
-    const now = new Date().getTime();
-    const scheduled = new Date(meetingDetail.scheduledAt).getTime();
-    const attendanceWindowMs = import.meta.env.DEV
-      ? 10 * 60 * 1000
-      : 30 * 60 * 1000;
-    const attendanceEndTime = scheduled + attendanceWindowMs;
+  const checkUserNoShowStatus = useCallback(
+    (meetingDetail: MeetingDetail, userId: string) => {
+      const now = new Date().getTime();
+      const scheduled = new Date(meetingDetail.scheduledAt).getTime();
+      const attendanceWindowMs = import.meta.env.DEV
+        ? 10 * 60 * 1000
+        : 30 * 60 * 1000;
+      const attendanceEndTime = scheduled + attendanceWindowMs;
 
-    // 출석체크 시간이 지났고, 현재 사용자가 출석하지 않았으면 노쇼
-    if (now > attendanceEndTime && !attendedUserIds.has(userId)) {
-      const currentUser = meetingDetail.participants?.find(
-        (p: Participant) => p.id === userId
-      );
-      if (currentUser && !currentUser.isHost) {
-        warning(
-          "출석체크를 완료하지 않아 노쇼 처리되었습니다. 모임 채널에 접근할 수 없습니다.",
-          "접근 제한"
+      // 출석체크 시간이 지났고, 현재 사용자가 출석하지 않았으면 노쇼
+      if (now > attendanceEndTime && !attendedUserIds.has(userId)) {
+        const currentUser = meetingDetail.participants?.find(
+          (p: Participant) => p.id === userId
         );
-        navigate(-1); // 이전 페이지로 돌아가기
+        if (currentUser && !currentUser.isHost) {
+          warning(
+            "출석체크를 완료하지 않아 노쇼 처리되었습니다. 모임 채널에 접근할 수 없습니다.",
+            "접근 제한"
+          );
+          navigate(-1); // 이전 페이지로 돌아가기
+        }
       }
-    }
-  }, [attendedUserIds, warning, navigate]);
+    },
+    [attendedUserIds, warning, navigate]
+  );
 
   // 모임 정보 로드
   useEffect(() => {
@@ -186,7 +191,6 @@ export const MeetingChannelPage: React.FC = () => {
     loadMeetingDetail();
   }, [meetingId, cachedMeetingDetail, user?.id, checkUserNoShowStatus]); // user.id 추가
 
-
   // 지역 인증은 ResponsiveLayout에서 관리하므로 여기서는 제거
 
   // 출석 목록 조회 함수
@@ -225,12 +229,17 @@ export const MeetingChannelPage: React.FC = () => {
       }
     };
 
-
     if (meetingDetail?.status === "active") {
       checkAttendanceStatus();
       fetchAttendanceList();
     }
-  }, [meetingDetail?.id, meetingDetail?.status, user?.id, isAttendanceActive, fetchAttendanceList]);
+  }, [
+    meetingDetail?.id,
+    meetingDetail?.status,
+    user?.id,
+    isAttendanceActive,
+    fetchAttendanceList,
+  ]);
 
   // 개발 모드에서 QR 테스트 도구 토글 (Ctrl+Shift+Q)
   useEffect(() => {
@@ -246,7 +255,7 @@ export const MeetingChannelPage: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // 틸-블루 테마 오버라이드 (이미지 색상 팔레트 기준)
+  // 틸-블루 테마 오버라이드 (다크모드 호환)
   const tealTheme = {
     ...currentTheme,
     colors: {
@@ -255,32 +264,8 @@ export const MeetingChannelPage: React.FC = () => {
       primaryHover: "rgb(0, 140, 160)", // 더 어두운 틸
       primaryLight: "rgb(153, 228, 237)", // R:153 G:228 B:237 - 밝은 틸
       success: "rgb(0, 171, 191)", // primary와 동일하게
-      // 배경 색상들도 틸-블루 톤으로
-      background: {
-        primary: "rgb(240, 250, 252)", // 매우 연한 틸 배경
-        secondary: "rgb(245, 252, 253)", // 조금 더 밝은 틸 배경
-        tertiary: "rgb(235, 248, 250)", // 세 번째 틸 배경
-      },
-      surface: "#ffffff", // 카드 배경은 흰색 유지
-      card: "rgb(220, 245, 248)", // 연한 틸 강조 배경
-      // 보더와 회색톤들도 틸 계열로
-      border: {
-        light: "rgb(180, 235, 242)", // 연한 틸 보더
-        primary: "rgb(180, 235, 242)", // 연한 틸 보더
-      },
-      divider: "rgb(153, 228, 237)", // 중간 틸 보더
-      gray50: "rgb(248, 252, 253)", // 매우 연한 틸-그레이
-      gray100: "rgb(235, 248, 250)", // 연한 틸-그레이
-      gray200: "rgb(200, 240, 245)", // 중간 틸-그레이
-      // 그라데이션도 틸-블루 계열로
-      gradient: {
-        primary:
-          "linear-gradient(135deg, rgb(0, 171, 191) 0%, rgb(0, 140, 160) 100%)",
-        primaryLight:
-          "linear-gradient(135deg, rgb(153, 228, 237) 0%, rgb(0, 171, 191) 100%)",
-        background:
-          "linear-gradient(135deg, rgb(240, 250, 252) 0%, rgb(248, 252, 253) 100%)",
-      },
+      // 다크모드 지원을 위해 현재 테마의 배경/표면 색상 유지
+      // 하드코딩된 틸 색상 제거하고 기본 테마 사용
     },
   };
 
@@ -381,7 +366,12 @@ export const MeetingChannelPage: React.FC = () => {
     const timer = setInterval(calculateAttendanceTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [meetingDetail?.status, meetingDetail?.scheduledAt, meetingDetail?.participants, attendedUserIds]);
+  }, [
+    meetingDetail?.status,
+    meetingDetail?.scheduledAt,
+    meetingDetail?.participants,
+    attendedUserIds,
+  ]);
 
   // Naver Map initialization
   useEffect(() => {
@@ -432,7 +422,7 @@ export const MeetingChannelPage: React.FC = () => {
       try {
         // 기존 지도 인스턴스가 있으면 제거
         if (mapRef.current.children.length > 0) {
-          mapRef.current.innerHTML = '';
+          mapRef.current.innerHTML = "";
         }
 
         // 송파구 중심 좌표 (기본값)
@@ -571,12 +561,12 @@ export const MeetingChannelPage: React.FC = () => {
 
       console.log("✅ QR 코드 이미지 생성 완료");
       setQrCodeData(qrCodeDataUrl);
-      
+
       // 호스트 자동 출석 처리 - 출석 상태 및 목록 업데이트
       if (user?.id) {
         setAttendanceStatus("completed");
         setAttendedUserIds((prev) => new Set([...prev, user.id]));
-        
+
         // 출석자 목록 새로고침
         await fetchAttendanceList();
         console.log("✅ 호스트 자동 출석 처리 완료");
@@ -1009,8 +999,8 @@ export const MeetingChannelPage: React.FC = () => {
               style={{
                 marginTop: "10px",
                 padding: "8px 16px",
-                background: "#00abbf",
-                color: "white",
+                background: currentTheme?.colors.primary || "#00abbf",
+                color: currentTheme?.colors.background.primary || "white",
                 border: "none",
                 borderRadius: "4px",
                 cursor: "pointer",
@@ -1133,30 +1123,28 @@ export const MeetingChannelPage: React.FC = () => {
                 참가 현황 ({meetingDetail.currentParticipants}명)
               </S.SectionTitle>
               <S.ParticipantList $isMobile={isMobile}>
-                {meetingDetail.participants.map((participant: { id: string; nickname: string; profileImageUrl?: string; isHost: boolean; level?: number; mbti?: string }, index: number) => (
-                  <S.ParticipantItem
-                    key={`${participant.nickname}-${index}`}
-                    $isMobile={isMobile}
-                  >
-                    <S.ParticipantAvatar
-                      src={
-                        participant.profileImageUrl ||
-                        "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"
-                      }
-                      alt={participant.nickname}
+                {meetingDetail.participants.map(
+                  (
+                    participant: {
+                      id: string;
+                      nickname: string;
+                      profileImageUrl?: string;
+                      isHost: boolean;
+                      level?: number;
+                      mbti?: string;
+                    },
+                    index: number
+                  ) => (
+                    <S.ParticipantItem
+                      key={`${participant.nickname}-${index}`}
                       $isMobile={isMobile}
-                      onClick={
-                        participant.id !== user?.id
-                          ? () => navigate(`/user/${participant.id}`)
-                          : undefined
-                      }
-                      style={{
-                        cursor:
-                          participant.id !== user?.id ? "pointer" : "default",
-                      }}
-                    />
-                    <S.ParticipantInfo>
-                      <S.ParticipantName
+                    >
+                      <S.ParticipantAvatar
+                        src={
+                          participant.profileImageUrl ||
+                          "https://nullisdefined.s3.ap-northeast-2.amazonaws.com/images/a8df5d33d88aa9f5794fcbd4d67f57c8.jpeg"
+                        }
+                        alt={participant.nickname}
                         $isMobile={isMobile}
                         onClick={
                           participant.id !== user?.id
@@ -1167,65 +1155,58 @@ export const MeetingChannelPage: React.FC = () => {
                           cursor:
                             participant.id !== user?.id ? "pointer" : "default",
                         }}
-                      >
-                        {participant.nickname}
-                        {participant.isHost && <Crown size={12} />}
-                        {participant.nickname === user?.nickname && (
-                          <S.CurrentUserBadge $isMobile={isMobile}>
-                            나
-                          </S.CurrentUserBadge>
-                        )}
-                      </S.ParticipantName>
-                      <S.ParticipantMeta $isMobile={isMobile}>
-                        {formatLevel(participant.level)}
-                        {participant.mbti && ` · ${participant.mbti}`}
-                      </S.ParticipantMeta>
-                    </S.ParticipantInfo>
-                    
-                    {/* 출석/노쇼 상태를 오른쪽에 표시 */}
-                    {(meetingDetail.status === "active" || meetingDetail.status === "completed") && (
-                      <div style={{ marginLeft: 'auto', alignSelf: 'center' }}>
-                        {attendedUserIds.has(participant.id) ? (
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              color: "#2563eb",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                              background: "#2563eb15",
-                              padding: "4px 8px",
-                              borderRadius: "12px",
-                              border: "1px solid #2563eb30",
-                            }}
-                          >
-                            <Check size={12} />
-                            Joined
-                          </span>
-                        ) : noShowUserIds.has(participant.id) ? (
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              color: "#dc2626",
-                              fontSize: "12px",
-                              fontWeight: "600",
-                              background: "#dc262615",
-                              padding: "4px 8px",
-                              borderRadius: "12px",
-                              border: "1px solid #dc262630",
-                            }}
-                          >
-                            <XCircle size={12} />
-                            No-Show
-                          </span>
-                        ) : null}
-                      </div>
-                    )}
-                  </S.ParticipantItem>
-                ))}
+                      />
+                      <S.ParticipantInfo>
+                        <S.ParticipantName
+                          $isMobile={isMobile}
+                          onClick={
+                            participant.id !== user?.id
+                              ? () => navigate(`/user/${participant.id}`)
+                              : undefined
+                          }
+                          style={{
+                            cursor:
+                              participant.id !== user?.id
+                                ? "pointer"
+                                : "default",
+                          }}
+                        >
+                          {participant.nickname}
+                          {participant.isHost && <Crown size={12} />}
+                          {participant.nickname === user?.nickname && (
+                            <S.CurrentUserBadge $isMobile={isMobile}>
+                              나
+                            </S.CurrentUserBadge>
+                          )}
+                        </S.ParticipantName>
+                        <S.ParticipantMeta $isMobile={isMobile}>
+                          {formatLevel(participant.level)}
+                          {participant.mbti && ` · ${participant.mbti}`}
+                        </S.ParticipantMeta>
+                      </S.ParticipantInfo>
+
+                      {/* 출석/노쇼 상태를 오른쪽에 표시 */}
+                      {(meetingDetail.status === "active" ||
+                        meetingDetail.status === "completed") && (
+                        <div
+                          style={{ marginLeft: "auto", alignSelf: "center" }}
+                        >
+                          {attendedUserIds.has(participant.id) ? (
+                            <S.ParticipantStatusBadge $status="joined">
+                              <Check size={12} />
+                              Joined
+                            </S.ParticipantStatusBadge>
+                          ) : noShowUserIds.has(participant.id) ? (
+                            <S.ParticipantStatusBadge $status="no-show">
+                              <XCircle size={12} />
+                              No-Show
+                            </S.ParticipantStatusBadge>
+                          ) : null}
+                        </div>
+                      )}
+                    </S.ParticipantItem>
+                  )
+                )}
               </S.ParticipantList>
             </S.Section>
 
@@ -1413,8 +1394,8 @@ export const MeetingChannelPage: React.FC = () => {
         }
         return (
           <S.VerificationContent $isMobile={isMobile}>
-            <MissionVerificationForm 
-              meetingId={meetingId!} 
+            <SinglePhotoVerification
+              meetingId={meetingId!}
               isMobile={isMobile}
             />
           </S.VerificationContent>
@@ -1429,7 +1410,10 @@ export const MeetingChannelPage: React.FC = () => {
     <ThemeProvider theme={tealTheme}>
       <S.PageContainer $isMobile={isMobile}>
         {/* 컨텐츠 영역 */}
-        <S.ContentContainer $isMobile={isMobile} $noPadding={activeTab === 'chat'}>
+        <S.ContentContainer
+          $isMobile={isMobile}
+          $noPadding={activeTab === "chat"}
+        >
           {renderTabContent()}
         </S.ContentContainer>
 
@@ -1581,31 +1565,14 @@ export const MeetingChannelPage: React.FC = () => {
                       pointerEvents: "auto",
                     }}
                   >
-                    <button
+                    <S.CameraCaptureButton
+                      $isMobile={isMobile}
                       onClick={handleCapturePhoto}
                       disabled={false}
-                      style={{
-                        width: isMobile ? "50px" : "60px",
-                        height: isMobile ? "50px" : "60px",
-                        borderRadius: "50%",
-                        border: "2px solid white",
-                        background: "#00abbf",
-                        color: "white",
-                        cursor: "pointer",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "1px",
-                        fontSize: isMobile ? "9px" : "11px",
-                        fontWeight: "bold",
-                        boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-                        transition: "all 0.2s ease",
-                      }}
                     >
                       <Camera size={isMobile ? 20 : 24} />
                       <span>촬영</span>
-                    </button>
+                    </S.CameraCaptureButton>
                   </div>
                 </S.ScanningOverlay>
               )}

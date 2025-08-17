@@ -2,9 +2,10 @@ import styled from "styled-components";
 
 // 새로운 모임 카드 스타일 (개선된 버전)
 export const NewCard = styled.article<{ $status?: string }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid ${({ theme }) => theme.colors.border.primary};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   overflow: hidden;
@@ -17,7 +18,7 @@ export const NewCard = styled.article<{ $status?: string }>`
       case 'completed':
         return theme.colors.primary; // 주황색 (theme primary)
       default:
-        return 'transparent';
+        return theme.colors.border.primary;
     }
   }};
 `;
@@ -253,7 +254,7 @@ export const RecruitDeadline = styled.div<{ $urgent?: boolean }>`
 // 2번째 블록: 호스트 정보
 export const HostBlock = styled.div`
   padding: 14px 20px;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
 `;
 
 export const HostTitle = styled.div`
@@ -364,7 +365,7 @@ export const LikesCountOverlay = styled.span`
 // 3번째 블록: 선호 특성
 export const PreferenceBlock = styled.div`
   padding: 14px 20px;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
 `;
 
 export const PreferenceSection = styled.div`
@@ -416,7 +417,7 @@ export const NeutralTag = styled.span`
 // 4번째 블록: 참가자 리스트
 export const ParticipantsBlock = styled.div`
   padding: 14px 20px 16px 20px;
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
 `;
 
 export const ParticipantsTitle = styled.div`

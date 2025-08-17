@@ -35,7 +35,7 @@ const ModalContent = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  background: #fff7f0;
+  background: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -265,8 +265,8 @@ const NicknameInput = styled(Input)<{ $isMobile?: boolean }>`
 const GenerateButton = styled.button<{ $isMobile?: boolean }>`
   padding: ${({ $isMobile }) => ($isMobile ? "10px 8px" : "12px 10px")};
   background: ${({ theme }) => theme.colors.gray200};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.text.primary};
+  border: 1px solid ${({ theme }) => theme.colors.border.primary};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
@@ -644,9 +644,11 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
     return !errors.nickname && !errors.interests && !errors.hashtags;
   };
 
-  // 모달이 열릴 때마다 사용자 데이터로 폼 초기화 (스토어 데이터가 로드된 후에만)
+  // 모달이 열릴 때 한 번만 사용자 데이터로 폼 초기화
+  const [isInitialized, setIsInitialized] = React.useState(false);
+  
   React.useEffect(() => {
-    if (isOpen && storeCategories.length > 0 && storeHashtags.length > 0) {
+    if (isOpen && storeCategories.length > 0 && storeHashtags.length > 0 && !isInitialized) {
       console.log("ProfileEditModal 초기화 -> 받은 user 데이터:", user);
 
       setFormData({
@@ -667,48 +669,31 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       // 지역 초기화
       setSelectedDistrictId(user.districtId || "");
 
-      // 해시태그 초기화 - 백엔드에서 온 문자열 배열을 ID로 변환
-      console.log(
-        "🔍 해시태그 초기화 - user.hashtags:",
-        user.hashtags,
-        typeof user.hashtags
-      );
-
       // 해시태그 초기화
-      console.log(
-        "🔍 해시태그 초기화 - user.hashtags:",
-        user.hashtags,
-        typeof user.hashtags
-      );
-
-      // user.hashtags가 이미 number 배열이라고 가정
       setSelectedHashtags(user.hashtags || []);
 
-      // 관심사 초기화 - ID 배열로 변환
-      console.log(
-        "🔍 관심사 초기화 - user.interests:",
-        user.interests,
-        typeof user.interests
-      );
-
+      // 관심사 초기화
       setSelectedCategories(user.interests || []);
 
       setPreviewImage(null);
       setNicknameError("");
+      setIsInitialized(true);
 
       console.log("🔧 ProfileEditModal 초기화 완료:", {
         name: user.nickname,
         mbti: user.mbti,
         interests: user.interests,
         hashtags: user.hashtags,
-        selectedCategories: user.interests || [],
-        selectedHashtags: user.hashtags || [],
-        bio: user.bio,
-        storeCategories: storeCategories.length,
-        storeHashtags: storeHashtags.length,
       });
     }
-  }, [isOpen, user, storeHashtags, storeCategories]);
+  }, [isOpen, storeCategories.length, storeHashtags.length, isInitialized, user.nickname, user.mbti, user.interests, user.hashtags]);
+
+  // 모달이 닫힐 때 초기화 상태 리셋
+  React.useEffect(() => {
+    if (!isOpen) {
+      setIsInitialized(false);
+    }
+  }, [isOpen]);
 
   // 카테고리 및 지역 데이터 로드
   React.useEffect(() => {

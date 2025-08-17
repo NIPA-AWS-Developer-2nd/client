@@ -181,7 +181,7 @@ export const MarketPage: React.FC = () => {
     <PageContainer $isMobile={isMobile}>
       <BannerContainer $isMobile={isMobile}>
         <BannerImage 
-          src="/src/assets/images/banner_860x480.jpg" 
+          src="https://biz-con.co.kr/upload/pocimages/202505/%EC%83%81%EC%84%B8%EC%9D%B4%EB%AF%B8%EC%A7%80_860x480.jpg" 
           alt="포인트마켓 배너"
           $isMobile={isMobile}
         />

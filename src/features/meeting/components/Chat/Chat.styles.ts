@@ -6,7 +6,7 @@ export const ChatContainer = styled.div<{ $isMobile: boolean }>`
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: ${({ theme }) => theme.colors.gray50};
+  background: ${({ theme }) => theme.colors.background.primary};
   position: relative;
   margin: 0;
   padding: 0;
@@ -126,7 +126,7 @@ export const MessageContent = styled.div<{ $isMyMessage: boolean; $isMobile: boo
 `;
 
 export const MessageText = styled.div<{ $isMobile: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   padding: ${({ $isMobile }) => ($isMobile ? '8px 12px' : '10px 14px')};
@@ -168,7 +168,7 @@ export const MessageTime = styled.span<{ $isMobile: boolean }>`
 
 export const UnreadCount = styled.span<{ $isMobile: boolean }>`
   background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.background.primary};
   font-size: ${({ $isMobile }) => ($isMobile ? '9px' : '10px')};
   font-weight: 600;
   width: ${({ $isMobile }) => ($isMobile ? '16px' : '18px')};
@@ -193,7 +193,7 @@ export const InputContainer = styled.div<{ $isMobile: boolean }>`
   align-items: center;
   gap: ${({ $isMobile }) => ($isMobile ? '8px' : '12px')};
   padding: ${({ $isMobile }) => ($isMobile ? '12px' : '16px')};
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   border-top: 1px solid ${({ theme }) => theme.colors.border.light};
 
   ${responsive.mobile(css`
@@ -239,7 +239,7 @@ export const SendButton = styled.button<{ $isMobile: boolean }>`
   width: ${({ $isMobile }) => ($isMobile ? '40px' : '44px')};
   height: ${({ $isMobile }) => ($isMobile ? '40px' : '44px')};
   background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.white};
+  color: ${({ theme }) => theme.colors.background.primary};
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   cursor: pointer;
@@ -281,7 +281,7 @@ export const DisabledOverlay = styled.div<{ $isMobile: boolean }>`
 `;
 
 export const DisabledMessage = styled.div<{ $isMobile: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
+  background: ${({ theme }) => theme.colors.surface};
   padding: ${({ $isMobile }) => ($isMobile ? '20px' : '24px')};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);

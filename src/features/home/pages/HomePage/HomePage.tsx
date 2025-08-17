@@ -41,8 +41,8 @@ const BannerContainer = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const QuickActionsCard = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
@@ -69,15 +69,16 @@ const ActionButton = styled.button<{ $isMobile?: boolean }>`
   align-items: center;
   gap: 8px;
   padding: ${({ $isMobile }) => ($isMobile ? "16px 12px" : "20px 16px")};
-  background: ${({ theme }) => theme.colors.gray50};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.card};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   color: ${({ theme }) => theme.colors.text.primary};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
+    background: ${({ theme }) => theme.colors.background.secondary};
+    border-color: ${({ theme }) => theme.colors.primary}40;
   }
 `;
 
@@ -95,8 +96,8 @@ const ActionText = styled.span<{ $isMobile?: boolean }>`
 `;
 
 const StatsCard = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
@@ -133,8 +134,8 @@ const StatLabel = styled.div<{ $isMobile?: boolean }>`
 `;
 
 const RecentActivityCard = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
   box-shadow: ${({ theme }) => theme.shadows.sm};
@@ -158,7 +159,7 @@ const ActivityItem = styled.div`
   align-items: center;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray100};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border.light};
 
   &:last-child {
     border-bottom: none;
@@ -171,10 +172,11 @@ const ActivityIcon = styled.div<{ $isMobile?: boolean }>`
   justify-content: center;
   width: ${({ $isMobile }) => ($isMobile ? "32px" : "36px")};
   height: ${({ $isMobile }) => ($isMobile ? "32px" : "36px")};
-  background: ${({ theme }) => theme.colors.gray100};
+  background: ${({ theme }) => theme.colors.card};
   border-radius: 50%;
   color: ${({ theme }) => theme.colors.primary};
   flex-shrink: 0;
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
 `;
 
 const ActivityContent = styled.div`
