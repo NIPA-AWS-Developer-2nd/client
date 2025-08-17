@@ -431,7 +431,9 @@ export const HomePage: React.FC = () => {
                 ))
             ) : (
               <EmptyState $isMobile={isMobile}>
-                <EmptyText $isMobile={isMobile}>최근 활동이 없습니다</EmptyText>
+                <EmptyText $isMobile={isMobile}>
+                  아직 최근 활동이 없어요
+                </EmptyText>
               </EmptyState>
             )}
           </SectionContent>
@@ -658,7 +660,7 @@ export const HomePage: React.FC = () => {
                   <EmptyState $isMobile={isMobile}>
                     <EmptyText $isMobile={isMobile}>
                       {activeTab === "recruiting" &&
-                        "참여자 모집 중인 모임이 없습니다"}
+                        "참여자 모집 중인 모임이 없어요"}
                       {activeTab === "ready" &&
                         "시작 대기 중인 모임이 없습니다"}
                       {activeTab === "completed" &&
@@ -886,7 +888,7 @@ export const HomePage: React.FC = () => {
             ) : (
               <EmptyState $isMobile={isMobile}>
                 <EmptyText $isMobile={isMobile}>
-                  현재 인기 있는 번개 모임이 없습니다
+                  현재 인기 있는 번개 모임이 없어요
                 </EmptyText>
               </EmptyState>
             )}
@@ -905,7 +907,10 @@ export const HomePage: React.FC = () => {
           <SectionContent>
             <EmptyState $isMobile={isMobile}>
               <EmptyText $isMobile={isMobile}>
-                맞춤 추천 기능을 준비 중입니다
+                곧 여러분의 취향에 딱 맞는 번개모임을 <br />
+                추천해드릴 예정이에요.
+                <br />
+                조금만 기다려주세요!
               </EmptyText>
             </EmptyState>
           </SectionContent>

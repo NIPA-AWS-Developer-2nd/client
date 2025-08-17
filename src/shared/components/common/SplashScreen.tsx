@@ -118,7 +118,7 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onComplete,
-  duration = SPLASH_CONFIG.duration,
+  duration: _duration = SPLASH_CONFIG.duration,
 }) => {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [forceTimeout, setForceTimeout] = useState(false);
@@ -141,35 +141,28 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   useEffect(() => {
     if (isLoading && !forceTimeout) return;
 
-    if (isAuthenticated) {
-      // 로그인된 경우 스플래시 후 홈으로
-      const fadeOutTimer = setTimeout(() => {
-        setIsFadingOut(true);
-      }, duration - SPLASH_CONFIG.fadeOutDuration);
+    // 로딩이 완료되면 최소 1초 후 페이드아웃 시작
+    const fadeOutTimer = setTimeout(() => {
+      setIsFadingOut(true);
+    }, 1000);
 
-      const completeTimer = setTimeout(() => {
+    const completeTimer = setTimeout(() => {
+      if (isAuthenticated) {
         onComplete();
-      }, duration);
-
-      return () => {
-        clearTimeout(fadeOutTimer);
-        clearTimeout(completeTimer);
-      };
-    } else {
-      // 로그인되지 않은 경우 스플래시 후 /login으로 리다이렉트
-      if (!hasRedirected && pathname !== "/login") {
-        const redirectTimer = setTimeout(() => {
+      } else {
+        // 로그인되지 않은 경우 /login으로 리다이렉트
+        if (!hasRedirected && pathname !== "/login") {
           setHasRedirected(true);
           navigate("/login", { replace: true });
-        }, duration);
-
-        return () => {
-          clearTimeout(redirectTimer);
-        };
+        }
       }
-    }
+    }, 1000 + SPLASH_CONFIG.fadeOutDuration);
+
+    return () => {
+      clearTimeout(fadeOutTimer);
+      clearTimeout(completeTimer);
+    };
   }, [
-    duration,
     onComplete,
     isAuthenticated,
     isLoading,

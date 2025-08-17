@@ -650,7 +650,7 @@ export const FloatingActions = styled.div<{ $isMobile: boolean }>`
   transform: translateX(-50%);
   width: ${({ $isMobile }) => ($isMobile ? "calc(100% - 40px)" : "400px")};
   bottom: ${({ $isMobile }) => ($isMobile ? "4px" : "12px")};
-  z-index: 50;
+  z-index: 1100;
 `;
 
 export const ActionContainer = styled.div<{ $isMobile: boolean }>`

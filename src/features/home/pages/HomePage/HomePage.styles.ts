@@ -107,7 +107,7 @@ export const BannerImage = styled.img<{ $isMobile: boolean }>`
   height: auto;
   min-height: ${({ $isMobile }) => ($isMobile ? "120px" : "140px")};
   object-fit: contain;
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  border-radius: ${({ theme, $isMobile }) => $isMobile ? '0' : theme.borderRadius.lg};
   opacity: 0.9;
 
   ${responsive.mobile(css`
@@ -213,19 +213,21 @@ export const SectionContent = styled.div`
   gap: 12px;
 `;
 
-// Hot Meeting Card Components - 가로형 카드 디자인
+// Hot Meeting Card Components - 모바일에서는 세로형, 데스크톱에서는 가로형
 export const HotMeetingCard = styled.div<{ $isMobile: boolean }>`
   position: relative;
   display: flex;
+  flex-direction: ${({ $isMobile }) => ($isMobile ? "column" : "row")};
   background: ${({ theme }) => theme.colors.white};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  min-height: ${({ $isMobile }) => ($isMobile ? "180px" : "220px")};
+  min-height: ${({ $isMobile }) => ($isMobile ? "auto" : "220px")};
 
   ${responsive.mobile(css`
-    min-height: 180px;
+    flex-direction: column;
+    min-height: auto;
   `)}
 `;
 
@@ -234,8 +236,8 @@ export const HotMeetingImageSection = styled.div<{
   $isMobile: boolean;
 }>`
   position: relative;
-  width: ${({ $isMobile }) => ($isMobile ? "120px" : "140px")};
-  height: ${({ $isMobile }) => ($isMobile ? "180px" : "220px")};
+  width: ${({ $isMobile }) => ($isMobile ? "100%" : "140px")};
+  height: ${({ $isMobile }) => ($isMobile ? "160px" : "220px")};
   flex-shrink: 0;
   background-image: ${({ $backgroundImage }) =>
     $backgroundImage
@@ -268,8 +270,8 @@ export const HotMeetingImageSection = styled.div<{
   }
 
   ${responsive.mobile(css`
-    width: 120px;
-    height: 180px;
+    width: 100%;
+    height: 160px;
   `)}
 `;
 

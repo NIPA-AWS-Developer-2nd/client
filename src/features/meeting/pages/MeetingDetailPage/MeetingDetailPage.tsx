@@ -127,11 +127,7 @@ export const MeetingDetailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const {
-    setMeetingDetail,
-    homeData,
-    setHomeData,
-  } = useHomeStore();
+  const { setMeetingDetail, homeData: _homeData, setHomeData } = useHomeStore();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [_showMissionModal, _setShowMissionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -203,10 +199,61 @@ export const MeetingDetailPage: React.FC = () => {
   };
 
   // MeetingDetailDto를 MyMeetingDetail 형태로 변환
-  const convertToMyMeetingDetail = useCallback((data: MeetingDetailDto): MyMeetingDetail => {
-    // currentUserId가 없으면 기본값 사용
-    if (!currentUserId) {
-      console.log("⚠️ currentUserId가 없어서 기본값으로 변환");
+  const convertToMyMeetingDetail = useCallback(
+    (data: MeetingDetailDto): MyMeetingDetail => {
+      // currentUserId가 없으면 기본값 사용
+      if (!currentUserId) {
+        console.log("⚠️ currentUserId가 없어서 기본값으로 변환");
+        return {
+          id: data.id,
+          title: data.mission?.title || "모임",
+          description: data.mission?.description,
+          scheduledAt: data.scheduledAt,
+          recruitUntil: data.recruitUntil,
+          status: data.status as
+            | "recruiting"
+            | "ready"
+            | "active"
+            | "completed",
+          maxParticipants: data.mission?.participants || 0,
+          currentParticipants: data.currentParticipants || 0,
+          isHost: false,
+          meJoined: false,
+          mission: data.mission
+            ? {
+                title: data.mission.title,
+                location: data.mission.location || undefined,
+                precautions: data.mission.precautions || [],
+                basePoints: data.mission.basePoints,
+                difficulty: data.mission.difficulty,
+                thumbnailUrl: data.mission.thumbnailUrl,
+              }
+            : undefined,
+          participants: [],
+        };
+      }
+
+      const isHost = data.hostUserId === currentUserId;
+      const isInParticipantList = data.participantList?.some(
+        (p) => p.userId === currentUserId
+      );
+      const meJoined = isInParticipantList || isHost;
+
+      console.log("🔍 convertToMyMeetingDetail 디버깅:", {
+        meetingId: data.id,
+        currentUserId,
+        hostUserId: data.hostUserId,
+        isHost,
+        participantListCount: data.participantList?.length || 0,
+        participantUserIds: data.participantList?.map((p) => p.userId) || [],
+        isInParticipantList,
+        meJoined,
+        isUserInParticipantList: data.participantList?.some(
+          (p) => p.userId === currentUserId
+        ),
+        isUserHost: data.hostUserId === currentUserId,
+      });
+
       return {
         id: data.id,
         title: data.mission?.title || "모임",
@@ -216,68 +263,28 @@ export const MeetingDetailPage: React.FC = () => {
         status: data.status as "recruiting" | "ready" | "active" | "completed",
         maxParticipants: data.mission?.participants || 0,
         currentParticipants: data.currentParticipants || 0,
-        isHost: false,
-        meJoined: false,
-        mission: data.mission ? {
-          title: data.mission.title,
-          location: data.mission.location || undefined,
-          precautions: data.mission.precautions || [],
-          basePoints: data.mission.basePoints,
-          difficulty: data.mission.difficulty,
-          thumbnailUrl: data.mission.thumbnailUrl,
-        } : undefined,
-        participants: [],
+        isHost,
+        meJoined,
+        mission: data.mission
+          ? {
+              title: data.mission.title,
+              location: data.mission.location || undefined,
+              precautions: data.mission.precautions || [],
+              basePoints: data.mission.basePoints,
+              difficulty: data.mission.difficulty,
+              thumbnailUrl: data.mission.thumbnailUrl,
+            }
+          : undefined,
+        participants: (data.participantList || []).map((p) => ({
+          id: p.userId,
+          userId: p.userId,
+          nickname: p.nickname,
+          profileImageUrl: p.profileImageUrl || undefined,
+        })),
       };
-    }
-
-    const isHost = data.hostUserId === currentUserId;
-    const isInParticipantList = data.participantList?.some(
-      (p) => p.userId === currentUserId
-    );
-    const meJoined = isInParticipantList || isHost;
-
-    console.log("🔍 convertToMyMeetingDetail 디버깅:", {
-      meetingId: data.id,
-      currentUserId,
-      hostUserId: data.hostUserId,
-      isHost,
-      participantListCount: data.participantList?.length || 0,
-      participantUserIds: data.participantList?.map((p) => p.userId) || [],
-      isInParticipantList,
-      meJoined,
-      isUserInParticipantList: data.participantList?.some(
-        (p) => p.userId === currentUserId
-      ),
-      isUserHost: data.hostUserId === currentUserId,
-    });
-
-    return {
-      id: data.id,
-      title: data.mission?.title || "모임",
-      description: data.mission?.description,
-      scheduledAt: data.scheduledAt,
-      recruitUntil: data.recruitUntil,
-      status: data.status as "recruiting" | "ready" | "active" | "completed",
-      maxParticipants: data.mission?.participants || 0,
-      currentParticipants: data.currentParticipants || 0,
-      isHost,
-      meJoined,
-      mission: data.mission ? {
-        title: data.mission.title,
-        location: data.mission.location || undefined,
-        precautions: data.mission.precautions || [],
-        basePoints: data.mission.basePoints,
-        difficulty: data.mission.difficulty,
-        thumbnailUrl: data.mission.thumbnailUrl,
-      } : undefined,
-      participants: (data.participantList || []).map(p => ({
-        id: p.userId,
-        userId: p.userId,
-        nickname: p.nickname,
-        profileImageUrl: p.profileImageUrl || undefined,
-      })),
-    };
-  }, [currentUserId]);
+    },
+    [currentUserId]
+  );
 
   // 출석 데이터 가져오기
   const fetchAttendanceData = async (meetingId: string) => {
@@ -327,17 +334,18 @@ export const MeetingDetailPage: React.FC = () => {
       }
 
       // 홈 데이터의 myMeetings 배열도 업데이트
-      if (homeData && currentUserId && myMeetingDetail) {
+      const currentHomeData = useHomeStore.getState().homeData;
+      if (currentHomeData && currentUserId && myMeetingDetail) {
         console.log("🏠 홈 데이터 업데이트 시작:", {
-          hasHomeData: !!homeData,
+          hasHomeData: !!currentHomeData,
           currentUserId,
           meJoined: myMeetingDetail.meJoined,
-          myMeetingsCount: Array.isArray(homeData.myMeetings)
-            ? homeData.myMeetings.length
+          myMeetingsCount: Array.isArray(currentHomeData.myMeetings)
+            ? currentHomeData.myMeetings.length
             : 0,
         });
 
-        const updatedHomeData = { ...homeData };
+        const updatedHomeData = { ...currentHomeData };
 
         // myMeetings 배열에서 해당 모임을 찾아서 업데이트
         if (Array.isArray(updatedHomeData.myMeetings)) {
@@ -382,8 +390,8 @@ export const MeetingDetailPage: React.FC = () => {
         }
 
         console.log("🏠 홈 데이터 업데이트 완료:", {
-          beforeCount: Array.isArray(homeData.myMeetings)
-            ? homeData.myMeetings.length
+          beforeCount: Array.isArray(currentHomeData.myMeetings)
+            ? currentHomeData.myMeetings.length
             : 0,
           afterCount: Array.isArray(updatedHomeData.myMeetings)
             ? updatedHomeData.myMeetings.length
@@ -411,7 +419,13 @@ export const MeetingDetailPage: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [id, currentUserId, convertToMyMeetingDetail, homeData, setHomeData, setMeetingDetail]);
+  }, [
+    id,
+    currentUserId,
+    convertToMyMeetingDetail,
+    setHomeData,
+    setMeetingDetail,
+  ]);
 
   // API에서 모임 데이터 가져오기
   useEffect(() => {
@@ -600,7 +614,8 @@ export const MeetingDetailPage: React.FC = () => {
 
   const seatsLeft = Math.max(
     0,
-    (meetingData.mission?.participants || 0) - (meetingData.currentParticipants || 0)
+    (meetingData.mission?.participants || 0) -
+      (meetingData.currentParticipants || 0)
   );
 
   // 현재 사용자가 참여한 모임인지 확인
@@ -633,7 +648,11 @@ export const MeetingDetailPage: React.FC = () => {
         if (isHost) {
           // 호스트 - 모임 삭제 로직
           // 간단한 확인 대화상자 표시
-          if (window.confirm("정말로 모임을 삭제하시겠습니까?\n\n⚠️ 삭제된 모임은 복구할 수 없습니다.\n📋 참여자들에게는 환불 정책에 따라 포인트가 처리됩니다.")) {
+          if (
+            window.confirm(
+              "정말로 모임을 삭제하시겠습니까?\n\n⚠️ 삭제된 모임은 복구할 수 없습니다.\n📋 참여자들에게는 환불 정책에 따라 포인트가 처리됩니다."
+            )
+          ) {
             try {
               await meetingApiService.deleteMeeting(meetingData.id);
               showAlert("success", "성공", "모임이 삭제되었습니다.");
@@ -668,22 +687,21 @@ export const MeetingDetailPage: React.FC = () => {
           }
 
           // 간단한 확인 대화상자 표시
-          if (window.confirm(`정말로 모임을 나가시겠습니까?\n\n${pointPolicyMessage}`)) {
+          if (
+            window.confirm(
+              `정말로 모임을 나가시겠습니까?\n\n${pointPolicyMessage}`
+            )
+          ) {
             try {
               console.log("🚪 모임 나가기 API 호출 시작:", meetingData.id);
               await meetingApiService.leaveMeeting(meetingData.id);
               console.log("✅ 모임 나가기 API 성공");
-              showAlert(
-                "success",
-                "성공",
-                "모임에서 나갔습니다.",
-                async () => {
-                  // 알림 모달 닫힌 후 데이터 새로고침
-                  console.log("🔄 모임 나가기 후 데이터 새로고침 시작");
-                  await fetchMeetingDetail();
-                  console.log("✅ 모임 나가기 후 데이터 새로고침 완료");
-                }
-              );
+              showAlert("success", "성공", "모임에서 나갔습니다.", async () => {
+                // 알림 모달 닫힌 후 데이터 새로고침
+                console.log("🔄 모임 나가기 후 데이터 새로고침 시작");
+                await fetchMeetingDetail();
+                console.log("✅ 모임 나가기 후 데이터 새로고침 완료");
+              });
             } catch (error) {
               console.error("모임 나가기 실패:", error);
               showAlert(
@@ -835,21 +853,11 @@ export const MeetingDetailPage: React.FC = () => {
         {/* 노션 스타일 헤더 */}
         <ContentSection $isMobile={isMobile}>
           <StorySection $isMobile={isMobile} $isHeader={true}>
-            {/* 모집 마감 시간 */}
-            {timeRemaining.display !== "시작됨" && (
-              <div style={{ marginBottom: "8px" }}>
-                <CountdownBadge $urgent={timeRemaining.urgent}>
-                  <Clock size={12} />
-                  모집 마감까지 {timeRemaining.display}
-                </CountdownBadge>
-              </div>
-            )}
-
             <div
               style={{
                 display: "flex",
                 gap: "8px",
-                marginBottom: "12px",
+                marginBottom: "8px",
                 flexWrap: "wrap",
               }}
             >
@@ -860,6 +868,16 @@ export const MeetingDetailPage: React.FC = () => {
                 {statusInfo.text}
               </StatusBadge>
             </div>
+
+            {/* 모집 마감 시간 */}
+            {timeRemaining.display !== "시작됨" && (
+              <div style={{ marginBottom: "12px" }}>
+                <CountdownBadge $urgent={timeRemaining.urgent}>
+                  <Clock size={12} />
+                  {timeRemaining.display} 마감
+                </CountdownBadge>
+              </div>
+            )}
 
             {/* 타이틀과 액션 버튼들 */}
             <div
