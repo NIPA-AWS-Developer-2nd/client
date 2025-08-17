@@ -274,19 +274,34 @@ export const DistrictGrid = styled.div`
   padding: 8px 0;
 `;
 
-export const DistrictButton = styled.button<{ $selected: boolean }>`
+export const DistrictButton = styled.button<{ 
+  $selected: boolean; 
+  $disabled?: boolean; 
+}>`
   padding: 16px 12px;
   border: 2px solid
-    ${({ theme, $selected }) =>
-      $selected ? theme.colors.primary : theme.colors.border};
+    ${({ theme, $selected, $disabled }) =>
+      $disabled
+        ? theme.colors.gray300
+        : $selected 
+        ? theme.colors.primary 
+        : theme.colors.primary};
   border-radius: 8px;
-  background: ${({ theme, $selected }) =>
-    $selected ? theme.colors.primary : theme.colors.white};
-  color: ${({ theme, $selected }) =>
-    $selected ? theme.colors.white : theme.colors.text.primary};
+  background: ${({ theme, $selected, $disabled }) =>
+    $disabled
+      ? theme.colors.gray100
+      : $selected 
+      ? theme.colors.primary 
+      : theme.colors.white};
+  color: ${({ theme, $selected, $disabled }) =>
+    $disabled
+      ? theme.colors.gray400
+      : $selected 
+      ? theme.colors.white 
+      : theme.colors.text.primary};
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   transition: all 0.2s ease;
   text-align: center;
   display: flex;
@@ -294,14 +309,10 @@ export const DistrictButton = styled.button<{ $selected: boolean }>`
   align-items: center;
   gap: 8px;
   min-height: 80px;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+  opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
 
   &:active {
-    transform: translateY(0);
+    transform: ${({ $disabled }) => ($disabled ? "none" : "translateY(0)")};
   }
 `;
 
