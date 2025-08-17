@@ -303,6 +303,20 @@ export const LocationVerificationModal: React.FC<
   };
 
 
+  // 두 좌표 간의 거리를 계산하는 함수 (Haversine formula)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // 지구의 반지름 (km)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c * 1000; // 미터로 변환
+    return distance;
+  };
+
   const handleVerifyLocation = async () => {
     if (!selectedDistrict || !currentLocation) {
       setErrorMessage("현재 위치를 찾을 수 없습니다.");
@@ -313,26 +327,46 @@ export const LocationVerificationModal: React.FC<
     setErrorMessage("");
     setCurrentStep("result");
 
-    // 2초 후 위치 검증 결과 처리 - 임시로 항상 성공
+    // 2초 후 위치 검증 결과 처리
     setTimeout(async () => {
       try {
-        // 임시: 항상 성공하도록 설정
-        await userApiService.verifyLocation({
-          latitude: currentLocation.lat,
-          longitude: currentLocation.lng,
-          districtId: selectedDistrict.id,
-        });
+        const districtCoords = getDistrictCoordinates();
+        const distance = calculateDistance(
+          currentLocation.lat,
+          currentLocation.lng,
+          districtCoords.lat,
+          districtCoords.lng
+        );
 
-        setVerificationStatus("success");
-        if (onVerificationComplete) {
-          onVerificationComplete(true);
+        // 설정된 반경 내에 있는지 확인
+        const isWithinRadius = distance <= regionBoundary.radius;
+
+        if (isWithinRadius) {
+          // 실제 위치 인증 API 호출
+          await userApiService.verifyLocation({
+            latitude: currentLocation.lat,
+            longitude: currentLocation.lng,
+            districtId: selectedDistrict.id,
+          });
+
+          setVerificationStatus("success");
+          if (onVerificationComplete) {
+            onVerificationComplete(true);
+          }
+        } else {
+          // 범위를 벗어난 경우
+          setVerificationStatus("fail");
+          setErrorMessage(`현재 위치가 ${selectedDistrict.districtName} 지역에서 ${Math.round(distance - regionBoundary.radius)}m 떨어져 있습니다.`);
+          if (onVerificationComplete) {
+            onVerificationComplete(false);
+          }
         }
       } catch (error) {
         console.error("❌ 위치 인증 API 에러:", error);
-        // API 에러가 발생해도 임시로 성공 처리
-        setVerificationStatus("success");
+        setVerificationStatus("fail");
+        setErrorMessage("위치 인증 중 오류가 발생했습니다. 다시 시도해주세요.");
         if (onVerificationComplete) {
-          onVerificationComplete(true);
+          onVerificationComplete(false);
         }
       } finally {
         setIsVerifying(false);
