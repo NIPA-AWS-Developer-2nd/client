@@ -17,12 +17,36 @@ import { useAuth } from "../../../auth/hooks/useAuth";
 import { useAlert } from "../../../../shared/components/common";
 import { useLocationVerification } from "../../../../shared/hooks";
 import { createLocationGuard } from "../../../../shared/utils/navigationGuards";
+import mainBannerImage from "../../../../assets/images/main-banner_800x300.png?url";
 
 // 컨테이너 스타일들
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   max-width: 100%;
   margin: 0 auto;
   padding: ${({ $isMobile }) => ($isMobile ? "16px" : "0")};
+`;
+
+const BannerContainer = styled.div<{ $isMobile?: boolean }>`
+  width: 100%;
+  margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  overflow: hidden;
+  position: relative;
+  height: ${({ $isMobile }) => ($isMobile ? "150px" : "200px")};
+  background: linear-gradient(
+    135deg,
+    ${({ theme }) => theme.colors.primary},
+    ${({ theme }) => theme.colors.gray400}
+  );
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+`;
+
+const BannerImage = styled.img<{ $isMobile?: boolean }>`
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
 `;
 
 const QuickActionsCard = styled.div<{ $isMobile?: boolean }>`
@@ -64,7 +88,6 @@ const ActionButton = styled.button<{ $isMobile?: boolean }>`
   &:hover {
     background: ${({ theme }) => theme.colors.gray100};
   }
-
 `;
 
 const ActionIcon = styled.div<{ $isMobile?: boolean }>`
@@ -184,13 +207,14 @@ export const HomePage: React.FC = () => {
   const { data: homeData, loading, error } = useHomeData();
   const { user: _user } = useAuth();
   const { warning } = useAlert();
-  const { isVerified: isLocationVerified, isLoading: isLocationLoading } = useLocationVerification();
-  
+  const { isVerified: isLocationVerified, isLoading: isLocationLoading } =
+    useLocationVerification();
+
   // 디버깅용 로그
   React.useEffect(() => {
-    console.log('🏠 HomePage - 위치 인증 상태:', {
+    console.log("🏠 HomePage - 위치 인증 상태:", {
       isLocationVerified,
-      isLocationLoading
+      isLocationLoading,
     });
   }, [isLocationVerified, isLocationLoading]);
 
@@ -201,7 +225,6 @@ export const HomePage: React.FC = () => {
     showWarning: warning,
     navigate,
   });
-
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -230,42 +253,45 @@ export const HomePage: React.FC = () => {
   const userStats = {
     points: 1250,
     completedMissions: 8,
-    activeMeetings: homeData?.myMeetings?.filter(m => m.status === 'active').length || 3,
+    activeMeetings:
+      homeData?.myMeetings?.filter((m) => m.status === "active").length || 3,
   };
 
   // 실제 활동 로그 데이터 사용 (최대 3개)
-  const recentActivities = homeData?.activityLogs?.slice(0, 3).map(log => {
+  const recentActivities = homeData?.activityLogs?.slice(0, 3).map((log) => {
     const getActivityIcon = (type: string) => {
       switch (type) {
-        case 'meeting_joined':
+        case "meeting_joined":
           return Users;
-        case 'meeting_created':
+        case "meeting_created":
           return Check;
-        case 'photo_verification_approved':
+        case "photo_verification_approved":
           return Gift;
         default:
           return Check;
       }
     };
 
-    const getActivityText = (log: typeof homeData.activityLogs[0]) => {
+    const getActivityText = (log: (typeof homeData.activityLogs)[0]) => {
       switch (log.type) {
-        case 'meeting_joined':
-          return `${log.meeting?.title || '모임'}에 참여했습니다`;
-        case 'meeting_created':
-          return `${log.meeting?.title || '모임'}을 생성했습니다`;
-        case 'photo_verification_approved':
-          return '사진 인증이 승인되었습니다';
+        case "meeting_joined":
+          return `${log.meeting?.title || "모임"}에 참여했습니다`;
+        case "meeting_created":
+          return `${log.meeting?.title || "모임"}을 생성했습니다`;
+        case "photo_verification_approved":
+          return "사진 인증이 승인되었습니다";
         default:
-          return '활동을 완료했습니다';
+          return "활동을 완료했습니다";
       }
     };
 
     const getTimeAgo = (createdAt: string) => {
       const now = new Date();
       const created = new Date(createdAt);
-      const diffInMinutes = Math.floor((now.getTime() - created.getTime()) / (1000 * 60));
-      
+      const diffInMinutes = Math.floor(
+        (now.getTime() - created.getTime()) / (1000 * 60)
+      );
+
       if (diffInMinutes < 60) {
         return `${diffInMinutes}분 전`;
       } else if (diffInMinutes < 60 * 24) {
@@ -305,19 +331,13 @@ export const HomePage: React.FC = () => {
       <QuickActionsCard $isMobile={isMobile}>
         <QuickActionsTitle $isMobile={isMobile}>빠른 실행</QuickActionsTitle>
         <QuickActionsGrid $isMobile={isMobile}>
-          <ActionButton
-            $isMobile={isMobile}
-            onClick={locationGuard.toMissions}
-          >
+          <ActionButton $isMobile={isMobile} onClick={locationGuard.toMissions}>
             <ActionIcon $isMobile={isMobile}>
               <Zap size={isMobile ? 20 : 24} />
             </ActionIcon>
             <ActionText $isMobile={isMobile}>미션 찾기</ActionText>
           </ActionButton>
-          <ActionButton
-            $isMobile={isMobile}
-            onClick={locationGuard.toMeetings}
-          >
+          <ActionButton $isMobile={isMobile} onClick={locationGuard.toMeetings}>
             <ActionIcon $isMobile={isMobile}>
               <Calendar size={isMobile ? 20 : 24} />
             </ActionIcon>
@@ -364,6 +384,10 @@ export const HomePage: React.FC = () => {
           </StatItem>
         </StatsGrid>
       </StatsCard>
+
+      <BannerContainer $isMobile={isMobile}>
+        배너 영역 테스트 - 최근 활동 위
+      </BannerContainer>
 
       <RecentActivityCard $isMobile={isMobile}>
         <ActivityTitle $isMobile={isMobile}>최근 활동</ActivityTitle>
