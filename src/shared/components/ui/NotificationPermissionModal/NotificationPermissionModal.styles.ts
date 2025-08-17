@@ -76,7 +76,7 @@ export const ButtonContainer = styled.div`
       flex: 0.8;
       background: transparent;
       color: ${({ theme }) => theme.colors.text.secondary};
-      border: 1px solid ${({ theme }) => theme.colors.border.default};
+      border: 1px solid ${({ theme }) => theme.colors.border.primary};
       
       &:hover {
         background: transparent !important;
