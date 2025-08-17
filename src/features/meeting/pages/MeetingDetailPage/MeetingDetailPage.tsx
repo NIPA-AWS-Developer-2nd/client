@@ -274,7 +274,7 @@ export const MeetingDetailPage: React.FC = () => {
         id: p.userId,
         userId: p.userId,
         nickname: p.nickname,
-        profileImageUrl: p.profileImageUrl,
+        profileImageUrl: p.profileImageUrl || undefined,
       })),
     };
   }, [currentUserId]);
