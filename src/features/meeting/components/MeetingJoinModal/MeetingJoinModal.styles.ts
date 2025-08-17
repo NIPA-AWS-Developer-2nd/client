@@ -20,7 +20,7 @@ export const Overlay = styled.div`
 `;
 
 export const Modal = styled.div<{ $isMobile: boolean }>`
-  background: ${({ theme }) => theme.colors.background};
+  background: ${({ theme }) => theme.colors.background?.primary || theme.colors.white || '#FFFFFF'};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -40,13 +40,13 @@ export const Header = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border?.light || theme.colors.gray300 || '#E5E1DC'};
 `;
 
 export const Title = styled.h2<{ $isMobile: boolean }>`
   font-size: ${({ $isMobile }) => $isMobile ? '18px' : '20px'};
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.text?.primary || theme.colors.gray900 || '#1C1917'};
   margin: 0;
 `;
 
@@ -65,7 +65,7 @@ export const CloseButton = styled.button`
 
   &:hover {
     background: ${({ theme }) => theme.colors.backgroundAlt};
-    color: ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.text?.primary || theme.colors.gray900 || '#1C1917'};
   }
 `;
 
@@ -80,7 +80,7 @@ export const MeetingInfo = styled.div<{ $isMobile: boolean }>`
 export const MeetingTitle = styled.h3<{ $isMobile: boolean }>`
   font-size: ${({ $isMobile }) => $isMobile ? '16px' : '18px'};
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.text?.primary || theme.colors.gray900 || '#1C1917'};
   margin: 0 0 16px 0;
   line-height: 1.4;
 `;
@@ -104,7 +104,7 @@ export const InfoItem = styled.div`
 `;
 
 export const PaymentSection = styled.div<{ $isMobile: boolean }>`
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1px solid ${({ theme }) => theme.colors.border?.light || theme.colors.gray300 || '#E5E1DC'};
   border-radius: ${({ theme }) => theme.borderRadius.lg};
   padding: 20px;
   background: ${({ theme }) => theme.colors.backgroundAlt};
@@ -116,7 +116,7 @@ export const SectionTitle = styled.div<{ $isMobile: boolean }>`
   gap: 8px;
   font-size: ${({ $isMobile }) => $isMobile ? '15px' : '16px'};
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.text?.primary || theme.colors.gray900 || '#1C1917'};
   margin-bottom: 16px;
   
   svg {
@@ -160,7 +160,7 @@ export const PaymentValue = styled.span<{ $color?: 'error' | 'success' | 'primar
 
 export const Divider = styled.div`
   height: 1px;
-  background: ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.border?.light || theme.colors.gray300 || '#E5E1DC'};
 `;
 
 export const CurrentBalance = styled.div`
@@ -174,14 +174,14 @@ export const InfoBox = styled.div<{ $isMobile: boolean }>`
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 12px;
-  background: ${({ theme }) => theme.colors.warningLight};
-  border: 1px solid ${({ theme }) => theme.colors.warning};
+  padding: 16px;
+  background: #FFF4E6;
+  border: none;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   margin-bottom: 16px;
   
   svg {
-    color: ${({ theme }) => theme.colors.warning};
+    color: #FF8B55;
     margin-top: 2px;
     flex-shrink: 0;
   }
@@ -189,7 +189,7 @@ export const InfoBox = styled.div<{ $isMobile: boolean }>`
 
 export const InfoText = styled.span<{ $isMobile: boolean }>`
   font-size: ${({ $isMobile }) => $isMobile ? '12px' : '13px'};
-  color: ${({ theme }) => theme.colors.text};
+  color: ${({ theme }) => theme.colors.text?.primary || theme.colors.gray900 || '#1C1917'};
   line-height: 1.4;
 `;
 
@@ -216,14 +216,14 @@ export const ButtonContainer = styled.div`
   display: flex;
   gap: 12px;
   padding: 20px 24px;
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  border-top: 1px solid ${({ theme }) => theme.colors.border?.light || theme.colors.gray300 || '#E5E1DC'};
 `;
 
 export const CancelButton = styled.button`
   flex: 1;
   padding: 12px 16px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.background};
+  border: 1px solid ${({ theme }) => theme.colors.border?.light || theme.colors.gray300 || '#E5E1DC'};
+  background: ${({ theme }) => theme.colors.background?.primary || theme.colors.white || '#FFFFFF'};
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 14px;
   font-weight: 500;
@@ -233,7 +233,7 @@ export const CancelButton = styled.button`
 
   &:hover:not(:disabled) {
     border-color: ${({ theme }) => theme.colors.textSecondary};
-    color: ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.text?.primary || theme.colors.gray900 || '#1C1917'};
   }
 
   &:disabled {

@@ -104,20 +104,45 @@ export const MeetingJoinModal: React.FC<MeetingJoinModalProps> = ({
       console.log("API 호출 시작");
       const response = await meetingApi.joinMeeting(meetingData.id);
       console.log("API 응답:", response);
+      console.log("응답 타입:", typeof response);
+      console.log("응답 키들:", response ? Object.keys(response) : 'response가 null/undefined');
 
-      if (response.success) {
-        success(response.message, "모임 참여 완료");
+      // 응답이 객체이고 success 속성이 있는 경우
+      if (response && typeof response === 'object' && 'success' in response) {
+        if (response.success) {
+          success(response.message || "모임에 참여했습니다.", "모임 참여 완료");
+          onClose();
+          onSuccess?.();
+        } else {
+          error(response.message || "모임 참여에 실패했습니다.");
+        }
+      } else {
+        // 예상과 다른 응답 형태인 경우
+        console.warn("예상과 다른 응답 형태:", response);
+        success("모임에 참여했습니다.", "모임 참여 완료");
         onClose();
         onSuccess?.();
-      } else {
-        error(response.message || "모임 참여에 실패했습니다.");
       }
     } catch (err: unknown) {
       console.error("참여하기 에러:", err);
-      const errorMessage = err && typeof err === 'object' && 'response' in err 
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : undefined;
-      error(errorMessage || "모임 참여에 실패했습니다.");
+      
+      // 에러 메시지 추출
+      let errorMessage = "모임 참여에 실패했습니다.";
+      
+      if (err && typeof err === 'object') {
+        if ('response' in err) {
+          const response = (err as any).response;
+          if (response?.data?.message) {
+            errorMessage = response.data.message;
+          } else if (response?.data?.error) {
+            errorMessage = response.data.error;
+          }
+        } else if ('message' in err) {
+          errorMessage = (err as any).message;
+        }
+      }
+      
+      error(errorMessage);
     } finally {
       setLoading(false);
     }

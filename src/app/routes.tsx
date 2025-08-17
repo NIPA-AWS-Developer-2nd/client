@@ -156,6 +156,7 @@ export const AppRoutes = () => {
             title="앱 설정 | 할사람?"
             showBanner={true}
             hideBottomNav={true}
+            hidePointDisplay={true}
           >
             <AppSettingsPage />
           </ResponsiveLayout>
@@ -177,6 +178,7 @@ export const AppRoutes = () => {
             showBanner={true}
             hideBottomNav={true}
             noPadding={true}
+            hidePointDisplay={true}
           >
             <PointHistoryPage />
           </ResponsiveLayout>

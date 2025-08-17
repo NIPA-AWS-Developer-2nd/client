@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
-import { MapPin } from "lucide-react";
+import { MapPin, Lock } from "lucide-react";
 import { useOnboardingStore } from "../../../shared/store";
 import { Skeleton } from "../../../shared/components/ui";
 
@@ -162,7 +162,7 @@ export const Step4Location: React.FC<Props> = ({ showValidationErrors = false })
             onClick={() => handleLocationSelect(district.id, district.isActive)}
           >
             <LocationIcon>
-              <MapPin size={20} />
+              {district.isActive ? <MapPin size={20} /> : <Lock size={20} />}
             </LocationIcon>
             <div>
               <LocationName>{district.districtName}</LocationName>

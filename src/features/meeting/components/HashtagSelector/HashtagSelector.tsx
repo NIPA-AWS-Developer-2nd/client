@@ -53,14 +53,14 @@ const HashtagButton = styled.button<{
 }>`
   padding: ${({ $isMobile }) => ($isMobile ? "10px 8px" : "12px 10px")};
   border: ${({ theme, $selected, $preference }) => {
-    if (!$selected) return `1px solid ${theme.colors.border}`;
+    if (!$selected) return `1.5px solid ${theme.colors.border.light}`;
     if ($preference === 'preferred') return `1.5px solid ${theme.colors.primary}`;
     return `1.5px solid ${theme.colors.gray400}`;
   }};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   background: ${({ theme, $selected, $preference }) => {
-    if (!$selected) return 'transparent';
-    if ($preference === 'preferred') return theme.colors.primary + '10';
+    if (!$selected) return theme.colors.white;
+    if ($preference === 'preferred') return theme.colors.primary + '15';
     return theme.colors.gray100;
   }};
   color: ${({ theme, $selected, $preference }) => {
@@ -76,13 +76,15 @@ const HashtagButton = styled.button<{
 
   &:hover {
     transform: translateY(-1px);
-    border-color: ${({ theme, $preference }) => 
-      $preference === 'preferred' ? theme.colors.primary : theme.colors.gray500};
+    border-color: ${({ theme, $selected, $preference }) => {
+      if (!$selected) return theme.colors.primary;
+      return $preference === 'preferred' ? theme.colors.primary : theme.colors.gray500;
+    }};
     background: ${({ theme, $selected, $preference }) => {
       if (!$selected) {
-        return theme.colors.primary + '05';
+        return theme.colors.primary + '08';
       }
-      return $preference === 'preferred' ? theme.colors.primary + '20' : theme.colors.gray200;
+      return $preference === 'preferred' ? theme.colors.primary + '25' : theme.colors.gray200;
     }};
   }
 

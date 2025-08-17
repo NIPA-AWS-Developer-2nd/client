@@ -3,7 +3,7 @@ import { responsive } from "../../../../shared/styles/mixins";
 
 export const PageContainer = styled.div<{ $isMobile: boolean }>`
   min-height: 100vh;
-  background: ${({ theme }) => theme.colors.background.secondary};
+  background: ${({ theme }) => theme.colors.white};
   padding: ${({ $isMobile }) => ($isMobile ? "0 0 60px 0" : "0 0 80px 0")};
   display: flex;
   flex-direction: column;
@@ -82,6 +82,36 @@ export const ContentContainer = styled.div<{ $isMobile: boolean }>`
   ${responsive.mobile(css`
     gap: 16px;
     padding: 16px;
+  `)}
+`;
+
+// Banner Components - Full width banner
+export const BannerSection = styled.div<{ $isMobile: boolean }>`
+  width: calc(100% + ${({ $isMobile }) => ($isMobile ? "32px" : "48px")});
+  margin-left: ${({ $isMobile }) => ($isMobile ? "-16px" : "-24px")};
+  margin-right: ${({ $isMobile }) => ($isMobile ? "-16px" : "-24px")};
+  margin-top: ${({ $isMobile }) => ($isMobile ? "-12px" : "-16px")};
+  margin-bottom: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
+  
+  ${responsive.mobile(css`
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    margin-top: -12px;
+    margin-bottom: 16px;
+  `)}
+`;
+
+export const BannerImage = styled.img<{ $isMobile: boolean }>`
+  width: 100%;
+  height: auto;
+  min-height: ${({ $isMobile }) => ($isMobile ? "120px" : "140px")};
+  object-fit: contain;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  opacity: 0.9;
+
+  ${responsive.mobile(css`
+    min-height: 120px;
   `)}
 `;
 

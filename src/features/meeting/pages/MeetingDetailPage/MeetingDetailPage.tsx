@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Clock,
@@ -15,13 +15,15 @@ import {
 import { meetingApiService } from "../../../../shared/services/meetingApi";
 import { attendanceApiService } from "../../../../shared/services/attendanceApi";
 import type { MeetingDetailDto } from "../../../../shared/services/meetingApi";
+import type { MyMeetingDetail } from "../../../../shared/store/homeStore";
 import type {
   AttendanceStatusResponse,
   MyAttendanceResponse,
 } from "../../../../shared/services/attendanceApi";
-import { deviceDetection } from "../../../../shared/utils/deviceDetection";
+import { deviceDetection, formatLevel } from "../../../../shared/utils";
 import { useTheme } from "../../../../shared/hooks/useTheme";
 import { useAuth } from "../../../auth/hooks/useAuth";
+import { useHomeStore } from "../../../../shared/store/homeStore";
 import { AlertModal } from "../../../../shared/components/common";
 import { MeetingJoinModal } from "../../components/MeetingJoinModal/MeetingJoinModal";
 import {
@@ -119,13 +121,17 @@ const calculateTimeRemaining = (dateStr: string, timeStr: string) => {
   }
 };
 
-
 export const MeetingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const {
+    setMeetingDetail,
+    homeData,
+    setHomeData,
+  } = useHomeStore();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [_showMissionModal, _setShowMissionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -138,6 +144,20 @@ export const MeetingDetailPage: React.FC = () => {
   const [isLiking, setIsLiking] = useState(false);
   const [showAlreadyLikedModal, setShowAlreadyLikedModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+
+  // 커스텀 알림 상태
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    type: "success" | "error" | "info";
+    title: string;
+    message: string;
+    onClose?: () => void;
+  }>({
+    isOpen: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
 
   // 출석체크 관련 상태
   const [attendanceStatus, setAttendanceStatus] =
@@ -157,42 +177,246 @@ export const MeetingDetailPage: React.FC = () => {
   // 현재 사용자 ID
   const currentUserId = user?.id;
 
+  // 커스텀 알림 헬퍼 함수
+  const showAlert = (
+    type: "success" | "error" | "info",
+    title: string,
+    message: string,
+    onClose?: () => void
+  ) => {
+    setAlertModal({
+      isOpen: true,
+      type,
+      title,
+      message,
+      onClose,
+    });
+  };
+
+  const closeAlert = () => {
+    const callback = alertModal.onClose;
+    setAlertModal((prev) => ({ ...prev, isOpen: false }));
+    // 모달이 닫힌 후 콜백 실행
+    if (callback) {
+      setTimeout(callback, 100);
+    }
+  };
+
+  // MeetingDetailDto를 MyMeetingDetail 형태로 변환
+  const convertToMyMeetingDetail = useCallback((data: MeetingDetailDto): MyMeetingDetail => {
+    // currentUserId가 없으면 기본값 사용
+    if (!currentUserId) {
+      console.log("⚠️ currentUserId가 없어서 기본값으로 변환");
+      return {
+        id: data.id,
+        title: data.mission?.title || "모임",
+        description: data.mission?.description,
+        scheduledAt: data.scheduledAt,
+        recruitUntil: data.recruitUntil,
+        status: data.status as "recruiting" | "ready" | "active" | "completed",
+        maxParticipants: data.mission?.participants || 0,
+        currentParticipants: data.currentParticipants || 0,
+        isHost: false,
+        meJoined: false,
+        mission: data.mission ? {
+          title: data.mission.title,
+          location: data.mission.location || undefined,
+          precautions: data.mission.precautions || [],
+          basePoints: data.mission.basePoints,
+          difficulty: data.mission.difficulty,
+          thumbnailUrl: data.mission.thumbnailUrl,
+        } : undefined,
+        participants: [],
+      };
+    }
+
+    const isHost = data.hostUserId === currentUserId;
+    const isInParticipantList = data.participantList?.some(
+      (p) => p.userId === currentUserId
+    );
+    const meJoined = isInParticipantList || isHost;
+
+    console.log("🔍 convertToMyMeetingDetail 디버깅:", {
+      meetingId: data.id,
+      currentUserId,
+      hostUserId: data.hostUserId,
+      isHost,
+      participantListCount: data.participantList?.length || 0,
+      participantUserIds: data.participantList?.map((p) => p.userId) || [],
+      isInParticipantList,
+      meJoined,
+      isUserInParticipantList: data.participantList?.some(
+        (p) => p.userId === currentUserId
+      ),
+      isUserHost: data.hostUserId === currentUserId,
+    });
+
+    return {
+      id: data.id,
+      title: data.mission?.title || "모임",
+      description: data.mission?.description,
+      scheduledAt: data.scheduledAt,
+      recruitUntil: data.recruitUntil,
+      status: data.status as "recruiting" | "ready" | "active" | "completed",
+      maxParticipants: data.mission?.participants || 0,
+      currentParticipants: data.currentParticipants || 0,
+      isHost,
+      meJoined,
+      mission: data.mission ? {
+        title: data.mission.title,
+        location: data.mission.location || undefined,
+        precautions: data.mission.precautions || [],
+        basePoints: data.mission.basePoints,
+        difficulty: data.mission.difficulty,
+        thumbnailUrl: data.mission.thumbnailUrl,
+      } : undefined,
+      participants: (data.participantList || []).map(p => ({
+        id: p.userId,
+        userId: p.userId,
+        nickname: p.nickname,
+        profileImageUrl: p.profileImageUrl || undefined,
+      })),
+    };
+  }, [currentUserId]);
+
+  // 출석 데이터 가져오기
+  const fetchAttendanceData = async (meetingId: string) => {
+    try {
+      const [statusData, myData] = await Promise.all([
+        attendanceApiService.getAttendanceStatus(meetingId),
+        attendanceApiService.getMyAttendance(meetingId),
+      ]);
+      setAttendanceStatus(statusData);
+      setMyAttendance(myData);
+    } catch (error) {
+      console.error("출석 데이터 가져오기 실패:", error);
+    }
+  };
+
+  // 모임 데이터 가져오기 함수
+  const fetchMeetingDetail = useCallback(async () => {
+    if (!id) {
+      setError("모임 ID가 없습니다.");
+      setIsDataLoading(false);
+      return;
+    }
+
+    try {
+      setIsDataLoading(true);
+      setError(null);
+      console.log("🔍 API 호출 시작 - getMeetingDetail:", id);
+      const data = await meetingApiService.getMeetingDetail(id);
+      console.log("📋 API 응답 데이터:", {
+        meetingId: data.id,
+        participantList: data.participantList,
+        currentParticipants: data.currentParticipants,
+        hostUserId: data.hostUserId,
+      });
+      setMeetingData(data);
+      // API 응답에서 현재 사용자의 좋아요 상태 설정
+      setIsLiked(data.isLiked || false);
+
+      // 홈 스토어 캐시 업데이트 (currentUserId가 있을 때만)
+      let myMeetingDetail = null;
+      if (currentUserId) {
+        myMeetingDetail = convertToMyMeetingDetail(data);
+        console.log("🔄 스토어 업데이트 - 변환된 데이터:", myMeetingDetail);
+        setMeetingDetail(id, myMeetingDetail);
+      } else {
+        console.log("⏳ currentUserId가 없어서 스토어 업데이트 스킵");
+      }
+
+      // 홈 데이터의 myMeetings 배열도 업데이트
+      if (homeData && currentUserId && myMeetingDetail) {
+        console.log("🏠 홈 데이터 업데이트 시작:", {
+          hasHomeData: !!homeData,
+          currentUserId,
+          meJoined: myMeetingDetail.meJoined,
+          myMeetingsCount: Array.isArray(homeData.myMeetings)
+            ? homeData.myMeetings.length
+            : 0,
+        });
+
+        const updatedHomeData = { ...homeData };
+
+        // myMeetings 배열에서 해당 모임을 찾아서 업데이트
+        if (Array.isArray(updatedHomeData.myMeetings)) {
+          const meetingIndex = updatedHomeData.myMeetings.findIndex(
+            (m) => (m?.id || m?.meeting_id) === id
+          );
+
+          console.log("🔍 기존 모임 찾기 결과:", {
+            meetingIndex,
+            existingMeetingIds: updatedHomeData.myMeetings.map(
+              (m) => m?.id || m?.meeting_id
+            ),
+            targetMeetingId: id,
+          });
+
+          if (meetingIndex >= 0) {
+            // 기존 모임 데이터 업데이트
+            updatedHomeData.myMeetings[meetingIndex] = {
+              ...updatedHomeData.myMeetings[meetingIndex],
+              ...data,
+            };
+            console.log("✅ 홈 데이터의 myMeetings 업데이트됨");
+          } else if (myMeetingDetail.meJoined) {
+            // 새로 참여한 모임이면 myMeetings에 추가
+            updatedHomeData.myMeetings.push(data);
+            console.log("✅ 홈 데이터의 myMeetings에 새 모임 추가됨");
+          }
+
+          // 만약 참여하지 않은 모임이 myMeetings에 있다면 제거
+          if (!myMeetingDetail.meJoined && meetingIndex >= 0) {
+            updatedHomeData.myMeetings.splice(meetingIndex, 1);
+            console.log(
+              "✅ 홈 데이터의 myMeetings에서 모임 제거됨 (인덱스:",
+              meetingIndex,
+              ")"
+            );
+          }
+        } else if (myMeetingDetail.meJoined) {
+          // myMeetings가 없으면 새로 생성
+          updatedHomeData.myMeetings = [data];
+          console.log("✅ 홈 데이터의 myMeetings 새로 생성됨");
+        }
+
+        console.log("🏠 홈 데이터 업데이트 완료:", {
+          beforeCount: Array.isArray(homeData.myMeetings)
+            ? homeData.myMeetings.length
+            : 0,
+          afterCount: Array.isArray(updatedHomeData.myMeetings)
+            ? updatedHomeData.myMeetings.length
+            : 0,
+        });
+
+        setHomeData(updatedHomeData);
+      }
+
+      console.log("✅ 스토어 업데이트 완료");
+
+      // 출석 데이터 가져오기 (참가자만, currentUserId가 있을 때만)
+      if (
+        currentUserId &&
+        (data.participantList?.some((p) => p.userId === currentUserId) ||
+          data.hostUserId === currentUserId)
+      ) {
+        await fetchAttendanceData(id);
+      }
+    } catch (err) {
+      console.error("모임 상세 조회 실패:", err);
+      setError(
+        err instanceof Error ? err.message : "모임 정보를 불러올 수 없습니다."
+      );
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, [id, currentUserId, convertToMyMeetingDetail, homeData, setHomeData, setMeetingDetail]);
+
   // API에서 모임 데이터 가져오기
   useEffect(() => {
-    const fetchMeetingDetail = async () => {
-      if (!id) {
-        setError("모임 ID가 없습니다.");
-        setIsDataLoading(false);
-        return;
-      }
-
-      try {
-        setIsDataLoading(true);
-        setError(null);
-        const data = await meetingApiService.getMeetingDetail(id);
-        setMeetingData(data);
-        // API 응답에서 현재 사용자의 좋아요 상태 설정
-        setIsLiked(data.isLiked || false);
-
-        // 출석 데이터 가져오기 (참가자만)
-        if (
-          data.participantList?.some((p) => p.userId === currentUserId) ||
-          data.hostUserId === currentUserId
-        ) {
-          await fetchAttendanceData(id);
-        }
-      } catch (err) {
-        console.error("모임 상세 조회 실패:", err);
-        setError(
-          err instanceof Error ? err.message : "모임 정보를 불러올 수 없습니다."
-        );
-      } finally {
-        setIsDataLoading(false);
-      }
-    };
-
     fetchMeetingDetail();
-  }, [id, currentUserId]);
+  }, [fetchMeetingDetail]);
 
   useEffect(() => {
     const onResize = () => setIsMobile(deviceDetection.isMobile());
@@ -371,21 +595,24 @@ export const MeetingDetailPage: React.FC = () => {
   const statusInfo = getStatusInfo(
     meetingData.status,
     meetingData.currentParticipants || 0,
-    meetingData.participants || 0
+    meetingData.mission?.participants || 0
   );
 
   const seatsLeft = Math.max(
     0,
-    (meetingData.participants || 0) - (meetingData.currentParticipants || 0)
+    (meetingData.mission?.participants || 0) - (meetingData.currentParticipants || 0)
   );
 
   // 현재 사용자가 참여한 모임인지 확인
-  const isParticipant =
-    meetingData.participantList?.some((p) => p.userId === currentUserId) ||
-    false;
+  const isParticipant = currentUserId
+    ? meetingData.participantList?.some((p) => p.userId === currentUserId) ||
+      false
+    : false;
 
   // 현재 사용자가 호스트인지 확인
-  const isHost = meetingData.hostUserId === currentUserId;
+  const isHost = currentUserId
+    ? meetingData.hostUserId === currentUserId
+    : false;
 
   const handleJoin = async () => {
     console.log("참여하기 버튼 클릭됨", {
@@ -405,34 +632,63 @@ export const MeetingDetailPage: React.FC = () => {
       if (isParticipant) {
         if (isHost) {
           // 호스트 - 모임 삭제 로직
-          const confirmed = window.confirm(
-            "정말로 모임을 삭제하시겠습니까?\n삭제된 모임은 복구할 수 없습니다."
-          );
-
-          if (confirmed) {
+          // 간단한 확인 대화상자 표시
+          if (window.confirm("정말로 모임을 삭제하시겠습니까?\n\n⚠️ 삭제된 모임은 복구할 수 없습니다.\n📋 참여자들에게는 환불 정책에 따라 포인트가 처리됩니다.")) {
             try {
               await meetingApiService.deleteMeeting(meetingData.id);
-              alert("모임이 삭제되었습니다.");
+              showAlert("success", "성공", "모임이 삭제되었습니다.");
               navigate("/meetings"); // 모임 목록으로 이동
             } catch (error) {
               console.error("모임 삭제 실패:", error);
-              alert(
+              showAlert(
+                "error",
+                "오류",
                 "서버 측에서 예상치 못한 문제가 발생하여 모임을 삭제할 수 없습니다. 잠시 후 다시 시도해주세요."
               );
             }
           }
         } else {
           // 일반 참여자 - 참여 취소 로직
-          const confirmed = window.confirm("정말로 모임을 나가시겠습니까?");
+          const now = new Date();
+          const scheduledAt = new Date(meetingData.scheduledAt);
+          const hoursUntilMeeting =
+            (scheduledAt.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-          if (confirmed) {
+          // 포인트 처리 정책 메시지 생성
+          let pointPolicyMessage = "";
+          const paidAmount = meetingData.mission?.basePoints || 0;
+
+          if (hoursUntilMeeting <= 0) {
+            pointPolicyMessage = `⚠️ 모임이 이미 시작되어 노쇼 처리됩니다.\n환불은 없으며 ${paidAmount}P의 추가 패널티가 적용됩니다.`;
+          } else if (hoursUntilMeeting > 6) {
+            pointPolicyMessage = `✅ 6시간 전 취소로 ${paidAmount}P 전액 환불됩니다.`;
+          } else {
+            const refundAmount = Math.floor(paidAmount * 0.5);
+            pointPolicyMessage = `⚠️ 6시간 이내 취소로 ${refundAmount}P만 환불됩니다.\n(50% 환불 정책)`;
+          }
+
+          // 간단한 확인 대화상자 표시
+          if (window.confirm(`정말로 모임을 나가시겠습니까?\n\n${pointPolicyMessage}`)) {
             try {
+              console.log("🚪 모임 나가기 API 호출 시작:", meetingData.id);
               await meetingApiService.leaveMeeting(meetingData.id);
-              alert("모임에서 나갔습니다.");
-              window.location.reload(); // 페이지 새로고침
+              console.log("✅ 모임 나가기 API 성공");
+              showAlert(
+                "success",
+                "성공",
+                "모임에서 나갔습니다.",
+                async () => {
+                  // 알림 모달 닫힌 후 데이터 새로고침
+                  console.log("🔄 모임 나가기 후 데이터 새로고침 시작");
+                  await fetchMeetingDetail();
+                  console.log("✅ 모임 나가기 후 데이터 새로고침 완료");
+                }
+              );
             } catch (error) {
               console.error("모임 나가기 실패:", error);
-              alert(
+              showAlert(
+                "error",
+                "오류",
                 "서버 측에서 예상치 못한 문제가 발생하여 모임을 나갈 수 없습니다. 잠시 후 다시 시도해주세요."
               );
             }
@@ -441,6 +697,12 @@ export const MeetingDetailPage: React.FC = () => {
       } else {
         // 참여하기 로직 - 모달을 열거나 직접 참여
         console.log("참여하기 로직 실행");
+
+        // 자리가 없는 경우 참여 불가
+        if (seatsLeft <= 0) {
+          showAlert("info", "알림", "모임이 가득 차서 참여할 수 없습니다.");
+          return;
+        }
 
         // 포인트가 필요한 경우 모달 열기
         if (
@@ -453,30 +715,21 @@ export const MeetingDetailPage: React.FC = () => {
           // 무료 모임 직접 참여
           console.log("무료 모임 직접 참여");
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          alert("모임에 참여했습니다!");
+          showAlert("success", "성공", "모임에 참여했습니다!", async () => {
+            // 알림 모달 닫힌 후 데이터 새로고침
+            await fetchMeetingDetail();
+          });
         }
       }
     } catch (error) {
       console.error("참여/취소 처리 실패:", error);
-      alert(
+      showAlert(
+        "error",
+        "오류",
         "서버 측에서 예상치 못한 문제가 발생하여 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요."
       );
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // 출석 데이터 가져오기
-  const fetchAttendanceData = async (meetingId: string) => {
-    try {
-      const [statusData, myData] = await Promise.all([
-        attendanceApiService.getAttendanceStatus(meetingId),
-        attendanceApiService.getMyAttendance(meetingId),
-      ]);
-      setAttendanceStatus(statusData);
-      setMyAttendance(myData);
-    } catch (error) {
-      console.error("출석 데이터 가져오기 실패:", error);
     }
   };
 
@@ -493,7 +746,9 @@ export const MeetingDetailPage: React.FC = () => {
       await fetchAttendanceData(meetingData.id);
     } catch (error) {
       console.error("QR 코드 생성 실패:", error);
-      alert(
+      showAlert(
+        "error",
+        "오류",
         "서버 측에서 예상치 못한 문제가 발생하여 출석체크를 시작할 수 없습니다. 잠시 후 다시 시도해주세요."
       );
     } finally {
@@ -508,39 +763,19 @@ export const MeetingDetailPage: React.FC = () => {
     try {
       setIsCheckingIn(true);
       await attendanceApiService.checkIn(meetingData.id, qrToken);
-      alert("출석체크가 완료되었습니다!");
+      showAlert("success", "성공", "출석체크가 완료되었습니다!");
       setShowQRScanner(false);
       // 출석 상태 새로고침
       await fetchAttendanceData(meetingData.id);
     } catch (error) {
       console.error("출석체크 실패:", error);
-      alert(
+      showAlert(
+        "error",
+        "오류",
         "서버 측에서 예상치 못한 문제가 발생하여 출석체크를 완료할 수 없습니다. 잠시 후 다시 시도해주세요."
       );
     } finally {
       setIsCheckingIn(false);
-    }
-  };
-
-  // 노쇼 처리 (호스트 전용)
-  const handleMarkNoShow = async () => {
-    if (!meetingData?.id || !isHost) return;
-
-    const confirmed = window.confirm(
-      "출석체크하지 않은 참가자를 노쇼로 처리하시겠습니까?"
-    );
-    if (!confirmed) return;
-
-    try {
-      const result = await attendanceApiService.markNoShow(meetingData.id);
-      alert(`${result.noShowCount}명을 노쇼로 처리했습니다.`);
-      // 출석 상태 새로고침
-      await fetchAttendanceData(meetingData.id);
-    } catch (error) {
-      console.error("노쇼 처리 실패:", error);
-      alert(
-        "서버 측에서 예상치 못한 문제가 발생하여 노쇼 처리를 완료할 수 없습니다. 잠시 후 다시 시도해주세요."
-      );
     }
   };
 
@@ -573,14 +808,25 @@ export const MeetingDetailPage: React.FC = () => {
   };
 
   const getJoinButtonText = () => {
-    if (isLoading) return "가입 처리 중이에요";
+    if (isLoading) return "처리 중";
     if (meetingData.status !== "recruiting") return "지금은 참여할 수 없어요";
     if (isParticipant) {
       // 호스트인 경우 "모임 삭제하기", 일반 참여자인 경우 "참여 취소하기"
       return isHost ? "모임 삭제하기" : "모임 나가기";
     }
     if (!meetingData.canJoin) return "참여할 수 없습니다";
-    return seatsLeft > 0 ? "참여하기" : "대기자로 참여하기";
+    if (seatsLeft <= 0) return "참여 불가 (모집완료)";
+    return "참여하기";
+  };
+
+  const isJoinButtonDisabled = () => {
+    // 로딩 중이거나 모집이 끝났거나, 참여할 수 없는 경우, 또는 남은 자리가 없는 경우
+    return (
+      isLoading ||
+      meetingData.status !== "recruiting" ||
+      (!isParticipant && !meetingData.canJoin) ||
+      (!isParticipant && seatsLeft <= 0)
+    );
   };
 
   return (
@@ -861,7 +1107,10 @@ export const MeetingDetailPage: React.FC = () => {
                   </HostName>
                   <Crown size={isMobile ? 12 : 14} color="#F59E0B" />
                   <HostLevel $isMobile={isMobile}>
-                    LV.{meetingData.host?.level || 1}
+                    {formatLevel(
+                      meetingData.host?.level,
+                      meetingData.host?.points
+                    ).toUpperCase()}
                   </HostLevel>
                 </div>
                 {meetingData.participantList?.find((p) => p.isHost)?.bio && (
@@ -991,21 +1240,6 @@ export const MeetingDetailPage: React.FC = () => {
                               QR 활성
                             </span>
                           )}
-
-                          <button
-                            onClick={handleMarkNoShow}
-                            style={{
-                              padding: "4px 8px",
-                              fontSize: "11px",
-                              backgroundColor: "#EF4444",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            노쇼 처리
-                          </button>
                         </div>
                       )}
 
@@ -1133,7 +1367,7 @@ export const MeetingDetailPage: React.FC = () => {
                 <Users size={20} />
                 <span>
                   현재 멤버 ({meetingData.currentParticipants || 0}/
-                  {meetingData.participants || 0})
+                  {meetingData.mission?.participants || 0})
                 </span>
               </DetailHeader>
               <DetailContent>
@@ -1144,91 +1378,100 @@ export const MeetingDetailPage: React.FC = () => {
                     gap: "4px",
                   }}
                 >
-                  {meetingData.participantList?.map((participant) => (
-                    <MemberItem key={participant.userId} $isMobile={isMobile}>
-                      <MemberAvatar
-                        $isMobile={isMobile}
-                        onClick={
-                          participant.userId &&
-                          participant.userId !== currentUserId
-                            ? () => navigate(`/user/${participant.userId}`)
-                            : undefined
-                        }
-                        style={{
-                          cursor:
+                  {meetingData.participantList &&
+                  meetingData.participantList.length > 0 ? (
+                    meetingData.participantList.map((participant) => (
+                      <MemberItem key={participant.userId} $isMobile={isMobile}>
+                        <MemberAvatar
+                          $isMobile={isMobile}
+                          onClick={
                             participant.userId &&
                             participant.userId !== currentUserId
-                              ? "pointer"
-                              : "default",
-                        }}
-                      >
-                        {participant.profileImageUrl ? (
-                          <img
-                            src={participant.profileImageUrl}
-                            alt={participant.nickname}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              borderRadius: "50%",
-                            }}
-                          />
-                        ) : (
-                          <User size={isMobile ? 16 : 18} />
-                        )}
-                      </MemberAvatar>
-                      <MemberInfo>
-                        <MemberName $isMobile={isMobile}>
-                          <span
-                            onClick={
+                              ? () => navigate(`/user/${participant.userId}`)
+                              : undefined
+                          }
+                          style={{
+                            cursor:
                               participant.userId &&
                               participant.userId !== currentUserId
-                                ? () => navigate(`/user/${participant.userId}`)
-                                : undefined
-                            }
-                            style={{
-                              color:
-                                participant.userId === currentUserId
-                                  ? "#3B82F6"
-                                  : "inherit",
-                              cursor:
+                                ? "pointer"
+                                : "default",
+                          }}
+                        >
+                          {participant.profileImageUrl ? (
+                            <img
+                              src={participant.profileImageUrl}
+                              alt={participant.nickname}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "50%",
+                              }}
+                            />
+                          ) : (
+                            <User size={isMobile ? 16 : 18} />
+                          )}
+                        </MemberAvatar>
+                        <MemberInfo>
+                          <MemberName $isMobile={isMobile}>
+                            <span
+                              onClick={
                                 participant.userId &&
                                 participant.userId !== currentUserId
-                                  ? "pointer"
-                                  : "default",
-                            }}
-                          >
-                            {participant.nickname}
-                          </span>
-                          {participant.isHost && (
-                            <HostBadge $isMobile={isMobile}>
-                              <Crown size={12} />
-                            </HostBadge>
-                          )}
-                          {participant.userId === currentUserId && (
-                            <span
+                                  ? () =>
+                                      navigate(`/user/${participant.userId}`)
+                                  : undefined
+                              }
                               style={{
-                                fontSize: isMobile ? "10px" : "11px",
-                                color: "#3B82F6",
-                                fontWeight: "600",
-                                marginLeft: "6px",
-                                background: "rgba(59, 130, 246, 0.1)",
-                                padding: "2px 6px",
-                                borderRadius: "4px",
+                                color:
+                                  participant.userId === currentUserId
+                                    ? "#3B82F6"
+                                    : "inherit",
+                                cursor:
+                                  participant.userId &&
+                                  participant.userId !== currentUserId
+                                    ? "pointer"
+                                    : "default",
                               }}
                             >
-                              나
+                              {participant.nickname}
                             </span>
-                          )}
-                        </MemberName>
-                        <MemberDetails $isMobile={isMobile}>
-                          <MemberLevel>LV.{participant.level}</MemberLevel>
-                          {participant.mbti && (
-                            <MemberMBTI>{participant.mbti}</MemberMBTI>
-                          )}
-                        </MemberDetails>
-                      </MemberInfo>
-                    </MemberItem>
-                  )) || (
+                            {participant.isHost && (
+                              <HostBadge $isMobile={isMobile}>
+                                <Crown size={12} />
+                              </HostBadge>
+                            )}
+                            {participant.userId === currentUserId && (
+                              <span
+                                style={{
+                                  fontSize: isMobile ? "10px" : "11px",
+                                  color: "#3B82F6",
+                                  fontWeight: "600",
+                                  marginLeft: "6px",
+                                  background: "rgba(59, 130, 246, 0.1)",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                }}
+                              >
+                                나
+                              </span>
+                            )}
+                          </MemberName>
+                          <MemberDetails $isMobile={isMobile}>
+                            <MemberLevel>
+                              {formatLevel(
+                                participant.level,
+                                participant.points
+                              ).toUpperCase()}
+                            </MemberLevel>
+                            {participant.mbti && (
+                              <MemberMBTI>{participant.mbti}</MemberMBTI>
+                            )}
+                          </MemberDetails>
+                        </MemberInfo>
+                      </MemberItem>
+                    ))
+                  ) : (
                     <div style={{ color: "#6B7280", fontSize: "14px" }}>
                       참여자가 없습니다.
                     </div>
@@ -1356,7 +1599,7 @@ export const MeetingDetailPage: React.FC = () => {
             <BottomActionSection $isMobile={isMobile}>
               <PrimaryAction
                 onClick={handleJoin}
-                disabled={isLoading}
+                disabled={isJoinButtonDisabled()}
                 $isMobile={isMobile}
                 $isCancel={isParticipant}
               >
@@ -1383,7 +1626,7 @@ export const MeetingDetailPage: React.FC = () => {
             </div>
             <PrimaryAction
               onClick={handleJoin}
-              disabled={isLoading}
+              disabled={isJoinButtonDisabled()}
               $isMobile={isMobile}
               $isCancel={isParticipant}
             >
@@ -1403,6 +1646,16 @@ export const MeetingDetailPage: React.FC = () => {
         confirmText="확인"
       />
 
+      {/* 커스텀 알림 모달 */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={closeAlert}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        confirmText="확인"
+      />
+
       {/* 모임 참여 모달 */}
       {meetingData && (
         <MeetingJoinModal
@@ -1413,13 +1666,16 @@ export const MeetingDetailPage: React.FC = () => {
             title: meetingData.mission?.title || "모임",
             requiredPoints: meetingData.mission?.basePoints || 0,
             currentParticipants: meetingData.participantList?.length || 0,
-            maxParticipants: meetingData.participants || 4,
+            maxParticipants: meetingData.mission?.participants || 4,
             scheduledAt: (() => {
               console.log("모임 데이터 scheduledAt:", meetingData.scheduledAt);
               if (!meetingData.scheduledAt) return "날짜 정보 없음";
               if (typeof meetingData.scheduledAt === "string")
                 return meetingData.scheduledAt;
-              const scheduledAtObj = meetingData.scheduledAt as { date?: string; time?: string };
+              const scheduledAtObj = meetingData.scheduledAt as {
+                date?: string;
+                time?: string;
+              };
               if (scheduledAtObj?.date && scheduledAtObj?.time) {
                 return `${scheduledAtObj.date} ${scheduledAtObj.time}`;
               }
@@ -1427,9 +1683,9 @@ export const MeetingDetailPage: React.FC = () => {
             })(),
             isHost: meetingData.hostUserId === currentUserId,
           }}
-          onSuccess={() => {
-            // 참여 성공 후 페이지 새로고침
-            window.location.reload();
+          onSuccess={async () => {
+            // 참여 성공 후 데이터 새로고침
+            await fetchMeetingDetail();
           }}
         />
       )}

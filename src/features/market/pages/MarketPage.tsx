@@ -1,76 +1,40 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import {
-  ShoppingCart,
   Coffee,
-  Film,
-  Gift,
-  Plane,
-  CreditCard,
-  Smartphone,
-  Gem,
-  Target,
-  Coins,
+  ShoppingCart,
+  Pizza,
+  Zap,
   ShoppingBag,
 } from "lucide-react";
-import { ServiceCard } from "../../../shared/components/ui/ServiceCard";
 import { deviceDetection } from "../../../shared/utils/deviceDetection";
+import { useGiftCards } from "../hooks/useGiftCards";
+
+enum GiftCardCategory {
+  COFFEE_BEVERAGE = "coffee_beverage",
+  CHICKEN = "chicken",
+  FAST_FOOD = "fast_food",
+  CONVENIENCE = "convenience",
+}
+import { GiftCardList } from "../components/GiftCardList";
 
 const PageContainer = styled.div<{ $isMobile?: boolean }>`
   width: 100%;
   margin: 0 auto;
 `;
 
-const PointsCard = styled.div<{ $isMobile?: boolean }>`
-  background: linear-gradient(
-    135deg,
-    ${({ theme }) => theme.colors.primary},
-    ${({ theme }) => theme.colors.gray400}
-  );
-  color: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
-  padding: ${({ $isMobile }) => ($isMobile ? "24px 20px" : "32px 28px")};
+const BannerContainer = styled.div<{ $isMobile?: boolean }>`
+  width: 100%;
   margin-bottom: ${({ $isMobile }) => ($isMobile ? "24px" : "32px")};
-  text-align: center;
 `;
 
-const PointsIcon = styled.div<{ $isMobile?: boolean }>`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  color: ${({ theme }) => theme.colors.white};
+const BannerImage = styled.img<{ $isMobile?: boolean }>`
+  width: 100%;
+  height: auto;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  display: block;
 `;
 
-const PointsTitle = styled.h2<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "20px" : "22px")};
-  font-weight: 700;
-  margin: 0 0 20px 0;
-  opacity: 0.9;
-`;
-
-const PointsGrid = styled.div<{ $isMobile?: boolean }>`
-  display: grid;
-  grid-template-columns: ${({ $isMobile }) =>
-    $isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)"};
-  gap: ${({ $isMobile }) => ($isMobile ? "16px" : "24px")};
-`;
-
-const PointsItem = styled.div`
-  text-align: center;
-`;
-
-const PointsValue = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
-  font-weight: 700;
-  margin-bottom: 4px;
-`;
-
-const PointsLabel = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
-  opacity: 0.8;
-  font-weight: 500;
-`;
 
 const CategoriesCard = styled.div<{ $isMobile?: boolean }>`
   background: ${({ theme }) => theme.colors.white};
@@ -94,9 +58,15 @@ const CategoriesGrid = styled.div<{ $isMobile?: boolean }>`
   gap: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
 `;
 
-const CategoryItem = styled.button<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.gray50};
-  border: 1px solid ${({ theme }) => theme.colors.border};
+const CategoryItem = styled.button<{
+  $isMobile?: boolean;
+  $isSelected?: boolean;
+}>`
+  background: ${({ theme, $isSelected }) =>
+    $isSelected ? theme.colors.primary : theme.colors.gray50};
+  border: 1px solid
+    ${({ theme, $isSelected }) =>
+      $isSelected ? theme.colors.primary : theme.colors.border};
   border-radius: ${({ theme }) => theme.borderRadius.md};
   padding: ${({ $isMobile }) => ($isMobile ? "16px 12px" : "20px 16px")};
   display: flex;
@@ -106,47 +76,41 @@ const CategoryItem = styled.button<{ $isMobile?: boolean }>`
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   outline: none;
+  color: ${({ theme, $isSelected }) =>
+    $isSelected ? theme.colors.white : theme.colors.text.primary};
 
   &:hover {
-    background: ${({ theme }) => theme.colors.gray100};
+    background: ${({ theme, $isSelected }) =>
+      $isSelected ? theme.colors.primary : theme.colors.gray100};
   }
 
   &:focus {
-    background: ${({ theme }) => theme.colors.gray100};
+    background: ${({ theme, $isSelected }) =>
+      $isSelected ? theme.colors.primary : theme.colors.gray100};
   }
 
   &:active {
-    background: ${({ theme }) => theme.colors.gray500};
-    color: ${({ theme }) => theme.colors.white};
     transform: scale(0.98);
   }
 `;
 
-const CategoryIcon = styled.div<{ $isMobile?: boolean }>`
+const CategoryIcon = styled.div<{ $isMobile?: boolean; $isSelected?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme, $isSelected }) =>
+    $isSelected ? theme.colors.white : theme.colors.text.primary};
 `;
 
-const CategoryLabel = styled.span<{ $isMobile?: boolean }>`
+const CategoryLabel = styled.span<{
+  $isMobile?: boolean;
+  $isSelected?: boolean;
+}>`
   font-size: ${({ $isMobile }) => ($isMobile ? "12px" : "13px")};
   font-weight: 500;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme, $isSelected }) =>
+    $isSelected ? theme.colors.white : theme.colors.text.primary};
   text-align: center;
-`;
-
-const ServicesSection = styled.section<{ $isMobile?: boolean }>`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ $isMobile }) => ($isMobile ? "16px" : "20px")};
-`;
-
-const SectionTitle = styled.h2<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "18px" : "20px")};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 16px 0;
 `;
 
 const EmptyState = styled.div<{ $isMobile?: boolean }>`
@@ -169,12 +133,22 @@ const EmptyText = styled.p<{ $isMobile?: boolean }>`
 `;
 
 export const MarketPage: React.FC = () => {
-  const [isMobile, setIsMobile] = React.useState(deviceDetection.isMobile());
-  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
-    null
+  const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
+  const [selectedCategory, setSelectedCategory] = useState<GiftCardCategory>(
+    GiftCardCategory.COFFEE_BEVERAGE
   );
 
-  React.useEffect(() => {
+  // 기프티콘 데이터 가져오기
+  const {
+    giftCards,
+    isLoading: isLoadingGiftCards,
+    error,
+  } = useGiftCards({
+    category: selectedCategory,
+    limit: 20,
+  });
+
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(deviceDetection.isMobile());
     };
@@ -183,71 +157,53 @@ export const MarketPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const userPoints = {
-    current: 2850,
-    earned: 3200,
-    spent: 350,
-  };
 
   const categories = [
-    { icon: ShoppingCart, label: "음식" },
-    { icon: Coffee, label: "카페" },
-    { icon: Film, label: "영화" },
-    { icon: Gift, label: "선물" },
-    { icon: Plane, label: "여행" },
-    { icon: CreditCard, label: "금융" },
-    { icon: Smartphone, label: "디지털" },
-    { icon: Gem, label: "프리미엄" },
+    {
+      icon: Coffee,
+      label: "커피/음료",
+      value: GiftCardCategory.COFFEE_BEVERAGE,
+    },
+    { icon: Pizza, label: "치킨", value: GiftCardCategory.CHICKEN },
+    { icon: Zap, label: "패스트푸드", value: GiftCardCategory.FAST_FOOD },
+    {
+      icon: ShoppingCart,
+      label: "편의점",
+      value: GiftCardCategory.CONVENIENCE,
+    },
   ];
 
-  const handleCategoryClick = (category: string) => {
+  const handleCategoryClick = (category: GiftCardCategory) => {
     setSelectedCategory(category);
   };
 
   return (
     <PageContainer $isMobile={isMobile}>
-      <PointsCard $isMobile={isMobile}>
-        <PointsIcon $isMobile={isMobile}>
-          <Coins size={isMobile ? 48 : 56} />
-        </PointsIcon>
-        <PointsTitle $isMobile={isMobile}>내 포인트 현황</PointsTitle>
-        <PointsGrid $isMobile={isMobile}>
-          <PointsItem>
-            <PointsValue $isMobile={isMobile}>
-              {userPoints.current.toLocaleString()}P
-            </PointsValue>
-            <PointsLabel $isMobile={isMobile}>보유 포인트</PointsLabel>
-          </PointsItem>
-          <PointsItem>
-            <PointsValue $isMobile={isMobile}>
-              {userPoints.earned.toLocaleString()}P
-            </PointsValue>
-            <PointsLabel $isMobile={isMobile}>총 획득</PointsLabel>
-          </PointsItem>
-          <PointsItem>
-            <PointsValue $isMobile={isMobile}>
-              {userPoints.spent.toLocaleString()}P
-            </PointsValue>
-            <PointsLabel $isMobile={isMobile}>총 사용</PointsLabel>
-          </PointsItem>
-        </PointsGrid>
-      </PointsCard>
-
+      <BannerContainer $isMobile={isMobile}>
+        <BannerImage 
+          src="/src/assets/images/banner_860x480.jpg" 
+          alt="포인트마켓 배너"
+          $isMobile={isMobile}
+        />
+      </BannerContainer>
+      
       <CategoriesCard $isMobile={isMobile}>
         <CategoriesTitle $isMobile={isMobile}>카테고리</CategoriesTitle>
         <CategoriesGrid $isMobile={isMobile}>
           {categories.map((category, index) => {
             const IconComponent = category.icon;
+            const isSelected = selectedCategory === category.value;
             return (
               <CategoryItem
                 key={index}
                 $isMobile={isMobile}
-                onClick={() => handleCategoryClick(category.label)}
+                $isSelected={isSelected}
+                onClick={() => handleCategoryClick(category.value)}
               >
-                <CategoryIcon $isMobile={isMobile}>
+                <CategoryIcon $isMobile={isMobile} $isSelected={isSelected}>
                   <IconComponent size={isMobile ? 20 : 24} />
                 </CategoryIcon>
-                <CategoryLabel $isMobile={isMobile}>
+                <CategoryLabel $isMobile={isMobile} $isSelected={isSelected}>
                   {category.label}
                 </CategoryLabel>
               </CategoryItem>
@@ -256,48 +212,21 @@ export const MarketPage: React.FC = () => {
         </CategoriesGrid>
       </CategoriesCard>
 
-      {selectedCategory && (
+      {/* 기프티콘 목록 */}
+      <GiftCardList
+        giftCards={giftCards}
+        isLoading={isLoadingGiftCards}
+        isMobile={isMobile}
+      />
+
+      {error && (
         <EmptyState $isMobile={isMobile}>
           <EmptyIcon $isMobile={isMobile}>
             <ShoppingBag size={isMobile ? 48 : 64} />
           </EmptyIcon>
-          <EmptyText $isMobile={isMobile}>
-            {selectedCategory} 카테고리에 상품이 없습니다.
-          </EmptyText>
+          <EmptyText $isMobile={isMobile}>{error}</EmptyText>
         </EmptyState>
       )}
-
-      <ServicesSection $isMobile={isMobile}>
-        <SectionTitle $isMobile={isMobile}>포인트 서비스</SectionTitle>
-
-        <ServiceCard
-          icon={<Target size={20} />}
-          title="목표 달성 보너스"
-          description="월간 목표를 달성하면 추가 포인트를 받을 수 있습니다. 꾸준한 활동으로 더 많은 혜택을 누려보세요."
-          actions={[
-            {
-              label: "목표 설정하기",
-              onClick: () => alert("목표 설정 기능을 준비 중입니다."),
-              variant: "primary",
-            },
-          ]}
-          isMobile={isMobile}
-        />
-
-        <ServiceCard
-          icon={<CreditCard size={20} />}
-          title="포인트 충전"
-          description="추가 포인트가 필요하신가요? 다양한 방법으로 포인트를 충전할 수 있습니다."
-          actions={[
-            {
-              label: "충전하기",
-              onClick: () => alert("포인트 충전 기능을 준비 중입니다."),
-              variant: "secondary",
-            },
-          ]}
-          isMobile={isMobile}
-        />
-      </ServicesSection>
     </PageContainer>
   );
 };

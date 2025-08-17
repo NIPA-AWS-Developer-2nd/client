@@ -40,7 +40,7 @@ const Button = styled.button<{
     padding: 10px 6px;
   }
 
-  ${({ $provider, theme }) => {
+  ${({ $provider }) => {
     switch ($provider) {
       case "apple":
         return `
@@ -56,7 +56,7 @@ const Button = styled.button<{
         return `
           background-color: #FFFFFF;
           color: #000000;
-          border: 1.5px solid ${theme.colors.border};
+          border: 1.5px solid #d1d5db;
         `;
       case "naver":
         return `
@@ -68,15 +68,6 @@ const Button = styled.button<{
     }
   }}
 
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-
-  @media (hover: none) and (pointer: coarse) {
-    &:hover:not(:active) {
-      transform: none !important;
-    }
-  }
 
   &:active {
     transform: translateY(0) scale(0.98);

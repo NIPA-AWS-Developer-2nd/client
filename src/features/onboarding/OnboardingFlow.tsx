@@ -25,20 +25,20 @@ const ModalOverlay = styled.div`
   justify-content: center;
   z-index: 9999;
   padding: 20px;
-  overflow-y: auto;
+  overflow: visible;
 `;
 
 const ModalContent = styled.div`
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
-  background: ${({ theme }) => theme.colors.background};
+  background: ${({ theme }) => theme.colors.white};
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 
   @media (max-width: 768px) {
     max-width: 95vw;
@@ -114,7 +114,7 @@ const ProgressDot = styled.div<{ $active: boolean; $completed: boolean }>`
 const Content = styled.main`
   flex: 1;
   padding: 24px;
-  overflow-y: auto;
+  overflow-y: visible;
   min-height: 0;
 `;
 

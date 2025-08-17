@@ -13,18 +13,21 @@ import {
   Target,
   Crown,
 } from "lucide-react";
-import { deviceDetection } from "../../../shared/utils";
+import { deviceDetection, formatLevel } from "../../../shared/utils";
 import { useHomeData } from "../hooks";
 import { useHomeStore } from "../../../shared/store/homeStore";
 import { homeApi } from "../api/homeApi";
 import { HomeSkeleton } from "../components/HomeSkeleton";
 import { useAlert } from "../../../shared/hooks/useAlert";
+import mainBannerImage from "../../../assets/images/main-banner_800x300.png";
 import {
   PageContainer,
   ContentContainer,
   ErrorContainer,
   ErrorText,
   RetryButton,
+  BannerSection,
+  BannerImage,
   Section,
   SectionTitle,
   SectionContent,
@@ -109,6 +112,7 @@ interface HotMeetingType {
     nickname: string;
     profileImageUrl?: string;
     level: number;
+    points?: number;
     mbti?: string;
     bio?: string;
   };
@@ -271,10 +275,19 @@ export const HomePage: React.FC = () => {
   }): MyMeetingTab => {
     const raw = (m.status || "").toLowerCase();
 
-    // 1) 서버가 active라고 주면 그대로 신뢰
+    // 1) 서버가 completed라고 주면 그대로 신뢰 (최우선)
+    if (raw === "completed") return "completed";
+
+    // 2) 서버가 active라고 주면 그대로 신뢰
     if (raw === "active") return "active";
 
-    // 2) 시간 기반 판정
+    // 3) 서버가 ready라고 주면 그대로 신뢰
+    if (raw === "ready") return "ready";
+
+    // 4) 서버가 recruiting라고 주면 그대로 신뢰
+    if (raw === "recruiting") return "recruiting";
+
+    // 5) 서버 상태가 없거나 알 수 없는 경우에만 시간 기반 판정
     const now = Date.now();
     const sch = m?.scheduledAt ? Date.parse(m.scheduledAt) : NaN;
     const rec = m?.recruitUntil ? Date.parse(m.recruitUntil) : NaN;
@@ -352,6 +365,18 @@ export const HomePage: React.FC = () => {
   return (
     <PageContainer $isMobile={isMobile}>
       <ContentContainer $isMobile={isMobile}>
+        {/* 메인 배너 */}
+        <BannerSection $isMobile={isMobile}>
+          <BannerImage
+            $isMobile={isMobile}
+            src={mainBannerImage}
+            alt="할사람 메인 배너"
+            onClick={() => {
+              // 필요시 배너 클릭 이벤트 처리
+            }}
+          />
+        </BannerSection>
+
         {/* 최근 활동 */}
         <Section $isMobile={isMobile}>
           <SectionTitle $isMobile={isMobile}>
@@ -796,7 +821,12 @@ export const HomePage: React.FC = () => {
                                   {meeting.host.nickname}
                                 </HostName>
                                 <HostLevel $isMobile={isMobile}>
-                                  Lv.{meeting.host.level || 1}
+                                  {meeting.host.points !== undefined
+                                    ? formatLevel(
+                                        meeting.host.level,
+                                        meeting.host.points
+                                      )
+                                    : `Lv.${meeting.host.level || 1}`}
                                 </HostLevel>
                                 {meeting.host.mbti && (
                                   <HostMbti $isMobile={isMobile}>

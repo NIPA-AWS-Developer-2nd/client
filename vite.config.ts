@@ -44,6 +44,40 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        // 백엔드 API 엔드포인트들 (HTML 요청은 제외)
+        "^/meetings(?!\\?.*$)": {
+          target: apiBaseUrl,
+          changeOrigin: true,
+          secure: false,
+          bypass: (req) => {
+            // Accept 헤더가 text/html이면 React 라우팅으로 처리
+            if (req.headers.accept?.includes('text/html')) {
+              return '/index.html';
+            }
+          },
+        },
+        "/missions": {
+          target: apiBaseUrl,
+          changeOrigin: true,
+          secure: false,
+          bypass: (req) => {
+            // Accept 헤더가 text/html이면 React 라우팅으로 처리
+            if (req.headers.accept?.includes('text/html')) {
+              return '/index.html';
+            }
+          },
+        },
+        "/users": {
+          target: apiBaseUrl,
+          changeOrigin: true,
+          secure: false,
+          bypass: (req) => {
+            // Accept 헤더가 text/html이면 React 라우팅으로 처리
+            if (req.headers.accept?.includes('text/html')) {
+              return '/index.html';
+            }
+          },
+        },
         // 특정 auth 엔드포인트만 백엔드로 프록시 (/auth/success는 제외)
         "^/auth/(?!success|callback).*": {
           target: apiBaseUrl,

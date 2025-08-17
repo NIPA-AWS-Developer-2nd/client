@@ -8,9 +8,7 @@ import {
   Trophy,
   Edit2,
   Heart,
-  Award,
   MessageSquare,
-  Star,
   User as UserIcon,
   Hash,
   Gift,
@@ -122,6 +120,11 @@ const BioSection = styled.div<{ $isMobile?: boolean }>`
   align-items: flex-start;
   justify-content: center;
   gap: 8px;
+  max-width: ${({ $isMobile }) => ($isMobile ? "280px" : "400px")};
+  margin-left: auto;
+  margin-right: auto;
+  word-break: keep-all;
+  text-align: center;
 `;
 
 const RewardSection = styled.div<{ $isMobile?: boolean }>`
@@ -406,76 +409,6 @@ const CategoryTag = styled.div<{ $isMobile?: boolean }>`
   }
 `;
 
-const AchievementSection = styled.div<{ $isMobile?: boolean }>`
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: ${({ theme }) => theme.borderRadius.lg};
-  padding: ${({ $isMobile }) => ($isMobile ? "24px 20px" : "32px 24px")};
-  margin-bottom: ${({ $isMobile }) => ($isMobile ? "20px" : "24px")};
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
-`;
-
-const AchievementTitle = styled.h3<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "14px" : "16px")};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const AchievementGrid = styled.div<{ $isMobile?: boolean }>`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
-`;
-
-const AchievementItem = styled.div<{
-  $isMobile?: boolean;
-  $achieved?: boolean;
-}>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: ${({ $isMobile }) => ($isMobile ? "12px" : "16px")};
-  background: ${({ $achieved, theme }) =>
-    $achieved ? theme.colors.primary + "10" : theme.colors.white};
-  border: 1px solid
-    ${({ $achieved, theme }) =>
-      $achieved ? theme.colors.primary + "30" : theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.md};
-  transition: ${({ theme }) => theme.transitions.fast};
-  cursor: pointer;
-  box-shadow: ${({ theme }) => theme.shadows.sm};
-`;
-
-const AchievementIcon = styled.div<{ $achieved?: boolean }>`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: ${({ $achieved, theme }) =>
-    $achieved ? theme.colors.primary : theme.colors.gray200};
-  color: ${({ $achieved, theme }) =>
-    $achieved ? theme.colors.white : theme.colors.text.secondary};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-`;
-
-const AchievementName = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "11px" : "12px")};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
-  text-align: center;
-  margin-bottom: 2px;
-`;
-
-const AchievementDesc = styled.div<{ $isMobile?: boolean }>`
-  font-size: ${({ $isMobile }) => ($isMobile ? "10px" : "11px")};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  text-align: center;
-`;
 
 export const MyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -730,47 +663,6 @@ export const MyPage: React.FC = () => {
           </ActivityGrid>
         </ActivitySection>
 
-        {/* 업적 섹션 스켈레톤 */}
-        <AchievementSection $isMobile={isMobile}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "16px",
-            }}
-          >
-            <Skeleton width="18px" height="18px" />
-            <Skeleton width="120px" height="16px" />
-          </div>
-          <AchievementGrid $isMobile={isMobile}>
-            {Array(6)
-              .fill(0)
-              .map((_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    padding: isMobile ? "12px" : "16px",
-                    background: "white",
-                    borderRadius: "8px",
-                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                  }}
-                >
-                  <Skeleton
-                    width="40px"
-                    height="40px"
-                    borderRadius="50%"
-                    marginBottom="8px"
-                  />
-                  <Skeleton width="50px" height="12px" marginBottom="2px" />
-                  <Skeleton width="60px" height="11px" />
-                </div>
-              ))}
-          </AchievementGrid>
-        </AchievementSection>
       </PageContainer>
     );
   }
@@ -847,51 +739,6 @@ export const MyPage: React.FC = () => {
     return Math.max(0, nextLevelInfo.requiredPoints - userInfo.profile.points);
   };
 
-  // 업적 데이터
-  const achievements = [
-    {
-      id: 1,
-      name: "첫 모임",
-      desc: "첫 모임 참여",
-      icon: Users,
-      achieved: true,
-    },
-    {
-      id: 2,
-      name: "인증 마스터",
-      desc: "10회 인증",
-      icon: CheckCircle,
-      achieved: true,
-    },
-    {
-      id: 3,
-      name: "리뷰왕",
-      desc: "5개 리뷰 작성",
-      icon: Star,
-      achieved: true,
-    },
-    {
-      id: 4,
-      name: "모임 호스트",
-      desc: "첫 모임 주최",
-      icon: Trophy,
-      achieved: true,
-    },
-    {
-      id: 5,
-      name: "활발한 참여자",
-      desc: "20회 모임 참여",
-      icon: Users,
-      achieved: false,
-    },
-    {
-      id: 6,
-      name: "인기 호스트",
-      desc: "10회 모임 주최",
-      icon: Award,
-      achieved: false,
-    },
-  ];
 
   return (
     <PageContainer $isMobile={isMobile}>
@@ -1104,34 +951,6 @@ export const MyPage: React.FC = () => {
         </ActivityGrid>
       </ActivitySection>
 
-      <AchievementSection $isMobile={isMobile}>
-        <AchievementTitle $isMobile={isMobile}>
-          <Award size={isMobile ? 16 : 18} />
-          업적 (임시 데이터)
-        </AchievementTitle>
-        <AchievementGrid $isMobile={isMobile}>
-          {achievements.map((achievement) => {
-            const IconComponent = achievement.icon;
-            return (
-              <AchievementItem
-                key={achievement.id}
-                $isMobile={isMobile}
-                $achieved={achievement.achieved}
-              >
-                <AchievementIcon $achieved={achievement.achieved}>
-                  <IconComponent size={20} />
-                </AchievementIcon>
-                <AchievementName $isMobile={isMobile}>
-                  {achievement.name}
-                </AchievementName>
-                <AchievementDesc $isMobile={isMobile}>
-                  {achievement.desc}
-                </AchievementDesc>
-              </AchievementItem>
-            );
-          })}
-        </AchievementGrid>
-      </AchievementSection>
 
       {/* 프로필 편집 모달 */}
       <ProfileEditModal

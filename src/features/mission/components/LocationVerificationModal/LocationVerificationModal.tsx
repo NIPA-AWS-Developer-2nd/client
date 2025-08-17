@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, CheckCircle, XCircle } from "lucide-react";
+import { MapPin, CheckCircle, XCircle, Lock } from "lucide-react";
 import * as S from "./LocationVerificationModal.styles";
 import {
   userApiService,
@@ -271,7 +271,7 @@ export const LocationVerificationModal: React.FC<
   const loadDistricts = async () => {
     try {
       setIsLoadingDistricts(true);
-      const districtList = await userApiService.getActiveDistricts();
+      const districtList = await userApiService.getDistricts();
       setDistricts(districtList);
     } catch (error) {
       console.error("지역 목록 로드 실패:", error);
@@ -281,6 +281,7 @@ export const LocationVerificationModal: React.FC<
   };
 
   const handleDistrictSelect = (district: District) => {
+    if (!district.isActive) return; // 비활성화된 지역은 선택 불가
     setSelectedDistrict(district);
   };
 
@@ -350,10 +351,11 @@ export const LocationVerificationModal: React.FC<
                   <S.DistrictButton
                     key={district.id}
                     $selected={selectedDistrict?.id === district.id}
+                    $disabled={!district.isActive}
                     onClick={() => handleDistrictSelect(district)}
                   >
                     <S.DistrictIcon>
-                      <MapPin size={20} />
+                      {district.isActive ? <MapPin size={20} /> : <Lock size={20} />}
                     </S.DistrictIcon>
                     <S.DistrictName>{district.districtName}</S.DistrictName>
                   </S.DistrictButton>

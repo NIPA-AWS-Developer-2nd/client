@@ -49,8 +49,9 @@ const LoginButtonsContainer = styled.div`
   @media (max-width: 768px) {
     flex-direction: row;
     justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
+    gap: 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
   }
 `;
 
@@ -103,7 +104,7 @@ const CloseButton = styled.button`
   justify-content: center;
   position: absolute;
   right: 12px;
-  
+
   &:hover {
     opacity: 0.7;
   }
@@ -120,21 +121,27 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
   // URL 파라미터에서 OAuth 에러 확인
   useEffect(() => {
-    const error = searchParams.get('error');
+    const error = searchParams.get("error");
     if (error) {
       const errorMessages: Record<string, string> = {
-        'google_auth_failed': '구글 로그인 인증에 실패했습니다.',
-        'google_login_failed': '서버 측에서 예상치 못한 문제가 발생하여 구글 로그인을 완료할 수 없습니다.',
-        'kakao_auth_failed': '카카오 로그인 인증에 실패했습니다.',
-        'kakao_login_failed': '서버 측에서 예상치 못한 문제가 발생하여 카카오 로그인을 완료할 수 없습니다.',
-        'naver_auth_failed': '네이버 로그인 인증에 실패했습니다.',
-        'naver_login_failed': '서버 측에서 예상치 못한 문제가 발생하여 네이버 로그인을 완료할 수 없습니다.',
+        google_auth_failed: "구글 로그인 인증에 실패했습니다.",
+        google_login_failed:
+          "서버 측에서 예상치 못한 문제가 발생하여 구글 로그인을 완료할 수 없습니다.",
+        kakao_auth_failed: "카카오 로그인 인증에 실패했습니다.",
+        kakao_login_failed:
+          "서버 측에서 예상치 못한 문제가 발생하여 카카오 로그인을 완료할 수 없습니다.",
+        naver_auth_failed: "네이버 로그인 인증에 실패했습니다.",
+        naver_login_failed:
+          "서버 측에서 예상치 못한 문제가 발생하여 네이버 로그인을 완료할 수 없습니다.",
       };
-      
-      setErrorMessage(errorMessages[error] || '로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
-      
+
+      setErrorMessage(
+        errorMessages[error] ||
+          "로그인 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
+
       // URL에서 error 파라미터 제거
-      searchParams.delete('error');
+      searchParams.delete("error");
       setSearchParams(searchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -151,34 +158,35 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleTestLogin = async () => {
+  const handleTestLogin = async (nickname: string) => {
     try {
       // 백엔드에서 쿠키를 설정하고 리다이렉트를 처리하므로 일반적인 POST 요청 사용
-      const response = await fetch(apiUrl('/auth/dev-token'), {
-        method: 'POST',
+      const response = await fetch(apiUrl("/auth/dev-token"), {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nickname: '테스트계정' }),
-        credentials: 'include', // 쿠키 포함
+        body: JSON.stringify({ nickname }),
+        credentials: "include", // 쿠키 포함
       });
 
       // JSON 응답 처리
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ 테스트 로그인 성공:', result);
-        
+        console.log("✅ 테스트 로그인 성공:", result);
+
         // 서버에서 받은 redirectUrl로 이동
-        window.location.href = result.redirectUrl || '/auth/success';
+        window.location.href = result.redirectUrl || "/auth/success";
       } else {
-        throw new Error('테스트 로그인 실패');
+        throw new Error("테스트 로그인 실패");
       }
     } catch (error) {
-      console.error('Test login failed:', error);
-      setErrorMessage('서버 측에서 예상치 못한 문제가 발생하여 테스트 로그인을 완료할 수 없습니다.');
+      console.error("Test login failed:", error);
+      setErrorMessage(
+        "서버 측에서 예상치 못한 문제가 발생하여 테스트 로그인을 완료할 수 없습니다."
+      );
     }
   };
-
 
   // 이미 로그인된 경우 홈으로 리다이렉트
   if (isAuthenticated && user) {
@@ -206,8 +214,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
         <LoginButtonsContainer>
           <TestLoginButton
-            onClick={handleTestLogin}
+            onClick={() => handleTestLogin("무서운고구마")}
             disabled={isLoading}
+            label="테스트로 계속하기"
+            icon="T1"
+          />
+          <TestLoginButton
+            onClick={() => handleTestLogin("겁없는감자")}
+            disabled={isLoading}
+            label="테스트로 계속하기"
+            icon="T2"
           />
           <SocialLoginButton
             provider="kakao"

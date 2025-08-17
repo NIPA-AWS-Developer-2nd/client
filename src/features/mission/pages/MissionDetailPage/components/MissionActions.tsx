@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import type { MissionActionsProps } from "../types";
-// import missionGuideImage from "../../../../../assets/images/mission-guide.png"; // Removed hardcoded image
+import missionGuideImage from "../../../../../assets/images/mission-guide.png";
 import { meetingApiService } from "../../../../../shared/services";
 import { MeetingMapper } from "../../../../../shared/services/meetingMapper";
 import MeetingCard from "../../../../meeting/components/MeetingCard";
@@ -199,18 +199,12 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
   if (mission.isCompleted) {
     return (
       <ActionSection $isMobile={isMobile}>
-        {mission.context?.photoGuide && (
-          <ActionImage
-            $isMobile={isMobile}
-            src={mission.context.photoGuide}
-            alt="미션 완료"
-            loading="lazy"
-            onError={(e) => {
-              console.log("Guide image failed to load:", mission.context?.photoGuide);
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        )}
+        <ActionImage
+          $isMobile={isMobile}
+          src={missionGuideImage}
+          alt="미션 완료"
+          loading="lazy"
+        />
         <ActionTitle $isMobile={isMobile}>미션을 완료했어요! 🎉</ActionTitle>
         <ActionDescription $isMobile={isMobile}>
           축하합니다! 이미 완료한 미션입니다.
@@ -223,18 +217,12 @@ export const MissionActions: React.FC<MissionActionsProps> = ({
 
   return (
     <ActionSection $isMobile={isMobile}>
-      {mission.context?.photoGuide && (
-        <ActionImage
-          $isMobile={isMobile}
-          src={mission.context.photoGuide}
-          alt="미션 가이드"
-          loading="lazy"
-          onError={(e) => {
-            console.log("Guide image failed to load:", mission.context?.photoGuide);
-            e.currentTarget.style.display = "none";
-          }}
-        />
-      )}
+      <ActionImage
+        $isMobile={isMobile}
+        src={missionGuideImage}
+        alt="미션 가이드"
+        loading="lazy"
+      />
       <ActionTitle $isMobile={isMobile}>
         이 미션, 함께 도전해볼까요?
       </ActionTitle>

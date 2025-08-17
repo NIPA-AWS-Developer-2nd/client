@@ -4,6 +4,9 @@ import styled from "styled-components";
 interface TestLoginButtonProps {
   onClick: () => void;
   disabled?: boolean;
+  label?: string;
+  description?: string;
+  icon?: string;
 }
 
 const Button = styled.button<{
@@ -36,15 +39,6 @@ const Button = styled.button<{
     padding: 10px 6px;
   }
 
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-
-  @media (hover: none) and (pointer: coarse) {
-    &:hover:not(:active) {
-      transform: none !important;
-    }
-  }
 
   &:active {
     transform: translateY(0) scale(0.98);
@@ -71,20 +65,53 @@ const Icon = styled.div`
   }
 `;
 
-const ButtonText = styled.span`
+const TextContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  
   @media (max-width: 768px) {
     display: none;
+  }
+`;
+
+const ButtonText = styled.span`
+  font-size: 16px;
+  font-weight: 600;
+  
+  @media (max-width: 768px) {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+`;
+
+const Description = styled.span`
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.8;
+  
+  @media (max-width: 768px) {
+    font-size: 7px;
+    line-height: 1.1;
+    text-align: center;
   }
 `;
 
 export const TestLoginButton: React.FC<TestLoginButtonProps> = ({
   onClick,
   disabled = false,
+  label = "테스트로 계속하기",
+  description,
+  icon = "T",
 }) => {
   return (
     <Button $disabled={disabled} onClick={onClick} disabled={disabled}>
-      <Icon>T</Icon>
-      <ButtonText>테스트로 계속하기</ButtonText>
+      <Icon>{icon}</Icon>
+      <TextContainer>
+        <ButtonText>{label}</ButtonText>
+        {description && <Description>{description}</Description>}
+      </TextContainer>
     </Button>
   );
 };

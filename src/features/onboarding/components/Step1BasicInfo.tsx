@@ -41,15 +41,28 @@ const Label = styled.label`
 const Input = styled.input`
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid ${({ theme }) => theme.colors.border};
+  border: 1.5px solid ${({ theme }) => theme.colors.border.light};
   border-radius: 8px;
   font-size: 14px;
-  background: ${({ theme }) => theme.colors.background};
+  background: ${({ theme }) => theme.colors.white};
   color: ${({ theme }) => theme.colors.text.primary};
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
+  }
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.colors.gray100};
+    border-color: ${({ theme }) => theme.colors.gray300};
+    color: ${({ theme }) => theme.colors.text.disabled};
+    cursor: not-allowed;
   }
 `;
 
@@ -63,11 +76,12 @@ const GenderButton = styled.button<{ $selected: boolean }>`
   padding: 12px;
   border: 1.5px solid
     ${({ theme, $selected }) =>
-      $selected ? theme.colors.primary : theme.colors.border};
+      $selected ? theme.colors.primary : theme.colors.border.light};
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  background: transparent;
+  background: ${({ theme, $selected }) =>
+    $selected ? `${theme.colors.primary}10` : theme.colors.white};
   color: ${({ theme, $selected }) =>
     $selected ? theme.colors.primary : theme.colors.text.primary};
   cursor: pointer;
@@ -75,24 +89,22 @@ const GenderButton = styled.button<{ $selected: boolean }>`
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme, $selected }) =>
+      $selected ? `${theme.colors.primary}15` : `${theme.colors.primary}05`};
   }
-`;
-
-const PhoneInputBox = styled.div`
-  background: ${({ theme }) => theme.colors.gray50};
-  border-radius: 8px;
 `;
 
 const PhoneInputGroup = styled.div`
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
 `;
 
 const VerifyButton = styled.button<{
   $verified: boolean;
   $variant?: "primary" | "secondary";
+  $fullWidth?: boolean;
 }>`
+  width: ${({ $fullWidth }) => ($fullWidth ? "100%" : "auto")};
   padding: 12px 16px;
   border: 1px solid ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
@@ -101,7 +113,7 @@ const VerifyButton = styled.button<{
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  min-width: 120px;
+  min-width: ${({ $fullWidth }) => ($fullWidth ? "auto" : "120px")};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -358,80 +370,83 @@ export const Step1BasicInfo: React.FC<Props> = ({
 
       <FormGroup>
         <Label>휴대번호 *</Label>
-        <PhoneInputBox>
-          <PhoneInputGroup>
-            <Input
-              type="tel"
-              placeholder="01012345678"
-              value={formData.phoneNumber}
-              onChange={handlePhoneNumberChange}
-              disabled={formData.phoneVerified}
-            />
-            <VerifyButton
-              type="button"
-              $variant={
-                isVerificationCodeSent && !formData.phoneVerified
-                  ? "secondary"
-                  : "primary"
-              }
-              $verified={formData.phoneVerified}
-              onClick={handleSendCode}
-              disabled={
-                !formData.phoneNumber || isSendingCode || formData.phoneVerified
-              }
-            >
-              {formData.phoneVerified
-                ? "인증 완료"
-                : isVerificationCodeSent
-                ? "재전송"
-                : isSendingCode
-                ? "전송 중.."
-                : "인증코드 전송"}
-            </VerifyButton>
-          </PhoneInputGroup>
-
-          {isVerificationCodeSent && !formData.phoneVerified && (
-            <PhoneInputGroup>
-              <Input
-                type="text"
-                placeholder="인증코드 입력"
-                value={formData.verificationCode}
-                onChange={(e) =>
-                  updateFormData({ verificationCode: e.target.value })
-                }
-              />
-              <VerifyButton
-                type="button"
-                $variant="secondary"
-                $verified={false}
-                onClick={handleVerifyCode}
-                disabled={!formData.verificationCode || isVerifyingCode}
-              >
-                {isVerifyingCode ? "확인 중.." : "인증 완료"}
-              </VerifyButton>
-            </PhoneInputGroup>
-          )}
-
-          {verificationStatus.message && (
-            <VerifyStatus status={verificationStatus.status}>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "4px" }}
-              >
-                {verificationStatus.status === "success" && <Check size={12} />}
-                {verificationStatus.message}
-              </div>
-              {timerActive && timeLeft > 0 && (
-                <Timer>{formatTime(timeLeft)}</Timer>
-              )}
-            </VerifyStatus>
-          )}
-        </PhoneInputBox>
+        <Input
+          type="tel"
+          placeholder="01012345678"
+          value={formData.phoneNumber}
+          onChange={handlePhoneNumberChange}
+          disabled={formData.phoneVerified}
+        />
         {getPhoneValidation() && (
           <FieldValidationMessage>
             {getPhoneValidation()}
           </FieldValidationMessage>
         )}
       </FormGroup>
+
+      <FormGroup>
+        <VerifyButton
+          type="button"
+          $variant={
+            isVerificationCodeSent && !formData.phoneVerified
+              ? "secondary"
+              : "primary"
+          }
+          $verified={formData.phoneVerified}
+          $fullWidth={true}
+          onClick={handleSendCode}
+          disabled={
+            !formData.phoneNumber || isSendingCode || formData.phoneVerified
+          }
+        >
+          {formData.phoneVerified
+            ? "인증 완료"
+            : isVerificationCodeSent
+            ? "재전송"
+            : isSendingCode
+            ? "전송 중.."
+            : "인증코드 전송"}
+        </VerifyButton>
+      </FormGroup>
+
+      {isVerificationCodeSent && !formData.phoneVerified && (
+        <FormGroup>
+          <Label>인증코드 *</Label>
+          <PhoneInputGroup>
+            <Input
+              type="text"
+              placeholder="인증코드 입력"
+              value={formData.verificationCode}
+              onChange={(e) =>
+                updateFormData({ verificationCode: e.target.value })
+              }
+            />
+            <VerifyButton
+              type="button"
+              $variant="secondary"
+              $verified={false}
+              onClick={handleVerifyCode}
+              disabled={!formData.verificationCode || isVerifyingCode}
+            >
+              {isVerifyingCode ? "확인 중.." : "인증 완료"}
+            </VerifyButton>
+          </PhoneInputGroup>
+        </FormGroup>
+      )}
+
+      {verificationStatus.message && (
+        <VerifyStatus status={verificationStatus.status}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "4px" }}
+          >
+            {verificationStatus.status === "success" && <Check size={12} />}
+            {verificationStatus.message}
+          </div>
+          {timerActive && timeLeft > 0 && (
+            <Timer>{formatTime(timeLeft)}</Timer>
+          )}
+        </VerifyStatus>
+      )}
     </Container>
   );
 };

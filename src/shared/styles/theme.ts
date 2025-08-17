@@ -57,6 +57,7 @@ export const lightTheme = {
     background: {
       primary: "#FFFFFF",
       secondary: "#F9F6F2",
+      tertiary: "#F3EEE7",
     },
     backgroundAlt: "#F9F6F2",
     surface: "#FFFFFF", // 카드, 입력창 등
@@ -66,6 +67,7 @@ export const lightTheme = {
     // Border
     border: {
       light: "#E5E1DC",
+      primary: "#E5E1DC",
     },
     divider: "#F3EEE7",
 
@@ -73,6 +75,7 @@ export const lightTheme = {
     text: {
       primary: "#1C1917", //진한 컬러
       secondary: "#78716C", // 설명, 서브텍스트
+      tertiary: "#A8A29E", // 더 연한 서브텍스트
       disabled: "#CFC9C1", // 비활성
       inverse: "#FFFFFF", // 다크배경 위 텍스트
       placeholder: "#A8A29E", // 입력창 플레이스홀더
@@ -123,6 +126,23 @@ export const lightTheme = {
     fast: "150ms cubic-bezier(0.4,0,0.2,1)",
     normal: "200ms cubic-bezier(0.4,0,0.2,1)",
     slow: "300ms cubic-bezier(0.4,0,0.2,1)",
+  },
+  typography: {
+    fontSize: {
+      xs: "12px",
+      sm: "14px",
+      md: "16px",
+      lg: "18px",
+      xl: "20px",
+      xxl: "24px",
+    },
+    fontWeight: {
+      light: 300,
+      regular: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+    },
   },
 };
 
@@ -185,6 +205,7 @@ export const darkTheme = {
     background: {
       primary: "#23242A",
       secondary: "#18191D",
+      tertiary: "#2C2D33",
     },
     backgroundAlt: "#18191D",
     surface: "#23242A", // 카드, 입력창 등
@@ -194,6 +215,7 @@ export const darkTheme = {
     // Border
     border: {
       light: "#35363C",
+      primary: "#35363C",
     },
     divider: "#2C2D33",
 
@@ -201,6 +223,7 @@ export const darkTheme = {
     text: {
       primary: "#F9FAFB", // 진한 컬러
       secondary: "#A0A1A6", // 설명, 서브텍스트
+      tertiary: "#7A7B80", // 더 연한 서브텍스트
       disabled: "#44454B", // 비활성
       inverse: "#18191D", // 다크배경 위 텍스트
       placeholder: "#5A5B60", // 입력창 플레이스홀더
@@ -251,6 +274,23 @@ export const darkTheme = {
     fast: "150ms cubic-bezier(0.4,0,0.2,1)",
     normal: "200ms cubic-bezier(0.4,0,0.2,1)",
     slow: "300ms cubic-bezier(0.4,0,0.2,1)",
+  },
+  typography: {
+    fontSize: {
+      xs: "12px",
+      sm: "14px",
+      md: "16px",
+      lg: "18px",
+      xl: "20px",
+      xxl: "24px",
+    },
+    fontWeight: {
+      light: 300,
+      regular: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+    },
   },
 };
 
