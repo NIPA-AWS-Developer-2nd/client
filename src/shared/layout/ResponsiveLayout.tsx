@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import styled from "styled-components";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Search,
   Bell,
   ArrowLeft,
   Home,
@@ -22,11 +21,12 @@ import { InstallPrompt, BrandingContent } from "../components/common";
 import { useAlert } from "../hooks/useAlert";
 import { HelpModal } from "../components/common/HelpModal";
 import { LocationVerificationModal } from "../../features/mission/components/LocationVerificationModal";
-import { ActivityLogModal } from "../../features/home/components";
+import { NotificationListModal } from "../components/common";
 import { deviceDetection, viewportManager } from "../utils";
 import { useLocationVerification } from "../hooks";
 import { useHomeData } from "../../features/home/hooks";
 import { useHomeStore } from "../../shared/store/homeStore";
+import { useNotificationHistory } from "../hooks/useNotificationHistory";
 import { useLocationStore } from "../store/locationStore";
 import { ROUTES } from "../constants/routes";
 import { PointBalance } from "../../features/point/components/PointBalance";
@@ -272,6 +272,7 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
   border-radius: ${({ theme }) => theme.borderRadius.sm};
   color: ${({ theme }) => theme.colors.text.secondary};
   transition: ${({ theme }) => theme.transitions.fast};
+  position: relative;
 
   &:hover {
     background: ${({ theme }) => theme.colors.gray100};
@@ -287,6 +288,24 @@ const HeaderIconButton = styled.button<{ $isMobile: boolean }>`
     outline: none;
     box-shadow: none;
   }
+`;
+
+const NotificationBadge = styled.div`
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: ${({ theme }) => theme.colors.danger};
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 `;
 
 // 메인 컨텐츠
@@ -515,6 +534,7 @@ interface ResponsiveLayoutProps {
   noPadding?: boolean;
   noScroll?: boolean;
   hideHeaderActions?: boolean;
+  hidePointDisplay?: boolean;
 }
 
 export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
@@ -529,12 +549,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   noPadding: _noPadding = false,
   noScroll: _noScroll = false,
   hideHeaderActions = false,
+  hidePointDisplay = false,
 }) => {
   const { info } = useAlert();
   const [isMobile, setIsMobile] = useState(deviceDetection.isMobile());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [showActivityLogModal, setShowActivityLogModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
@@ -585,7 +606,10 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   }, [location.pathname]);
 
   // 홈 데이터 가져오기 (활동 로그용)
-  const { data: homeData } = useHomeData({ limit: 20 });
+  useHomeData({ limit: 20 });
+
+  // 알림 통계 조회
+  const { stats } = useNotificationHistory();
 
   // 모임 채널 페이지에서 호스트 여부 확인
   const { getMeetingDetail } = useHomeStore();
@@ -865,12 +889,9 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
     }
   };
 
-  const handleSearch = () => {
-    info("검색 기능을 준비 중입니다.");
-  };
 
   const handleNotifications = () => {
-    setShowActivityLogModal(true);
+    setShowNotificationModal(true);
   };
 
   const handleShare = async () => {
@@ -966,7 +987,7 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
       label: "번개",
       requiresLocationVerification: true,
     },
-    { path: "/donation", icon: HandHeart, label: "기부" },
+    { path: "/market", icon: ShoppingBag, label: "마켓" },
     { path: "/my", icon: User, label: "마이" },
   ];
 
@@ -1024,8 +1045,8 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
             <HeaderRight>
               {customHeaderActions || (
                 <>
-                  {/* 포인트 표시 - 모든 페이지에서 표시 */}
-                  {!hideHeaderActions && (
+                  {/* 포인트 표시 - hidePointDisplay 또는 hideHeaderActions에 따라 제어 */}
+                  {!hideHeaderActions && !hidePointDisplay && (
                     <PointBalance
                       size="sm"
                       showLabel={false}
@@ -1035,19 +1056,6 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
 
                   {!hideHeaderActions && (
                     <>
-                      {/* 검색 버튼 - 미션/모임 상세 페이지와 마이페이지, 모임 생성 페이지 제외 */}
-                      {!routeInfo.isMyPage &&
-                        !routeInfo.isMySettingsPage &&
-                        !routeInfo.isMissionDetail &&
-                        !routeInfo.isMeetingDetail &&
-                        !routeInfo.isMeetingCreate && (
-                          <HeaderIconButton
-                            $isMobile={isMobile}
-                            onClick={handleSearch}
-                          >
-                            <Search size={isMobile ? 18 : 20} />
-                          </HeaderIconButton>
-                        )}
 
                       {/* 알림 버튼 - 마이페이지/설정/모임생성 제외 모든 페이지 */}
                       {!routeInfo.isMyPage &&
@@ -1058,6 +1066,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                             onClick={handleNotifications}
                           >
                             <Bell size={isMobile ? 18 : 20} />
+                            {stats && stats.unread > 0 && (
+                              <NotificationBadge>
+                                {stats.unread > 99 ? '99+' : stats.unread}
+                              </NotificationBadge>
+                            )}
                           </HeaderIconButton>
                         )}
 
@@ -1101,6 +1114,11 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
                         onClick={handleNotifications}
                       >
                         <Bell size={isMobile ? 18 : 20} />
+                        {stats && stats.unread > 0 && (
+                          <NotificationBadge>
+                            {stats.unread > 99 ? '99+' : stats.unread}
+                          </NotificationBadge>
+                        )}
                       </HeaderIconButton>
                       <HeaderIconButton
                         $isMobile={isMobile}
@@ -1171,11 +1189,10 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
         isMobile={isMobile}
       />
 
-      {/* 활동 로그 모달 */}
-      <ActivityLogModal
-        isOpen={showActivityLogModal}
-        onClose={() => setShowActivityLogModal(false)}
-        activityLogs={homeData?.activityLogs || []}
+      {/* 알림 목록 모달 */}
+      <NotificationListModal
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
       />
 
       {/* 위치 인증 모달 */}

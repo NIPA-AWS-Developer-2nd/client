@@ -20,7 +20,7 @@ import {
   XCircle,
   RefreshCw,
 } from "lucide-react";
-import { deviceDetection } from "../../../../shared/utils";
+import { deviceDetection, formatLevel } from "../../../../shared/utils";
 import { useHomeStore } from "../../../../shared/store/homeStore";
 import { useAuth } from "../../../auth/hooks/useAuth";
 import { useAlert } from "../../../../shared/components/common";
@@ -31,6 +31,7 @@ import jsQR from "jsqr";
 import { attendanceApi } from "../../api";
 import { QRTestHelper } from "../../components";
 import { Chat } from "../../components/Chat";
+import { MissionVerificationForm } from "../../components/MissionVerificationForm";
 import { Skeleton } from "../../../../shared/components/ui";
 import * as S from "./MeetingChannelPage.styles";
 
@@ -258,12 +259,14 @@ export const MeetingChannelPage: React.FC = () => {
       background: {
         primary: "rgb(240, 250, 252)", // 매우 연한 틸 배경
         secondary: "rgb(245, 252, 253)", // 조금 더 밝은 틸 배경
+        tertiary: "rgb(235, 248, 250)", // 세 번째 틸 배경
       },
       surface: "#ffffff", // 카드 배경은 흰색 유지
       card: "rgb(220, 245, 248)", // 연한 틸 강조 배경
       // 보더와 회색톤들도 틸 계열로
       border: {
         light: "rgb(180, 235, 242)", // 연한 틸 보더
+        primary: "rgb(180, 235, 242)", // 연한 틸 보더
       },
       divider: "rgb(153, 228, 237)", // 중간 틸 보더
       gray50: "rgb(248, 252, 253)", // 매우 연한 틸-그레이
@@ -1174,13 +1177,13 @@ export const MeetingChannelPage: React.FC = () => {
                         )}
                       </S.ParticipantName>
                       <S.ParticipantMeta $isMobile={isMobile}>
-                        Lv.{participant.level}
+                        {formatLevel(participant.level)}
                         {participant.mbti && ` · ${participant.mbti}`}
                       </S.ParticipantMeta>
                     </S.ParticipantInfo>
                     
                     {/* 출석/노쇼 상태를 오른쪽에 표시 */}
-                    {meetingDetail.status === "active" && (
+                    {(meetingDetail.status === "active" || meetingDetail.status === "completed") && (
                       <div style={{ marginLeft: 'auto', alignSelf: 'center' }}>
                         {attendedUserIds.has(participant.id) ? (
                           <span
@@ -1410,9 +1413,10 @@ export const MeetingChannelPage: React.FC = () => {
         }
         return (
           <S.VerificationContent $isMobile={isMobile}>
-            <S.ComingSoon $isMobile={isMobile}>
-              인증 기능을 준비 중입니다...
-            </S.ComingSoon>
+            <MissionVerificationForm 
+              meetingId={meetingId!} 
+              isMobile={isMobile}
+            />
           </S.VerificationContent>
         );
 
