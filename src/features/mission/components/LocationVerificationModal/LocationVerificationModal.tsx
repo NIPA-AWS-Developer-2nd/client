@@ -26,6 +26,7 @@ export const LocationVerificationModal: React.FC<
 > = ({
   isOpen,
   onClose,
+  districtId,
   regionBoundary = {
     lat: 37.5665, // 서울 기본 위치
     lng: 126.978,
@@ -100,6 +101,16 @@ export const LocationVerificationModal: React.FC<
       loadDistricts();
     }
   }, [isOpen, currentStep]);
+
+  // 온보딩에서 선택한 지역이 있으면 자동으로 설정
+  useEffect(() => {
+    if (districtId && districts.length > 0 && !selectedDistrict) {
+      const preselectedDistrict = districts.find(d => d.id === districtId);
+      if (preselectedDistrict && preselectedDistrict.isActive) {
+        setSelectedDistrict(preselectedDistrict);
+      }
+    }
+  }, [districtId, districts, selectedDistrict]);
 
   // 네이버 지도 API 로드
   useEffect(() => {

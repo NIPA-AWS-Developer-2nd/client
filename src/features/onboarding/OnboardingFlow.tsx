@@ -114,7 +114,7 @@ const ProgressDot = styled.div<{ $active: boolean; $completed: boolean }>`
 const Content = styled.main`
   flex: 1;
   padding: 24px;
-  overflow-y: visible;
+  overflow-y: auto;
   min-height: 0;
 `;
 
