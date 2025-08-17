@@ -15,6 +15,7 @@ import {
 import { meetingApiService } from "../../../../shared/services/meetingApi";
 import { attendanceApiService } from "../../../../shared/services/attendanceApi";
 import type { MeetingDetailDto } from "../../../../shared/services/meetingApi";
+import type { MyMeetingDetail } from "../../../../shared/store/homeStore";
 import type {
   AttendanceStatusResponse,
   MyAttendanceResponse,
@@ -202,7 +203,7 @@ export const MeetingDetailPage: React.FC = () => {
   };
 
   // MeetingDetailDto를 MyMeetingDetail 형태로 변환
-  const convertToMyMeetingDetail = useCallback((data: MeetingDetailDto): MeetingDetailDto => {
+  const convertToMyMeetingDetail = useCallback((data: MeetingDetailDto): MyMeetingDetail => {
     // currentUserId가 없으면 기본값 사용
     if (!currentUserId) {
       console.log("⚠️ currentUserId가 없어서 기본값으로 변환");
@@ -212,15 +213,20 @@ export const MeetingDetailPage: React.FC = () => {
         description: data.mission?.description,
         scheduledAt: data.scheduledAt,
         recruitUntil: data.recruitUntil,
-        status: data.status,
+        status: data.status as "recruiting" | "ready" | "active" | "completed",
         maxParticipants: data.mission?.participants || 0,
         currentParticipants: data.currentParticipants || 0,
         isHost: false,
         meJoined: false,
-        mission: data.mission,
-        hostUserId: data.hostUserId,
-        host: data.host,
-        participants: data.participantList || [],
+        mission: data.mission ? {
+          title: data.mission.title,
+          location: data.mission.location || undefined,
+          precautions: data.mission.precautions || [],
+          basePoints: data.mission.basePoints,
+          difficulty: data.mission.difficulty,
+          thumbnailUrl: data.mission.thumbnailUrl,
+        } : undefined,
+        participants: [],
       };
     }
 
@@ -251,15 +257,25 @@ export const MeetingDetailPage: React.FC = () => {
       description: data.mission?.description,
       scheduledAt: data.scheduledAt,
       recruitUntil: data.recruitUntil,
-      status: data.status,
-      maxParticipants: data.maxParticipants || 0,
+      status: data.status as "recruiting" | "ready" | "active" | "completed",
+      maxParticipants: data.mission?.participants || 0,
       currentParticipants: data.currentParticipants || 0,
       isHost,
       meJoined,
-      mission: data.mission,
-      hostUserId: data.hostUserId,
-      host: data.host,
-      participants: data.participantList || [],
+      mission: data.mission ? {
+        title: data.mission.title,
+        location: data.mission.location || undefined,
+        precautions: data.mission.precautions || [],
+        basePoints: data.mission.basePoints,
+        difficulty: data.mission.difficulty,
+        thumbnailUrl: data.mission.thumbnailUrl,
+      } : undefined,
+      participants: (data.participantList || []).map(p => ({
+        id: p.userId,
+        userId: p.userId,
+        nickname: p.nickname,
+        profileImageUrl: p.profileImageUrl,
+      })),
     };
   }, [currentUserId]);
 
