@@ -24,13 +24,13 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['react', 'react-dom'],
-            router: ['react-router-dom'],
-            ui: ['styled-components', 'lucide-react'],
-            utils: ['zustand', 'ulid'],
-          }
-        }
-      }
+            vendor: ["react", "react-dom"],
+            router: ["react-router-dom"],
+            ui: ["styled-components", "lucide-react"],
+            utils: ["zustand", "ulid"],
+          },
+        },
+      },
     },
     server: {
       // 개발 서버에서 캐시 비활성화
@@ -51,8 +51,8 @@ export default defineConfig(({ mode }) => {
           secure: false,
           bypass: (req) => {
             // Accept 헤더가 text/html이면 React 라우팅으로 처리
-            if (req.headers.accept?.includes('text/html')) {
-              return '/index.html';
+            if (req.headers.accept?.includes("text/html")) {
+              return "/index.html";
             }
           },
         },
@@ -62,8 +62,8 @@ export default defineConfig(({ mode }) => {
           secure: false,
           bypass: (req) => {
             // Accept 헤더가 text/html이면 React 라우팅으로 처리
-            if (req.headers.accept?.includes('text/html')) {
-              return '/index.html';
+            if (req.headers.accept?.includes("text/html")) {
+              return "/index.html";
             }
           },
         },
@@ -73,8 +73,8 @@ export default defineConfig(({ mode }) => {
           secure: false,
           bypass: (req) => {
             // Accept 헤더가 text/html이면 React 라우팅으로 처리
-            if (req.headers.accept?.includes('text/html')) {
-              return '/index.html';
+            if (req.headers.accept?.includes("text/html")) {
+              return "/index.html";
             }
           },
         },
@@ -134,8 +134,8 @@ export default defineConfig(({ mode }) => {
           "icons/icon-512x512.png",
         ],
         manifest: {
-          name: "Halsaram",
-          short_name: "Halsaram",
+          name: "할사람",
+          short_name: "할사람",
           description: "지역 기반 번개모임 커뮤니티",
           theme_color: "#000000",
           background_color: "#000000",

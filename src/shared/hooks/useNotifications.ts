@@ -5,6 +5,7 @@ import {
   type NotificationPermissionState, 
   type PushSubscriptionData 
 } from '../utils/pushNotifications';
+import { apiUrl } from '../utils/api';
 
 interface UseNotificationsReturn {
   permissionState: NotificationPermissionState;
@@ -123,7 +124,7 @@ export const useNotifications = (): UseNotificationsReturn => {
         return false;
       }
 
-      const response = await fetch('http://localhost:3000/notifications/subscribe', {
+      const response = await fetch(apiUrl('/notifications/subscribe'), {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -168,7 +169,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
       if (isAuthenticated) {
         try {
-          await fetch('http://localhost:3000/notifications/unsubscribe', {
+          await fetch(apiUrl('/notifications/unsubscribe'), {
             method: 'DELETE',
             credentials: 'include',
             headers: {

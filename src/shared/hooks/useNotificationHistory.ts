@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { apiUrl } from '../utils/api';
 
 export interface NotificationItem {
   id: string;
@@ -53,7 +54,7 @@ export const useNotificationHistory = (): UseNotificationHistoryReturn => {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:3000/notifications/my?page=${page}&limit=${ITEMS_PER_PAGE}`,
+        apiUrl(`/notifications/my?page=${page}&limit=${ITEMS_PER_PAGE}`),
         {
           method: 'GET',
           credentials: 'include',
@@ -88,7 +89,7 @@ export const useNotificationHistory = (): UseNotificationHistoryReturn => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/notifications/stats', {
+      const response = await fetch(apiUrl('/notifications/stats'), {
         method: 'GET',
         credentials: 'include',
       });
@@ -110,7 +111,7 @@ export const useNotificationHistory = (): UseNotificationHistoryReturn => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/notifications/${notificationId}/read`, {
+      const response = await fetch(apiUrl(`/notifications/${notificationId}/read`), {
         method: 'POST',
         credentials: 'include',
       });
@@ -132,7 +133,7 @@ export const useNotificationHistory = (): UseNotificationHistoryReturn => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/notifications/${notificationId}`, {
+      const response = await fetch(apiUrl(`/notifications/${notificationId}`), {
         method: 'DELETE',
         credentials: 'include',
       });
